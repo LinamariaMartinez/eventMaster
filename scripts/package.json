@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "scripts": {
+    "debug": "node debug-supabase.js",
+    "setup-db": "node setup-database.js",
+    "status": "node final-status.js"
+  }
+}

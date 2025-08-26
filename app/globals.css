@@ -1,26 +1,188 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    /* Paleta y diseño Light Mode - Luxury Event Planner */
+    --background: 0 0% 100%; /* blanco */
+    --foreground: 213 27% 18%; /* #2D2D2D negro suave */
+    --card: 0 0% 100%; /* blanco */
+    --card-foreground: 213 27% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 27% 18%;
+
+    /* Colores primarios */
+    --primary: 336 29% 42%; /* #8B4B6B Burgundy */
+    --primary-foreground: 40 40% 98%; /* #FDFCFA crema claro */
+    --secondary: 40 40% 96%; /* #F5F1E8 crema */
+    --secondary-foreground: 336 39% 32%; /* #6B3B5B Burgundy oscuro */
+    --muted: 40 40% 96%; /* crema */
+    --muted-foreground: 30 8% 54%; /* #8B8680 gris cálido */
+
+    --accent: 336 39% 32%; /* Burgundy oscuro */
+    --accent-foreground: 40 40% 98%; /* crema claro */
+
+    --destructive: 0 84.2% 60.2%; /* rojo destructivo */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 17% 90%; /* Beige suave #EAE3D6 */
+    --input: 30 17% 90%; /* Beige suave */
+    --ring: 336 29% 42%; /* Burgundy */
+
+    /* Gráficos */
+    --chart-1: 336 29% 42%;
+    --chart-2: 40 40% 94%;
+    --chart-3: 336 39% 32%;
+    --chart-4: 30 8% 54%;
+    --chart-5: 40 40% 98%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar light */
+    --sidebar: 0.985 0 0; /* blanco */
+    --sidebar-foreground: 213 27% 18%;
+    --sidebar-primary: 336 29% 42%;
+    --sidebar-primary-foreground: 40 40% 98%;
+    --sidebar-accent: 336 39% 32%;
+    --sidebar-accent-foreground: 40 40% 98%;
+    --sidebar-border: 30 17% 90%;
+    --sidebar-ring: 336 29% 42%;
+
+    /* Fuentes */
+    --font-playfair: "Playfair Display", serif;
+    --font-inter: "Inter", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+    /* Paleta Dark Mode */
+    --background: 0 0% 3.9%; /* negro suave */
+    --foreground: 0 0% 98%; /* blanco */
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%; /* blanco */
+    --primary-foreground: 0 0% 9%; /* negro oscuro */
+    --secondary: 0 0% 14.9%; /* gris oscuro */
+    --secondary-foreground: 0 0% 98%; /* blanco */
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+
+    /* Charts Dark */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    /* Sidebar dark */
+    --sidebar: 0.205 0 0;
+    --sidebar-foreground: 0.985 0 0;
+    --sidebar-primary: 0.488 0.243 264.376;
+    --sidebar-primary-foreground: 0.985 0 0;
+    --sidebar-accent: 0.269 0 0;
+    --sidebar-accent-foreground: 0.985 0 0;
+    --sidebar-border: 0.269 0 0;
+    --sidebar-ring: 0.439 0 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base layer styling */
+@layer base {
+    /* Elementos con borde y outline personalizados */
+    * {
+        border-color: hsl(var(--border));
+        outline-color: hsl(var(--ring)) !important;
+    }
+
+    body {
+        font-family: var(--font-inter);
+        line-height: 1.6;
+        color: hsl(var(--foreground));
+        background-color: hsl(var(--background));
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-playfair);
+        font-weight: 600;
+        line-height: 1.2;
+        color: hsl(var(--foreground));
+    }
+
+    small,
+    p,
+    span {
+        color: hsl(var(--muted-foreground));
+    }
+
+    /* Sombras especiales */
+    .luxury-shadow {
+        box-shadow:
+            0 10px 25px -5px rgba(139, 75, 107, 0.15),
+            0 4px 10px -2px rgba(139, 75, 107, 0.1);
+    }
+
+    .luxury-shadow-lg {
+        box-shadow:
+            0 20px 40px -10px rgba(139, 75, 107, 0.2),
+            0 8px 20px -4px rgba(139, 75, 107, 0.15);
+    }
+
+    /* Gradientes marca */
+    .luxury-gradient {
+        background: linear-gradient(135deg, #8b4b6b 0%, #6b3b5b 100%);
+    }
+
+    .luxury-gradient-subtle {
+        background: linear-gradient(135deg, #f5f1e8 0%, #fdfcfa 100%);
+    }
+
+    .burgundy-gradient {
+        background: linear-gradient(135deg, #8b4b6b 0%, #a66b85 100%);
+    }
+
+    .cream-gradient {
+        background: linear-gradient(135deg, #fdfcfa 0%, #f5f1e8 100%);
+    }
+
+    /* Sombras intensas */
+    .shadow-brutal {
+        box-shadow: 0 10px 25px -5px rgba(139, 75, 107, 0.3);
+    }
+
+    .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Scroll área ocultar scrollbars para Radix */
+[data-radix-scroll-area-viewport] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    display: none;
 }
