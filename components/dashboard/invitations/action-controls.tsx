@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Save, Download, FileImage, FileText, Mail, Send, Users, ChevronDown } from "lucide-react"
-import type { InvitationData } from "@/app/(dashboard)/invitations/page"
+import type { InvitationData } from "@/app/(dashboard)/editor/page"
 
 interface ActionControlsProps {
   invitationData: InvitationData
@@ -35,7 +35,7 @@ const mockGuests = [
 ]
 
 export function ActionControls({
-  invitationData,
+  invitationData: _invitationData,
   onSave,
   onExportPDF,
   onExportImage,

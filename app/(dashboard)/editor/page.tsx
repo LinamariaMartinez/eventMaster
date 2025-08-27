@@ -188,6 +188,22 @@ export default function InvitacionesPage() {
             </Button>
             <ActionControls
               invitationData={invitationData}
+              onSave={async () => {
+                // TODO: Implementar guardado
+                console.log("Guardando invitación...", invitationData);
+              }}
+              onExportPDF={async () => {
+                // TODO: Implementar export PDF
+                console.log("Exportando PDF...");
+              }}
+              onExportImage={async () => {
+                // TODO: Implementar export imagen
+                console.log("Exportando imagen...");
+              }}
+              onSendEmail={async () => {
+                // TODO: Implementar envío email
+                console.log("Enviando por email...");
+              }}
             />
           </div>
         </div>

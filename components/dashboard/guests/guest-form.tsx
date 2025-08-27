@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { X, Plus } from "lucide-react"
-import type { Guest } from "@/app/(dashboard)/invitados/page"
+import type { Guest } from "@/app/(dashboard)/guests/page"
 
 interface GuestFormProps {
   initialData?: Guest

@@ -17,7 +17,7 @@ import {
   ExternalLink,
   Clock,
 } from "lucide-react"
-import type { Notification } from "@/app/(dashboard)/notificaciones/page"
+import type { Notification } from "@/app/(dashboard)/notifications/page"
 
 interface NotificationListProps {
   notifications: Notification[]

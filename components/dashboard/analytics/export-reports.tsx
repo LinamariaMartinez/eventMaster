@@ -39,7 +39,7 @@ export function ExportReports() {
     setSelectedReports([])
   }
 
-  const handleQuickExport = (format: string) => {
+  const handleQuickExport = (_format: string) => {
   }
 
   return (

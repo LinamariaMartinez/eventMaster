@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
     <main className="landing-page">
@@ -9,10 +11,12 @@ export default function Home() {
             <a href="#eventos">Eventos</a>
           </div>
           <div className="nav-logo">
-            <img
+            <Image
               src="/logo-catalina.png"
               alt="Catalina Lezama ED"
               className="nav-logo-img"
+              width={40}
+              height={40}
             />
             <h1>Catalina Lezama ED</h1>
           </div>

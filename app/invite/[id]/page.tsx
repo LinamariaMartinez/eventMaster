@@ -83,7 +83,7 @@ export default function InvitationPage({ params }: PageProps) {
 
   const watchResponse = form.watch("response")
 
-  const handleSubmit = async (data: ConfirmationForm) => {
+  const handleSubmit = async (_data: ConfirmationForm) => {
     setIsLoading(true)
 
     try {

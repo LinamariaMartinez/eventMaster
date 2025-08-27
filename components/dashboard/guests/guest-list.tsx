@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2, Mail, Phone, ArrowUpDown } from "lucide-react"
-import type { Guest } from "@/app/(dashboard)/invitados/page"
+import type { Guest } from "@/app/(dashboard)/guests/page"
 
 interface GuestListProps {
   guests: Guest[]

@@ -1,66 +1,66 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard/layout"
-import { TemplateSelector } from "@/components/dashboard/invitations/template-selector"
-import { VisualEditor } from "@/components/dashboard/invitations/visual-editor"
-import { StylePanel } from "@/components/dashboard/invitations/style-panel"
-import { Preview } from "@/components/dashboard/invitations/preview"
-import { ActionControls } from "@/components/dashboard/invitations/action-controls"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { DashboardLayout } from "@/components/dashboard/layout";
+import { TemplateSelector } from "@/components/dashboard/invitations/template-selector";
+import { VisualEditor } from "@/components/dashboard/invitations/visual-editor";
+import { StylePanel } from "@/components/dashboard/invitations/style-panel";
+import { Preview } from "@/components/dashboard/invitations/preview";
+import { ActionControls } from "@/components/dashboard/invitations/action-controls";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff } from "lucide-react";
 
 export interface InvitationTemplate {
-  id: string
-  name: string
-  thumbnail: string
+  id: string;
+  name: string;
+  thumbnail: string;
   content: {
-    title: string
-    description: string
-    date: string
-    time: string
-    location: string
-    backgroundColor: string
-    textColor: string
-    font: string
-  }
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+    location: string;
+    backgroundColor: string;
+    textColor: string;
+    font: string;
+  };
 }
 
 export interface InvitationData {
-  template: InvitationTemplate | null
+  template: InvitationTemplate | null;
   content: {
-    title: string
-    description: string
-    date: string
-    time: string
-    location: string
-    guestName: string
-    eventUrl: string
-  }
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+    location: string;
+    guestName: string;
+    eventUrl: string;
+  };
   styles: {
-    backgroundColor: string
-    textColor: string
-    font: string
-    fontSize: string
-    alignment: string
-    backgroundType: "solid" | "gradient"
-    gradientFrom: string
-    gradientTo: string
-  }
+    backgroundColor: string;
+    textColor: string;
+    font: string;
+    fontSize: string;
+    alignment: string;
+    backgroundType: "solid" | "gradient";
+    gradientFrom: string;
+    gradientTo: string;
+  };
   images: Array<{
-    id: string
-    url: string
-    x: number
-    y: number
-    width: number
-    height: number
-  }>
+    id: string;
+    url: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
 }
 
 export default function InvitacionesPage() {
-  const [showPreview, setShowPreview] = useState(false)
-  const [viewMode, setViewMode] = useState<"desktop" | "mobile">("desktop")
+  const [showPreview, setShowPreview] = useState(false);
+  const [viewMode, setViewMode] = useState<"desktop" | "mobile">("desktop");
   const [invitationData, setInvitationData] = useState<InvitationData>({
     template: null,
     content: {
@@ -83,7 +83,7 @@ export default function InvitacionesPage() {
       gradientTo: "#e6d7b7",
     },
     images: [],
-  })
+  });
 
   const handleTemplateSelect = (template: InvitationTemplate) => {
     setInvitationData((prev) => ({
@@ -103,8 +103,8 @@ export default function InvitacionesPage() {
         textColor: template.content.textColor,
         font: template.content.font,
       },
-    }))
-  }
+    }));
+  };
 
   const handleContentChange = (field: string, value: string) => {
     setInvitationData((prev) => ({
@@ -113,8 +113,8 @@ export default function InvitacionesPage() {
         ...prev.content,
         [field]: value,
       },
-    }))
-  }
+    }));
+  };
 
   const handleStyleChange = (field: string, value: string) => {
     setInvitationData((prev) => ({
@@ -123,15 +123,22 @@ export default function InvitacionesPage() {
         ...prev.styles,
         [field]: value,
       },
-    }))
-  }
+    }));
+  };
 
-  const handleImageAdd = (image: { id: string; url: string; x: number; y: number; width: number; height: number }) => {
+  const handleImageAdd = (image: {
+    id: string;
+    url: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => {
     setInvitationData((prev) => ({
       ...prev,
       images: [...prev.images, image],
-    }))
-  }
+    }));
+  };
 
   const handleImageUpdate = (
     imageId: string,
@@ -139,16 +146,18 @@ export default function InvitacionesPage() {
   ) => {
     setInvitationData((prev) => ({
       ...prev,
-      images: prev.images.map((img) => (img.id === imageId ? { ...img, ...updates } : img)),
-    }))
-  }
+      images: prev.images.map((img) =>
+        img.id === imageId ? { ...img, ...updates } : img,
+      ),
+    }));
+  };
 
   const handleImageRemove = (imageId: string) => {
     setInvitationData((prev) => ({
       ...prev,
       images: prev.images.filter((img) => img.id !== imageId),
-    }))
-  }
+    }));
+  };
 
   return (
     <DashboardLayout>
@@ -156,16 +165,33 @@ export default function InvitacionesPage() {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Editor de Invitaciones</h1>
-            <p className="text-muted-foreground">Crea y personaliza invitaciones para tus eventos</p>
+            <h1 className="text-2xl font-bold text-foreground">
+              Editor de Invitaciones
+            </h1>
+            <p className="text-muted-foreground">
+              Crea y personaliza invitaciones para tus eventos
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)} className="gap-2">
-              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+              className="gap-2"
+            >
+              {showPreview ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
               {showPreview ? "Ocultar Vista Previa" : "Mostrar Vista Previa"}
             </Button>
             <ActionControls
               invitationData={invitationData}
+              onSave={async () => console.log("Guardando...")}
+              onExportPDF={async () => console.log("Exportando PDF...")}
+              onExportImage={async () => console.log("Exportando imagen...")}
+              onSendEmail={async () => console.log("Enviando email...")}
             />
           </div>
         </div>
@@ -192,7 +218,10 @@ export default function InvitacionesPage() {
 
           {/* Right Panel - Styles */}
           <div className="w-80 border-l border-border overflow-y-auto">
-            <StylePanel styles={invitationData.styles} onStyleChange={handleStyleChange} />
+            <StylePanel
+              styles={invitationData.styles}
+              onStyleChange={handleStyleChange}
+            />
           </div>
 
           {/* Preview Panel (conditional) */}
@@ -200,12 +229,16 @@ export default function InvitacionesPage() {
             <>
               <Separator orientation="vertical" />
               <div className="w-96 overflow-y-auto">
-                <Preview invitationData={invitationData} viewMode={viewMode} onViewModeChange={setViewMode} />
+                <Preview
+                  invitationData={invitationData}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
               </div>
             </>
           )}
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

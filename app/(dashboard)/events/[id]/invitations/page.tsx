@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GuestList } from "@/components/dashboard/guests/guest-list";
+import { GuestList } from "@/components/dashboard/guests/guest-list 2";
 import { CSVImport } from "@/components/dashboard/guests/csv-import";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import {
@@ -52,6 +52,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
       message: "Esperamos con ansias este momento especial",
       dietary_restrictions: "Vegetariana",
       created_at: "2024-01-15T10:00:00Z",
+      invitedAt: "2024-01-15T10:00:00Z",
     },
     {
       id: "2",
@@ -64,6 +65,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
       message: undefined,
       dietary_restrictions: undefined,
       created_at: "2024-01-16T11:30:00Z",
+      invitedAt: "2024-01-15T10:00:00Z",
     },
     {
       id: "3",
@@ -76,6 +78,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
       message: "Lamentablemente no podremos asistir",
       dietary_restrictions: undefined,
       created_at: "2024-01-17T14:20:00Z",
+      invitedAt: "2024-01-15T10:00:00Z",
     },
     {
       id: "4",
@@ -88,6 +91,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
       message: "Iremos toda la familia",
       dietary_restrictions: "Sin gluten",
       created_at: "2024-01-18T09:15:00Z",
+      invitedAt: "2024-01-15T10:00:00Z",
     },
     {
       id: "5",
@@ -100,6 +104,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
       message: undefined,
       dietary_restrictions: undefined,
       created_at: "2024-01-19T16:45:00Z",
+      invitedAt: "2024-01-15T10:00:00Z",
     },
   ]);
 
@@ -129,12 +134,15 @@ export default function EventInvitationsPage({ params }: PageProps) {
       event_id: params.id,
       status: "pending" as const,
       created_at: new Date().toISOString(),
+      invitedAt: new Date().toISOString(),
     }));
 
     setGuests((prev) => [...prev, ...guestsWithId]);
+    setShowCSVImport(false);
+    toast.success(`${newGuests.length} invitados importados`);
   };
 
-  const handleEditGuest = (guest: Guest) => {
+  const handleEditGuest = (_guest: Guest) => {
     // Abrir modal de edición
     toast.info("Función de edición próximamente");
   };
@@ -146,7 +154,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
     }
   };
 
-  const handleSendReminder = (guestId: string) => {
+  const handleSendReminder = (_guestId: string) => {
     // Enviar recordatorio
     toast.success("Recordatorio enviado");
   };

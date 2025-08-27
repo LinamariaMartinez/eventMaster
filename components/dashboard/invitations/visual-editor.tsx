@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ImageIcon, Type, Calendar, Clock, MapPin, User, Link, Plus, Move, Trash2 } from "lucide-react"
+import Image from "next/image"
 import type { InvitationData } from "@/app/(dashboard)/invitations/page"
 
 interface VisualEditorProps {
@@ -32,7 +33,7 @@ export function VisualEditor({
   invitationData,
   onContentChange,
   onImageAdd,
-  onImageUpdate,
+  onImageUpdate: _onImageUpdate,
   onImageRemove,
 }: VisualEditorProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -193,11 +194,15 @@ export function VisualEditor({
                       selectedImage === image.id ? "border-primary bg-primary/5" : "border-border"
                     }`}
                   >
-                    <img
-                      src={image.url || "/placeholder.svg"}
-                      alt="Preview"
-                      className="w-12 h-12 object-cover rounded"
-                    />
+                    <div className="relative w-12 h-12">
+                      <Image
+                        src={image.url || "/placeholder.svg"}
+                        alt="Preview"
+                        className="w-12 h-12 object-cover rounded"
+                        width={48}
+                        height={48}
+                      />
+                    </div>
                     <div className="flex-1 text-sm">
                       <p className="font-medium">Imagen {image.id}</p>
                       <p className="text-muted-foreground">
@@ -243,10 +248,12 @@ export function VisualEditor({
                 }}
                 onClick={() => setSelectedImage(image.id)}
               >
-                <img
+                <Image
                   src={image.url || "/placeholder.svg"}
                   alt="Invitation element"
                   className="w-full h-full object-cover rounded"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             ))}

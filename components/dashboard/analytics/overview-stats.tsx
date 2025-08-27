@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users, Mail, TrendingUp, CheckCircle, Clock } from "lucide-react"
+import { CalendarDays, Users, Mail, TrendingUp, CheckCircle, Clock, type LucideIcon } from "lucide-react"
 
 interface OverviewStatsProps {
   stats: {
@@ -17,8 +17,18 @@ interface OverviewStatsProps {
   }
 }
 
+type ChangeType = "positive" | "negative" | "neutral";
+
 export function OverviewStats({ stats }: OverviewStatsProps) {
-  const statCards = [
+  const statCards: Array<{
+    label: string;
+    value: string | number;
+    icon: LucideIcon;
+    color: string;
+    bgColor: string;
+    change: string;
+    changeType: ChangeType;
+  }> = [
     {
       label: "Total Eventos",
       value: stats.totalEvents,
@@ -26,7 +36,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       change: "+12%",
-      changeType: "positive" as const,
+      changeType: "positive",
     },
     {
       label: "Total Invitados",
@@ -35,7 +45,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-green-600",
       bgColor: "bg-green-50",
       change: "+23%",
-      changeType: "positive" as const,
+      changeType: "positive",
     },
     {
       label: "Invitaciones Enviadas",
@@ -44,7 +54,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       change: "+18%",
-      changeType: "positive" as const,
+      changeType: "positive",
     },
     {
       label: "Tasa de Respuesta",
@@ -53,7 +63,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       change: "+5%",
-      changeType: "positive" as const,
+      changeType: "positive",
     },
     {
       label: "Tasa de Confirmación",
@@ -62,7 +72,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-emerald-600",
       bgColor: "bg-emerald-50",
       change: "+3%",
-      changeType: "positive" as const,
+      changeType: "positive",
     },
     {
       label: "Eventos Activos",
@@ -71,7 +81,7 @@ export function OverviewStats({ stats }: OverviewStatsProps) {
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
       change: "2 nuevos",
-      changeType: "neutral" as const,
+      changeType: "neutral",
     },
   ]
 

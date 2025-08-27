@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Search, Palette } from "lucide-react"
+import Image from "next/image"
 import type { InvitationTemplate } from "@/app/(dashboard)/invitations/page"
 
 const templates: InvitationTemplate[] = [
@@ -114,10 +115,12 @@ export function TemplateSelector({ onTemplateSelect }: TemplateSelectorProps) {
           >
             <CardContent className="p-3">
               <div className="aspect-[3/2] mb-3 rounded-md overflow-hidden bg-muted">
-                <img
+                <Image
                   src={template.thumbnail || "/placeholder.svg"}
                   alt={template.name}
                   className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
               <div className="space-y-2">

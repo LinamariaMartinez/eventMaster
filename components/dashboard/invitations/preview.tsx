@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Monitor, Smartphone, Calendar, Clock, MapPin } from "lucide-react"
+import Image from "next/image"
 import type { InvitationData } from "@/app/(dashboard)/invitations/page"
 
 interface PreviewProps {
@@ -89,10 +90,12 @@ export function Preview({ invitationData, viewMode, onViewModeChange }: PreviewP
                     height: `${(image.height / 600) * 100}%`,
                   }}
                 >
-                  <img
+                  <Image
                     src={image.url || "/placeholder.svg"}
                     alt="Invitation element"
                     className="w-full h-full object-cover rounded"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
               ))}

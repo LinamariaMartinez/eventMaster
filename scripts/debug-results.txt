@@ -1,0 +1,22 @@
+[dotenv@17.2.1] injecting env (0) from .env.local -- tip: ⚙️  enable debug logging with { debug: true }
+🔍 Verificando configuración de Supabase...
+
+📋 Variables de entorno:
+NEXT_PUBLIC_SUPABASE_URL: ❌ No encontrada
+NEXT_PUBLIC_SUPABASE_ANON_KEY: ❌ No encontrada
+SUPABASE_SERVICE_ROLE_KEY: ❌ No encontrada
+
+📊 Detalles de configuración:
+
+🔧 Intentando inicializar cliente de Supabase...
+❌ Error inicializando cliente: Variables de entorno de Supabase no configuradas
+
+🔍 Verificando otras variables de entorno relacionadas:
+NEXTAUTH_SECRET: ❌ No encontrada
+NEXTAUTH_URL: ❌ No encontrada
+
+📊 Variables de Google Sheets API:
+GOOGLE_SHEETS_CLIENT_EMAIL: ❌ No encontrada
+GOOGLE_SHEETS_PRIVATE_KEY: ❌ No encontrada
+
+✅ Debug completado. Revisa los mensajes arriba para identificar problemas.

@@ -93,7 +93,7 @@ const mockResponseData = [
 
 export default function EstadisticasPage() {
   const [timeRange, setTimeRange] = useState("6m");
-  const [selectedMetric, setSelectedMetric] = useState("all");
+  const [_selectedMetric, _setSelectedMetric] = useState("all");
 
   return (
     <DashboardLayout>
@@ -179,7 +179,7 @@ export default function EstadisticasPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-green-500"
+                                className="h-full bg-primary"
                                 style={{
                                   width: `${(mockStats.activeEvents / mockStats.totalEvents) * 100}%`,
                                 }}
@@ -195,7 +195,7 @@ export default function EstadisticasPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-blue-500"
+                                className="h-full bg-secondary-foreground"
                                 style={{
                                   width: `${(mockStats.completedEvents / mockStats.totalEvents) * 100}%`,
                                 }}
@@ -211,7 +211,7 @@ export default function EstadisticasPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-yellow-500"
+                                className="h-full bg-accent"
                                 style={{
                                   width: `${(mockStats.upcomingEvents / mockStats.totalEvents) * 100}%`,
                                 }}
@@ -238,7 +238,7 @@ export default function EstadisticasPage() {
                           <span className="text-sm">Tasa de Respuesta</span>
                           <Badge
                             variant="default"
-                            className="bg-green-100 text-green-800"
+                            className="bg-primary/10 text-primary font-semibold"
                           >
                             {mockStats.avgResponseRate}%
                           </Badge>
@@ -247,7 +247,7 @@ export default function EstadisticasPage() {
                           <span className="text-sm">Tasa de Confirmación</span>
                           <Badge
                             variant="outline"
-                            className="border-blue-200 text-blue-800"
+                            className="border-secondary text-secondary-foreground"
                           >
                             {mockStats.avgConfirmationRate}%
                           </Badge>
@@ -294,31 +294,31 @@ export default function EstadisticasPage() {
                           label: "VIP",
                           count: 156,
                           percentage: 12.5,
-                          color: "bg-purple-500",
+                          color: "bg-primary",
                         },
                         {
                           label: "Clientes",
                           count: 423,
                           percentage: 33.9,
-                          color: "bg-blue-500",
+                          color: "bg-secondary-foreground",
                         },
                         {
                           label: "Socios",
                           count: 234,
                           percentage: 18.8,
-                          color: "bg-green-500",
+                          color: "bg-accent",
                         },
                         {
                           label: "Prensa",
                           count: 89,
                           percentage: 7.1,
-                          color: "bg-yellow-500",
+                          color: "bg-muted-foreground",
                         },
                         {
                           label: "Otros",
                           count: 345,
                           percentage: 27.7,
-                          color: "bg-gray-500",
+                          color: "bg-border",
                         },
                       ].map((segment) => (
                         <div
@@ -355,19 +355,19 @@ export default function EstadisticasPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">2.3</p>
+                      <p className="text-2xl font-bold text-primary">2.3</p>
                       <p className="text-sm text-muted-foreground">
                         días (Confirmados)
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-red-600">4.1</p>
+                      <p className="text-2xl font-bold text-destructive">4.1</p>
                       <p className="text-sm text-muted-foreground">
                         días (Rechazados)
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">3.2</p>
+                      <p className="text-2xl font-bold text-secondary-foreground">3.2</p>
                       <p className="text-sm text-muted-foreground">
                         días (Tal vez)
                       </p>
@@ -399,8 +399,8 @@ export default function EstadisticasPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Nuevos Eventos</span>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-primary">
                             +23%
                           </span>
                         </div>
@@ -408,8 +408,8 @@ export default function EstadisticasPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Invitaciones Enviadas</span>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-primary">
                             +18%
                           </span>
                         </div>
@@ -417,8 +417,8 @@ export default function EstadisticasPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Tasa de Respuesta</span>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-primary">
                             +5%
                           </span>
                         </div>
@@ -426,8 +426,8 @@ export default function EstadisticasPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Nuevos Invitados</span>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-primary">
                             +31%
                           </span>
                         </div>
@@ -444,27 +444,27 @@ export default function EstadisticasPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="p-3 bg-blue-50 rounded-md">
-                        <p className="text-sm font-medium text-blue-900">
+                      <div className="p-3 bg-secondary/20 rounded-md">
+                        <p className="text-sm font-medium text-secondary-foreground">
                           Próximo Mes
                         </p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs text-secondary-foreground/80">
                           Se esperan ~450 invitaciones basado en tendencias
                         </p>
                       </div>
-                      <div className="p-3 bg-green-50 rounded-md">
-                        <p className="text-sm font-medium text-green-900">
+                      <div className="p-3 bg-primary/10 rounded-md">
+                        <p className="text-sm font-medium text-primary">
                           Tasa de Confirmación
                         </p>
-                        <p className="text-xs text-green-700">
+                        <p className="text-xs text-primary/80">
                           Proyección del 68% para eventos futuros
                         </p>
                       </div>
-                      <div className="p-3 bg-yellow-50 rounded-md">
-                        <p className="text-sm font-medium text-yellow-900">
+                      <div className="p-3 bg-accent/10 rounded-md">
+                        <p className="text-sm font-medium text-accent">
                           Recomendación
                         </p>
-                        <p className="text-xs text-yellow-700">
+                        <p className="text-xs text-accent/80">
                           Enviar recordatorios 3 días antes del evento
                         </p>
                       </div>

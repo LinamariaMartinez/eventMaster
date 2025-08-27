@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react"
-import type { Guest } from "@/app/(dashboard)/invitados/page"
+import type { Guest } from "@/app/(dashboard)/guests/page"
 
 interface ImportExportPanelProps {
   guests: Guest[]
@@ -86,7 +86,7 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
       try {
         const text = e.target?.result as string
         const lines = text.split("\n")
-        const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
+        const _headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
 
         const importedGuests: Guest[] = lines
           .slice(1)
@@ -115,7 +115,7 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
         setImportStatus("success")
         setImportMessage(`${importedGuests.length} invitados importados exitosamente`)
         setTimeout(() => setImportStatus("idle"), 3000)
-      } catch (error) {
+      } catch (_error) {
         setImportStatus("error")
         setImportMessage("Error al procesar el archivo. Verifica el formato.")
         setTimeout(() => setImportStatus("idle"), 3000)
