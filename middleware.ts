@@ -41,9 +41,44 @@ export async function middleware(request: NextRequest) {
 
   const supabase = getMiddlewareSupabase(request, supabaseResponse);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verificar sesión demo primero
+  let user = null;
+  const demoSessionCookie = request.cookies.get('demo_session');
+  
+  if (demoSessionCookie) {
+    try {
+      const demoSession = JSON.parse(demoSessionCookie.value);
+      if (demoSession.expires_at && demoSession.expires_at > Date.now()) {
+        user = demoSession.user;
+      } else {
+        // Sesión expirada, crear respuesta que limpia la cookie
+        const response = NextResponse.next({ request });
+        response.cookies.set('demo_session', '', { 
+          expires: new Date(0), 
+          path: '/',
+          sameSite: 'lax'
+        });
+        // No establecer user para que no sea considerado autenticado
+      }
+    } catch (error) {
+      console.error("Error parsing demo session cookie:", error);
+      // Cookie corrupta, limpiarla
+      const response = NextResponse.next({ request });
+      response.cookies.set('demo_session', '', { 
+        expires: new Date(0), 
+        path: '/',
+        sameSite: 'lax'
+      });
+    }
+  }
+
+  // Si no hay usuario demo, verificar con Supabase
+  if (!user) {
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
+    user = supabaseUser;
+  }
 
   // Redirigir a login si no está autenticado y trata de acceder al dashboard
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
@@ -53,21 +88,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirigir al dashboard si ya está autenticado y trata de acceder a login
-  if (
-    user &&
-    (request.nextUrl.pathname === "/login" ||
-      request.nextUrl.pathname === "/register")
-  ) {
-    const redirectTo = request.nextUrl.searchParams.get("redirectTo");
-    const url = request.nextUrl.clone();
-    url.pathname =
-      redirectTo && redirectTo.startsWith("/dashboard")
-        ? redirectTo
-        : "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  // REMOVIDO: No redirigir automáticamente desde login/register
+  // Permitir acceso libre a las páginas de auth
 
   return supabaseResponse;
 }

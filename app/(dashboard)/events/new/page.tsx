@@ -57,7 +57,7 @@ export default function NewEventPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success("Evento creado exitosamente");
-      router.push("/dashboard/events");
+      router.push("/events");
     } catch (error) {
       console.error("Error creating event:", error);
       toast.error("Error al crear el evento");
@@ -71,7 +71,7 @@ export default function NewEventPage() {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/events">
+          <Link href="/events">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Eventos
           </Link>

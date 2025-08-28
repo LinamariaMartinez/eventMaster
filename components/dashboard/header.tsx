@@ -12,8 +12,60 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, Search, User, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { signOut } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { getCurrentUser, AuthUser } from "@/lib/auth";
 
 export function Navbar() {
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Sesión cerrada correctamente");
+      // Redirigir al landing page en lugar de login
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      toast.error("Error al cerrar sesión");
+    }
+  };
+
+  const getUserInitials = () => {
+    if (!user) return "EM";
+    const name = user.user_metadata?.name || user.email || "";
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getUserName = () => {
+    if (!user) return "EventMaster";
+    return user.user_metadata?.name || "Usuario";
+  };
+
+  const getUserEmail = () => {
+    if (!user) return "admin@eventmaster.com";
+    return user.email || "usuario@demo.com";
+  };
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-cream-light border-b border-beige-soft">
       {/* Search */}
@@ -51,7 +103,7 @@ export function Navbar() {
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/diverse-user-avatars.png" alt="Usuario" />
                 <AvatarFallback className="bg-burgundy text-white">
-                  EM
+                  {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -60,10 +112,10 @@ export function Navbar() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none text-black-soft">
-                  EventMaster
+                  {isLoading ? "Cargando..." : getUserName()}
                 </p>
                 <p className="text-xs leading-none text-gray-warm">
-                  admin@eventmaster.com
+                  {isLoading ? "" : getUserEmail()}
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -72,7 +124,10 @@ export function Navbar() {
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-black-soft hover:bg-cream hover:text-burgundy-dark">
+            <DropdownMenuItem 
+              className="text-black-soft hover:bg-cream hover:text-burgundy-dark cursor-pointer"
+              onClick={handleLogout}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Cerrar sesión</span>
             </DropdownMenuItem>

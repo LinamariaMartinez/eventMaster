@@ -32,7 +32,53 @@ export const signUp = async (email: string, password: string, name: string) => {
   }
 };
 
+// Credenciales demo hardcodeadas
+const DEMO_CREDENTIALS = [
+  { email: "admin@catalinalezama.com", password: "demo123", name: "Catalina Lezama", role: "admin" },
+  { email: "equipo@catalinalezama.com", password: "equipo123", name: "Equipo ED", role: "team" },
+  { email: "demo@demo.com", password: "demo123", name: "Usuario Demo", role: "demo" }
+];
+
 export const signIn = async (email: string, password: string) => {
+  // Verificar credenciales demo primero
+  const demoUser = DEMO_CREDENTIALS.find(
+    cred => cred.email.toLowerCase() === email.toLowerCase() && cred.password === password
+  );
+
+  if (demoUser) {
+    // Simular respuesta de Supabase para usuario demo
+    const mockUser = {
+      id: `demo-${demoUser.role}-${Date.now()}`,
+      email: demoUser.email,
+      user_metadata: {
+        name: demoUser.name,
+        role: demoUser.role
+      }
+    };
+
+    // Guardar en localStorage y cookies para persistencia
+    const sessionData = {
+      user: mockUser,
+      access_token: 'demo-token',
+      expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
+    };
+    
+    localStorage.setItem('demo_user', JSON.stringify(mockUser));
+    localStorage.setItem('demo_session', JSON.stringify(sessionData));
+    
+    // Crear cookie para que el middleware pueda leerla
+    document.cookie = `demo_session=${JSON.stringify(sessionData)}; path=/; max-age=86400; SameSite=Lax`;
+
+    return { 
+      user: mockUser,
+      session: {
+        user: mockUser,
+        access_token: 'demo-token'
+      }
+    };
+  }
+
+  // Si no es usuario demo, intentar con Supabase
   const supabase = getSupabaseBrowser();
 
   try {
@@ -57,7 +103,57 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
+// Función para limpiar completamente la sesión demo
+export const cleanDemoSession = () => {
+  if (typeof window === 'undefined') return;
+  
+  // Limpiar localStorage
+  localStorage.removeItem('demo_user');
+  localStorage.removeItem('demo_session');
+  
+  // Limpiar cookie demo
+  document.cookie = 'demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+};
+
+// Función para verificar si hay sesión demo válida
+export const hasDemoSession = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const demoSession = localStorage.getItem('demo_session');
+  if (!demoSession) return false;
+  
+  try {
+    const session = JSON.parse(demoSession);
+    return session.expires_at && session.expires_at > Date.now();
+  } catch (error) {
+    console.error("Error checking demo session:", error);
+    cleanDemoSession();
+    return false;
+  }
+};
+
+// Función para depurar todas las sesiones
+export const debugSessions = () => {
+  if (typeof window === 'undefined') return { error: "No window object" };
+  
+  const localStorage_demo_user = localStorage.getItem('demo_user');
+  const localStorage_demo_session = localStorage.getItem('demo_session');
+  const cookies = document.cookie;
+  
+  return {
+    localStorage: {
+      demo_user: localStorage_demo_user,
+      demo_session: localStorage_demo_session ? JSON.parse(localStorage_demo_session) : null
+    },
+    cookies: cookies,
+    hasDemoSession: hasDemoSession()
+  };
+};
+
 export const signOut = async () => {
+  // Limpiar completamente la sesión demo
+  cleanDemoSession();
+  
   const supabase = getSupabaseBrowser();
 
   try {
@@ -73,6 +169,23 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
+  // Verificar si hay usuario demo en localStorage
+  const demoSession = localStorage.getItem('demo_session');
+  if (demoSession) {
+    try {
+      const session = JSON.parse(demoSession);
+      if (session.expires_at && session.expires_at > Date.now()) {
+        return session.user as AuthUser;
+      } else {
+        // Sesión expirada o inválida, limpiar todo
+        cleanDemoSession();
+      }
+    } catch (error) {
+      console.error("Error parsing demo session:", error);
+      cleanDemoSession();
+    }
+  }
+
   const supabase = getSupabaseBrowser();
 
   try {
@@ -94,6 +207,22 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 };
 
 export const getSession = async () => {
+  // Verificar sesión demo primero
+  const demoSession = localStorage.getItem('demo_session');
+  if (demoSession) {
+    try {
+      const session = JSON.parse(demoSession);
+      if (session.expires_at && session.expires_at > Date.now()) {
+        return session;
+      } else {
+        cleanDemoSession();
+      }
+    } catch (error) {
+      console.error("Error parsing demo session:", error);
+      cleanDemoSession();
+    }
+  }
+
   const supabase = getSupabaseBrowser();
 
   try {
