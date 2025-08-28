@@ -162,20 +162,24 @@ export default function EventsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 bg-transparent"
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 bg-transparent"
-                  >
-                    Ver Detalles
-                  </Button>
+                  <Link href={`/events/${event.id}/edit`} className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                    >
+                      Editar
+                    </Button>
+                  </Link>
+                  <Link href={`/events/${event.id}`} className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                    >
+                      Ver Detalles
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

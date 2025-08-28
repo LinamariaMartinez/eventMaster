@@ -1,31 +1,45 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Plus } from "lucide-react"
-import type { Guest } from "@/app/(dashboard)/guests/page"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { X, Plus } from "lucide-react";
+import type { Guest } from "@/app/(dashboard)/guests/page";
 
 interface GuestFormProps {
-  initialData?: Guest
-  onSubmit: (data: Omit<Guest, "id" | "invitedAt">) => void
-  onCancel: () => void
+  initialData?: Guest;
+  onSubmit: (data: Omit<Guest, "id" | "invitedAt">) => void;
+  onCancel: () => void;
 }
 
 const mockEvents = [
-  { id: "evt1", name: "Cena de Gala 2024" },
+  { id: "evt1", name: "Cena de Gala 2025" },
   { id: "evt2", name: "Conferencia Tech" },
   { id: "evt3", name: "Networking Empresarial" },
-]
+];
 
-const commonTags = ["VIP", "Prensa", "Cliente", "Socio", "Ponente", "Asistente", "Networking"]
+const commonTags = [
+  "VIP",
+  "Prensa",
+  "Cliente",
+  "Socio",
+  "Ponente",
+  "Asistente",
+  "Networking",
+];
 
 export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
   const [formData, setFormData] = useState({
@@ -37,40 +51,41 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
     notes: initialData?.notes || "",
     tags: initialData?.tags || [],
     customFields: initialData?.customFields || {},
-  })
+  });
 
-  const [newTag, setNewTag] = useState("")
-  const [newFieldKey, setNewFieldKey] = useState("")
-  const [newFieldValue, setNewFieldValue] = useState("")
+  const [newTag, setNewTag] = useState("");
+  const [newFieldKey, setNewFieldKey] = useState("");
+  const [newFieldValue, setNewFieldValue] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const eventName = mockEvents.find((e) => e.id === formData.eventId)?.name
+    const eventName = mockEvents.find((e) => e.id === formData.eventId)?.name;
 
     onSubmit({
       ...formData,
       eventName,
-      respondedAt: formData.status !== "pending" ? new Date().toISOString() : undefined,
-    })
-  }
+      respondedAt:
+        formData.status !== "pending" ? new Date().toISOString() : undefined,
+    });
+  };
 
   const addTag = (tag: string) => {
     if (tag && !formData.tags.includes(tag)) {
       setFormData((prev) => ({
         ...prev,
         tags: [...prev.tags, tag],
-      }))
+      }));
     }
-    setNewTag("")
-  }
+    setNewTag("");
+  };
 
   const removeTag = (tagToRemove: string) => {
     setFormData((prev) => ({
       ...prev,
       tags: prev.tags.filter((tag) => tag !== tagToRemove),
-    }))
-  }
+    }));
+  };
 
   const addCustomField = () => {
     if (newFieldKey && newFieldValue) {
@@ -80,25 +95,29 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
           ...prev.customFields,
           [newFieldKey]: newFieldValue,
         },
-      }))
-      setNewFieldKey("")
-      setNewFieldValue("")
+      }));
+      setNewFieldKey("");
+      setNewFieldValue("");
     }
-  }
+  };
 
   const removeCustomField = (key: string) => {
     setFormData((prev) => ({
       ...prev,
-      customFields: Object.fromEntries(Object.entries(prev.customFields).filter(([k]) => k !== key)),
-    }))
-  }
+      customFields: Object.fromEntries(
+        Object.entries(prev.customFields).filter(([k]) => k !== key),
+      ),
+    }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Información Básica</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Información Básica
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -107,7 +126,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
                 required
               />
             </div>
@@ -117,7 +138,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, email: e.target.value }))
+                }
                 required
               />
             </div>
@@ -129,14 +152,18 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
               />
             </div>
             <div>
               <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: Guest["status"]) => setFormData((prev) => ({ ...prev, status: value }))}
+                onValueChange={(value: Guest["status"]) =>
+                  setFormData((prev) => ({ ...prev, status: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -155,7 +182,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
             <Label htmlFor="event">Evento</Label>
             <Select
               value={formData.eventId}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, eventId: value }))}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, eventId: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar evento" />
@@ -175,7 +204,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, notes: e.target.value }))
+              }
               placeholder="Alergias, preferencias, comentarios..."
               rows={3}
             />
@@ -209,9 +240,15 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
               placeholder="Nueva etiqueta"
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag(newTag))}
+              onKeyPress={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addTag(newTag))
+              }
             />
-            <Button type="button" variant="outline" onClick={() => addTag(newTag)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => addTag(newTag)}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -220,7 +257,13 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
             {commonTags
               .filter((tag) => !formData.tags.includes(tag))
               .map((tag) => (
-                <Button key={tag} type="button" variant="outline" size="sm" onClick={() => addTag(tag)}>
+                <Button
+                  key={tag}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addTag(tag)}
+                >
                   {tag}
                 </Button>
               ))}
@@ -231,7 +274,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
       {/* Custom Fields */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Campos Personalizados</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Campos Personalizados
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(formData.customFields).map(([key, value]) => (
@@ -240,15 +285,28 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
                 <Input value={key} disabled />
                 <Input value={value} disabled />
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => removeCustomField(key)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => removeCustomField(key)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
 
           <div className="flex items-center gap-2">
-            <Input placeholder="Campo" value={newFieldKey} onChange={(e) => setNewFieldKey(e.target.value)} />
-            <Input placeholder="Valor" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} />
+            <Input
+              placeholder="Campo"
+              value={newFieldKey}
+              onChange={(e) => setNewFieldKey(e.target.value)}
+            />
+            <Input
+              placeholder="Valor"
+              value={newFieldValue}
+              onChange={(e) => setNewFieldValue(e.target.value)}
+            />
             <Button type="button" variant="outline" onClick={addCustomField}>
               <Plus className="h-4 w-4" />
             </Button>
@@ -261,8 +319,10 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">{initialData ? "Actualizar" : "Agregar"} Invitado</Button>
+        <Button type="submit">
+          {initialData ? "Actualizar" : "Agregar"} Invitado
+        </Button>
       </div>
     </form>
-  )
+  );
 }

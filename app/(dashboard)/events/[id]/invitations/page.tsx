@@ -35,7 +35,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
   const event = {
     id: params.id,
     title: "Boda de María y Carlos",
-    date: "2024-02-15",
+    date: "2025-02-15",
     time: "18:00",
     location: "Salón de Eventos Los Jardines",
   };
@@ -51,8 +51,8 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: 2,
       message: "Esperamos con ansias este momento especial",
       dietary_restrictions: "Vegetariana",
-      created_at: "2024-01-15T10:00:00Z",
-      invitedAt: "2024-01-15T10:00:00Z",
+      created_at: "2025-01-15T10:00:00Z",
+      invitedAt: "2025-01-15T10:00:00Z",
     },
     {
       id: "2",
@@ -64,8 +64,8 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: 1,
       message: undefined,
       dietary_restrictions: undefined,
-      created_at: "2024-01-16T11:30:00Z",
-      invitedAt: "2024-01-15T10:00:00Z",
+      created_at: "2025-01-16T11:30:00Z",
+      invitedAt: "2025-01-15T10:00:00Z",
     },
     {
       id: "3",
@@ -77,8 +77,8 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: 2,
       message: "Lamentablemente no podremos asistir",
       dietary_restrictions: undefined,
-      created_at: "2024-01-17T14:20:00Z",
-      invitedAt: "2024-01-15T10:00:00Z",
+      created_at: "2025-01-17T14:20:00Z",
+      invitedAt: "2025-01-15T10:00:00Z",
     },
     {
       id: "4",
@@ -90,8 +90,8 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: 3,
       message: "Iremos toda la familia",
       dietary_restrictions: "Sin gluten",
-      created_at: "2024-01-18T09:15:00Z",
-      invitedAt: "2024-01-15T10:00:00Z",
+      created_at: "2025-01-18T09:15:00Z",
+      invitedAt: "2025-01-15T10:00:00Z",
     },
     {
       id: "5",
@@ -103,8 +103,8 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: 1,
       message: undefined,
       dietary_restrictions: undefined,
-      created_at: "2024-01-19T16:45:00Z",
-      invitedAt: "2024-01-15T10:00:00Z",
+      created_at: "2025-01-19T16:45:00Z",
+      invitedAt: "2025-01-15T10:00:00Z",
     },
   ]);
 

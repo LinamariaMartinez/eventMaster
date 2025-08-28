@@ -1,113 +1,116 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { 
-  Heart, 
-  Calendar, 
-  MapPin, 
-  Clock, 
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Heart,
+  Calendar,
+  MapPin,
+  Clock,
   MessageSquare,
   CheckCircle,
   Phone,
   Mail,
-  Users
-} from "lucide-react"
-import { toast } from "sonner"
-import Link from "next/link"
+  Users,
+} from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
 
 const confirmationSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
-  response: z.enum(["yes", "no", "maybe"], { message: "Debes seleccionar una opción" }),
+  response: z.enum(["yes", "no", "maybe"], {
+    message: "Debes seleccionar una opción",
+  }),
   guest_count: z.number().min(1).max(10),
   dietary_restrictions: z.string().optional(),
-  additional_notes: z.string().optional()
-})
+  additional_notes: z.string().optional(),
+});
 
-type ConfirmationForm = z.infer<typeof confirmationSchema>
+type ConfirmationForm = z.infer<typeof confirmationSchema>;
 
 interface PageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default function InvitationPage({ params }: PageProps) {
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Mock event data - vendría de la API
   const event = {
     id: params.id,
-    title: 'Boda de María y Carlos',
-    date: '15 de Febrero, 2024',
-    time: '18:00',
-    location: 'Salón de Eventos Los Jardines, Medellín',
-    description: 'Celebremos juntos este momento tan especial en nuestras vidas. Tu presencia hará que este día sea aún más memorable.',
+    title: "Boda de María y Carlos",
+    date: "15 de Febrero, 2025",
+    time: "18:00",
+    location: "Salón de Eventos Los Jardines, Medellín",
+    description:
+      "Celebremos juntos este momento tan especial en nuestras vidas. Tu presencia hará que este día sea aún más memorable.",
     settings: {
       allowPlusOnes: true,
       requirePhone: false,
       requireEmail: true,
       maxGuestsPerInvite: 4,
       colors: {
-        primary: '#8B4B6B',
-        secondary: '#F5F1E8',
-        accent: '#D4A574'
+        primary: "#8B4B6B",
+        secondary: "#F5F1E8",
+        accent: "#D4A574",
       },
-      rsvpDeadline: '10 de Febrero, 2024'
-    }
-  }
+      rsvpDeadline: "10 de Febrero, 2025",
+    },
+  };
 
   const form = useForm<ConfirmationForm>({
     resolver: zodResolver(confirmationSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
+      name: "",
+      email: "",
+      phone: "",
       response: undefined,
       guest_count: 1,
-      dietary_restrictions: '',
-      additional_notes: ''
-    }
-  })
+      dietary_restrictions: "",
+      additional_notes: "",
+    },
+  });
 
-  const watchResponse = form.watch("response")
+  const watchResponse = form.watch("response");
 
   const handleSubmit = async (_data: ConfirmationForm) => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Aquí iría la llamada a la API para guardar la confirmación
-      
+
       // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      setIsSubmitted(true)
-      toast.success("¡Confirmación enviada exitosamente!")
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      setIsSubmitted(true);
+      toast.success("¡Confirmación enviada exitosamente!");
     } catch (error) {
-      console.error('Error submitting confirmation:', error)
-      toast.error("Error al enviar la confirmación")
+      console.error("Error submitting confirmation:", error);
+      toast.error("Error al enviar la confirmación");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (isSubmitted) {
     return (
-      <div 
+      <div
         className="min-h-screen flex items-center justify-center p-4"
-        style={{ 
-          background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)` 
+        style={{
+          background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)`,
         }}
       >
         <Card className="w-full max-w-md text-center">
@@ -116,27 +119,29 @@ export default function InvitationPage({ params }: PageProps) {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               ¡Confirmación Recibida!
             </h2>
-            {watchResponse === 'yes' ? (
+            {watchResponse === "yes" ? (
               <p className="text-gray-600 mb-6">
-                Gracias por confirmar tu asistencia. ¡Esperamos verte en nuestro evento especial!
+                Gracias por confirmar tu asistencia. ¡Esperamos verte en nuestro
+                evento especial!
               </p>
-            ) : watchResponse === 'no' ? (
+            ) : watchResponse === "no" ? (
               <p className="text-gray-600 mb-6">
                 Gracias por informarnos. Lamentamos que no puedas acompañarnos.
               </p>
             ) : (
               <p className="text-gray-600 mb-6">
-                Gracias por tu respuesta. Te mantendremos informado sobre cualquier actualización.
+                Gracias por tu respuesta. Te mantendremos informado sobre
+                cualquier actualización.
               </p>
             )}
-            
+
             <div className="space-y-3">
-              <Button 
+              <Button
                 className="w-full"
                 style={{ backgroundColor: event.settings.colors.primary }}
                 asChild
               >
-                <a 
+                <a
                   href={`https://wa.me/573001234567?text=Hola, tengo una consulta sobre ${encodeURIComponent(event.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -145,33 +150,40 @@ export default function InvitationPage({ params }: PageProps) {
                   Contactar por WhatsApp
                 </a>
               </Button>
-              
+
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/">
-                  Volver al Inicio
-                </Link>
+                <Link href="/">Volver al Inicio</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen p-4"
-      style={{ 
-        background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)` 
+      style={{
+        background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)`,
       }}
     >
       <div className="max-w-2xl mx-auto">
         {/* Event Header */}
-        <Card className="mb-8" style={{ backgroundColor: event.settings.colors.secondary }}>
+        <Card
+          className="mb-8"
+          style={{ backgroundColor: event.settings.colors.secondary }}
+        >
           <CardContent className="text-center py-8">
             <div className="mb-6">
-              <Heart className="h-12 w-12 mx-auto mb-4" style={{ color: event.settings.colors.primary }} />
-              <h1 className="text-4xl font-playfair font-bold mb-4" style={{ color: event.settings.colors.primary }}>
+              <Heart
+                className="h-12 w-12 mx-auto mb-4"
+                style={{ color: event.settings.colors.primary }}
+              />
+              <h1
+                className="text-4xl font-playfair font-bold mb-4"
+                style={{ color: event.settings.colors.primary }}
+              >
                 {event.title}
               </h1>
               <p className="text-lg opacity-80 mb-6">
@@ -181,15 +193,24 @@ export default function InvitationPage({ params }: PageProps) {
 
             <div className="grid md:grid-cols-3 gap-6 text-sm">
               <div className="flex items-center justify-center space-x-2">
-                <Calendar className="h-5 w-5" style={{ color: event.settings.colors.accent }} />
+                <Calendar
+                  className="h-5 w-5"
+                  style={{ color: event.settings.colors.accent }}
+                />
                 <span>{event.date}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
-                <Clock className="h-5 w-5" style={{ color: event.settings.colors.accent }} />
+                <Clock
+                  className="h-5 w-5"
+                  style={{ color: event.settings.colors.accent }}
+                />
                 <span>{event.time}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
-                <MapPin className="h-5 w-5" style={{ color: event.settings.colors.accent }} />
+                <MapPin
+                  className="h-5 w-5"
+                  style={{ color: event.settings.colors.accent }}
+                />
                 <span>{event.location}</span>
               </div>
             </div>
@@ -205,7 +226,10 @@ export default function InvitationPage({ params }: PageProps) {
         {/* RSVP Form */}
         <Card>
           <CardHeader className="text-center pb-4">
-            <h2 className="text-2xl font-bold" style={{ color: event.settings.colors.primary }}>
+            <h2
+              className="text-2xl font-bold"
+              style={{ color: event.settings.colors.primary }}
+            >
               Confirma tu Asistencia
             </h2>
             {event.settings.rsvpDeadline && (
@@ -216,7 +240,10 @@ export default function InvitationPage({ params }: PageProps) {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               {/* Name */}
               <div>
                 <Label htmlFor="name" className="flex items-center">
@@ -240,7 +267,7 @@ export default function InvitationPage({ params }: PageProps) {
                 <div>
                   <Label htmlFor="email" className="flex items-center">
                     <Mail className="h-4 w-4 mr-2" />
-                    Email {event.settings.requireEmail ? '*' : '(Opcional)'}
+                    Email {event.settings.requireEmail ? "*" : "(Opcional)"}
                   </Label>
                   <Input
                     id="email"
@@ -260,7 +287,7 @@ export default function InvitationPage({ params }: PageProps) {
               <div>
                 <Label htmlFor="phone" className="flex items-center">
                   <Phone className="h-4 w-4 mr-2" />
-                  Teléfono {event.settings.requirePhone ? '*' : '(Opcional)'}
+                  Teléfono {event.settings.requirePhone ? "*" : "(Opcional)"}
                 </Label>
                 <Input
                   id="phone"
@@ -277,7 +304,9 @@ export default function InvitationPage({ params }: PageProps) {
                 </Label>
                 <RadioGroup
                   value={form.watch("response")}
-                  onValueChange={(value) => form.setValue("response", value as "yes" | "no" | "maybe")}
+                  onValueChange={(value) =>
+                    form.setValue("response", value as "yes" | "no" | "maybe")
+                  }
                   className="space-y-3"
                 >
                   <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50">
@@ -307,7 +336,7 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Guest Count */}
-              {event.settings.allowPlusOnes && watchResponse === 'yes' && (
+              {event.settings.allowPlusOnes && watchResponse === "yes" && (
                 <div>
                   <Label htmlFor="guest_count">
                     Número de acompañantes (incluyéndote)
@@ -317,20 +346,21 @@ export default function InvitationPage({ params }: PageProps) {
                     type="number"
                     min="1"
                     max={event.settings.maxGuestsPerInvite}
-                    {...form.register("guest_count", { 
+                    {...form.register("guest_count", {
                       valueAsNumber: true,
                       min: 1,
-                      max: event.settings.maxGuestsPerInvite
+                      max: event.settings.maxGuestsPerInvite,
                     })}
                   />
                   <p className="text-sm text-gray-600 mt-1">
-                    Máximo {event.settings.maxGuestsPerInvite} personas por invitación
+                    Máximo {event.settings.maxGuestsPerInvite} personas por
+                    invitación
                   </p>
                 </div>
               )}
 
               {/* Dietary Restrictions */}
-              {watchResponse === 'yes' && (
+              {watchResponse === "yes" && (
                 <div>
                   <Label htmlFor="dietary_restrictions">
                     Restricciones alimentarias (Opcional)
@@ -357,13 +387,13 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full text-lg py-3"
                 style={{ backgroundColor: event.settings.colors.primary }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Enviando...' : 'Confirmar Asistencia'}
+                {isLoading ? "Enviando..." : "Confirmar Asistencia"}
               </Button>
             </form>
           </CardContent>
@@ -371,15 +401,13 @@ export default function InvitationPage({ params }: PageProps) {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-white/80 text-sm mb-4">
-            ¿Tienes alguna pregunta?
-          </p>
-          <Button 
-            variant="outline" 
+          <p className="text-white/80 text-sm mb-4">¿Tienes alguna pregunta?</p>
+          <Button
+            variant="outline"
             className="bg-white/10 border-white/20 text-white hover:bg-white/20"
             asChild
           >
-            <a 
+            <a
               href={`https://wa.me/573001234567?text=Hola, tengo una consulta sobre ${encodeURIComponent(event.title)}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -391,5 +419,5 @@ export default function InvitationPage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

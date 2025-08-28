@@ -88,7 +88,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // REMOVIDO: No redirigir automáticamente desde login/register
   // Permitir acceso libre a las páginas de auth
 
   return supabaseResponse;

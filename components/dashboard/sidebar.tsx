@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth";
+import { toast } from "sonner";
 import {
   Calendar,
   Users,
@@ -15,10 +17,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Eventos", href: "/events", icon: Calendar },
   { name: "Invitaciones", href: "/invitations", icon: Mail },
   { name: "Invitados", href: "/guests", icon: Users },
@@ -30,6 +33,17 @@ const navigation = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Sesión cerrada correctamente");
+      router.push("/");
+    } catch (error) {
+      toast.error("Error al cerrar sesión");
+    }
+  };
 
   return (
     <div
@@ -83,6 +97,21 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Logout Section */}
+      <div className="p-4 border-t border-sidebar-border">
+        <Button
+          onClick={handleLogout}
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "px-2",
+          )}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span>Cerrar Sesión</span>}
+        </Button>
+      </div>
     </div>
   );
 }

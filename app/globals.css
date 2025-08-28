@@ -265,9 +265,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #8b4b6b 0%, #6b3b5b 100%);
     color: white;
     text-align: center;
+    overflow: hidden;
 }
 
 .hero-overlay {
@@ -528,6 +528,7 @@
 }
 
 .gallery-item {
+    position: relative;
     border-radius: 1rem;
     overflow: hidden;
     transition: transform 0.3s ease;
@@ -536,6 +537,25 @@
 
 .gallery-item:hover {
     transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.125rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
 }
 
 .gallery-placeholder {

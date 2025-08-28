@@ -4,7 +4,6 @@ import React, { Suspense } from "react";
 import { AuthForm } from "./auth-form";
 
 interface AuthFormWrapperProps {
-  mode: "login" | "register";
   redirectTo?: string;
 }
 
@@ -26,7 +25,7 @@ function AuthFormSkeleton() {
                   Catalina Lezama ED
                 </h1>
                 <p className="text-[#8B8680] text-sm">
-                  Eventos que Nadie Olvida
+                  Acceso del Equipo
                 </p>
               </div>
 
@@ -63,10 +62,10 @@ function AuthFormSkeleton() {
   );
 }
 
-export default function AuthFormWrapper({ mode, redirectTo }: AuthFormWrapperProps) {
+export default function AuthFormWrapper({ redirectTo }: AuthFormWrapperProps) {
   return (
     <Suspense fallback={<AuthFormSkeleton />}>
-      <AuthForm mode={mode} redirectTo={redirectTo} />
+      <AuthForm redirectTo={redirectTo} />
     </Suspense>
   );
 }

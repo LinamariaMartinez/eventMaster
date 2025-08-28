@@ -6,5 +6,5 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
-  return <AuthFormWrapper mode="login" redirectTo={params.redirectTo} />;
+  return <AuthFormWrapper redirectTo={params.redirectTo} />;
 }

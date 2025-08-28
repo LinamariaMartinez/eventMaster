@@ -1,479 +1,186 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
-import { OverviewStats } from "@/components/dashboard/analytics/overview-stats";
-import { EventPerformanceChart } from "@/components/dashboard/analytics/event-performance-chart";
-import { GuestResponseChart } from "@/components/dashboard/analytics/guest-response-chart";
-import { InvitationTrendsChart } from "@/components/dashboard/analytics/invitation-trends-chart";
-import { TopEventsTable } from "@/components/dashboard/analytics/top-events-table";
-import { ExportReports } from "@/components/dashboard/analytics/export-reports";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, TrendingUp, Users, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Users, Mail, TrendingUp, Clock, MapPin } from "lucide-react";
 
-// Mock data for statistics
-const mockStats = {
-  totalEvents: 24,
-  totalGuests: 1247,
-  totalInvitations: 2156,
-  avgResponseRate: 78,
-  avgConfirmationRate: 65,
-  activeEvents: 8,
-  completedEvents: 16,
-  upcomingEvents: 3,
-};
+interface Event {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  attendees: number;
+  status: 'draft' | 'published' | 'completed';
+}
 
-const mockEventPerformance = [
-  {
-    name: "Cena de Gala 2024",
-    guests: 150,
-    confirmed: 120,
-    declined: 20,
-    pending: 10,
-    responseRate: 93,
-  },
-  {
-    name: "Conferencia Tech",
-    guests: 300,
-    confirmed: 180,
-    declined: 80,
-    pending: 40,
-    responseRate: 87,
-  },
-  {
-    name: "Networking Empresarial",
-    guests: 80,
-    confirmed: 65,
-    declined: 10,
-    pending: 5,
-    responseRate: 94,
-  },
-  {
-    name: "Lanzamiento Producto",
-    guests: 200,
-    confirmed: 140,
-    declined: 35,
-    pending: 25,
-    responseRate: 88,
-  },
-  {
-    name: "Workshop Innovación",
-    guests: 50,
-    confirmed: 42,
-    declined: 5,
-    pending: 3,
-    responseRate: 94,
-  },
-];
 
-const mockTrendsData = [
-  { month: "Ene", invitations: 180, responses: 145, confirmations: 120 },
-  { month: "Feb", invitations: 220, responses: 185, confirmations: 150 },
-  { month: "Mar", invitations: 280, responses: 235, confirmations: 190 },
-  { month: "Apr", invitations: 320, responses: 275, confirmations: 220 },
-  { month: "May", invitations: 380, responses: 310, confirmations: 250 },
-  { month: "Jun", invitations: 420, responses: 350, confirmations: 280 },
-];
+export default function DashboardPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    totalGuests: 0,
+    totalInvitations: 0,
+    upcomingEvents: 0
+  });
 
-const mockResponseData = [
-  { name: "Confirmados", value: 65, color: "#22c55e" },
-  { name: "Pendientes", value: 13, color: "#f59e0b" },
-  { name: "Rechazados", value: 15, color: "#ef4444" },
-  { name: "Tal vez", value: 7, color: "#3b82f6" },
-];
+  useEffect(() => {
+    const storedEvents = localStorage.getItem('events');
+    if (storedEvents) {
+      const eventData = JSON.parse(storedEvents);
+      setEvents(eventData);
+      
+      const totalGuests = eventData.reduce((sum: number, event: Event) => sum + event.attendees, 0);
+      const upcomingEvents = eventData.filter((event: Event) => 
+        new Date(event.date) > new Date() && event.status === 'published'
+      ).length;
+      
+      setStats({
+        totalEvents: eventData.length,
+        totalGuests,
+        totalInvitations: totalGuests,
+        upcomingEvents
+      });
+    }
+  }, []);
 
-export default function EstadisticasPage() {
-  const [timeRange, setTimeRange] = useState("6m");
-  const [_selectedMetric, _setSelectedMetric] = useState("all");
+  const upcomingEvents = events
+    .filter(event => new Date(event.date) > new Date() && event.status === 'published')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3);
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Estadísticas y Análisis
-            </h1>
-            <p className="text-muted-foreground">
-              Métricas de rendimiento de tus eventos e invitaciones
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        </div>
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Eventos</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalEvents}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.upcomingEvents} próximos eventos
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1m">Último mes</SelectItem>
-                <SelectItem value="3m">3 meses</SelectItem>
-                <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="1y">1 año</SelectItem>
-                <SelectItem value="all">Todo el tiempo</SelectItem>
-              </SelectContent>
-            </Select>
-            <ExportReports />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Invitados</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalGuests}</div>
+            <p className="text-xs text-muted-foreground">
+              En todos los eventos
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Invitaciones Enviadas</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalInvitations}</div>
+            <p className="text-xs text-muted-foreground">
+              Total de invitaciones
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tasa de Respuesta</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">85%</div>
+            <p className="text-xs text-muted-foreground">
+              Promedio de confirmación
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Overview Stats */}
-        <div className="p-6 border-b border-border">
-          <OverviewStats stats={mockStats} />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <Tabs defaultValue="overview" className="h-full">
-            <div className="border-b border-border px-6 py-2">
-              <TabsList>
-                <TabsTrigger value="overview" className="gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Resumen General
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-2">
-                  <CalendarDays className="h-4 w-4" />
-                  Rendimiento de Eventos
-                </TabsTrigger>
-                <TabsTrigger value="guests" className="gap-2">
-                  <Users className="h-4 w-4" />
-                  Análisis de Invitados
-                </TabsTrigger>
-                <TabsTrigger value="trends" className="gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Tendencias
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="overview" className="m-0 p-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GuestResponseChart data={mockResponseData} />
-                <InvitationTrendsChart data={mockTrendsData.slice(-3)} />
-              </div>
-              <TopEventsTable events={mockEventPerformance.slice(0, 5)} />
-            </TabsContent>
-
-            <TabsContent value="events" className="m-0 p-6 space-y-6">
-              <div className="grid grid-cols-1 gap-6">
-                <EventPerformanceChart events={mockEventPerformance} />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm font-medium">
-                        Eventos por Estado
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Activos</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary"
-                                style={{
-                                  width: `${(mockStats.activeEvents / mockStats.totalEvents) * 100}%`,
-                                }}
-                              />
-                            </div>
-                            <span className="text-sm font-medium">
-                              {mockStats.activeEvents}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Completados</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-secondary-foreground"
-                                style={{
-                                  width: `${(mockStats.completedEvents / mockStats.totalEvents) * 100}%`,
-                                }}
-                              />
-                            </div>
-                            <span className="text-sm font-medium">
-                              {mockStats.completedEvents}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Próximos</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-accent"
-                                style={{
-                                  width: `${(mockStats.upcomingEvents / mockStats.totalEvents) * 100}%`,
-                                }}
-                              />
-                            </div>
-                            <span className="text-sm font-medium">
-                              {mockStats.upcomingEvents}
-                            </span>
-                          </div>
-                        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Próximos Eventos</CardTitle>
+            <CardDescription>
+              Eventos programados para los próximos días
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pl-2">
+            {upcomingEvents.length > 0 ? (
+              <div className="space-y-4">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium leading-none">{event.title}</p>
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{new Date(event.date).toLocaleDateString('es-CO')}</span>
+                        <MapPin className="h-3 w-3 ml-2" />
+                        <span>{event.location}</span>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm font-medium">
-                        Métricas Promedio
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Tasa de Respuesta</span>
-                          <Badge
-                            variant="default"
-                            className="bg-primary/10 text-primary font-semibold"
-                          >
-                            {mockStats.avgResponseRate}%
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Tasa de Confirmación</span>
-                          <Badge
-                            variant="outline"
-                            className="border-secondary text-secondary-foreground"
-                          >
-                            {mockStats.avgConfirmationRate}%
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Invitados por Evento</span>
-                          <span className="text-sm font-medium">
-                            {Math.round(
-                              mockStats.totalGuests / mockStats.totalEvents,
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">
-                            Invitaciones por Evento
-                          </span>
-                          <span className="text-sm font-medium">
-                            {Math.round(
-                              mockStats.totalInvitations /
-                                mockStats.totalEvents,
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="guests" className="m-0 p-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GuestResponseChart data={mockResponseData} />
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-medium">
-                      Segmentación de Invitados
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        {
-                          label: "VIP",
-                          count: 156,
-                          percentage: 12.5,
-                          color: "bg-primary",
-                        },
-                        {
-                          label: "Clientes",
-                          count: 423,
-                          percentage: 33.9,
-                          color: "bg-secondary-foreground",
-                        },
-                        {
-                          label: "Socios",
-                          count: 234,
-                          percentage: 18.8,
-                          color: "bg-accent",
-                        },
-                        {
-                          label: "Prensa",
-                          count: 89,
-                          percentage: 7.1,
-                          color: "bg-muted-foreground",
-                        },
-                        {
-                          label: "Otros",
-                          count: 345,
-                          percentage: 27.7,
-                          color: "bg-border",
-                        },
-                      ].map((segment) => (
-                        <div
-                          key={segment.label}
-                          className="flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-3 h-3 rounded-full ${segment.color}`}
-                            />
-                            <span className="text-sm">{segment.label}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {segment.percentage}%
-                            </span>
-                            <span className="text-sm font-medium">
-                              {segment.count}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">
-                    Tiempo de Respuesta Promedio
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-primary">2.3</p>
-                      <p className="text-sm text-muted-foreground">
-                        días (Confirmados)
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-destructive">4.1</p>
-                      <p className="text-sm text-muted-foreground">
-                        días (Rechazados)
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-secondary-foreground">3.2</p>
-                      <p className="text-sm text-muted-foreground">
-                        días (Tal vez)
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-muted-foreground">
-                        -
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        días (Pendientes)
-                      </p>
+                    <div className="text-sm text-muted-foreground">
+                      {event.attendees} invitados
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="trends" className="m-0 p-6 space-y-6">
-              <InvitationTrendsChart data={mockTrendsData} />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-medium">
-                      Crecimiento Mensual
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Nuevos Eventos</span>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">
-                            +23%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Invitaciones Enviadas</span>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">
-                            +18%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Tasa de Respuesta</span>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">
-                            +5%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Nuevos Invitados</span>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">
-                            +31%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-medium">
-                      Predicciones
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-3 bg-secondary/20 rounded-md">
-                        <p className="text-sm font-medium text-secondary-foreground">
-                          Próximo Mes
-                        </p>
-                        <p className="text-xs text-secondary-foreground/80">
-                          Se esperan ~450 invitaciones basado en tendencias
-                        </p>
-                      </div>
-                      <div className="p-3 bg-primary/10 rounded-md">
-                        <p className="text-sm font-medium text-primary">
-                          Tasa de Confirmación
-                        </p>
-                        <p className="text-xs text-primary/80">
-                          Proyección del 68% para eventos futuros
-                        </p>
-                      </div>
-                      <div className="p-3 bg-accent/10 rounded-md">
-                        <p className="text-sm font-medium text-accent">
-                          Recomendación
-                        </p>
-                        <p className="text-xs text-accent/80">
-                          Enviar recordatorios 3 días antes del evento
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                ))}
               </div>
-            </TabsContent>
-          </Tabs>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32 text-center">
+                <Calendar className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No hay eventos próximos</p>
+                <p className="text-xs text-muted-foreground">Crea tu primer evento para comenzar</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Actividad Reciente</CardTitle>
+            <CardDescription>
+              Últimas acciones en tu cuenta
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Nuevo evento creado</p>
+                  <p className="text-xs text-muted-foreground">Hace 2 horas</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Invitaciones enviadas</p>
+                  <p className="text-xs text-muted-foreground">Hace 5 horas</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Confirmación recibida</p>
+                  <p className="text-xs text-muted-foreground">Hace 1 día</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         </div>
       </div>
     </DashboardLayout>

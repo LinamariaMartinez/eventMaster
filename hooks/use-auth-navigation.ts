@@ -23,7 +23,7 @@ export function useAuthNavigation() {
   );
 
   const navigateToAuth = useCallback(
-    (mode: "login" | "register", redirectTo?: string) => {
+    (redirectTo?: string) => {
       const currentRedirectTo =
         redirectTo || searchParams.get("redirectTo") || "/dashboard";
 
@@ -32,7 +32,7 @@ export function useAuthNavigation() {
           ? `?redirectTo=${encodeURIComponent(currentRedirectTo)}`
           : "";
 
-      router.push(`/${mode}${redirectParam}`);
+      router.push(`/login${redirectParam}`);
     },
     [router, searchParams],
   );

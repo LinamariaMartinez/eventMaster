@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Monitor, Smartphone, Calendar, Clock, MapPin } from "lucide-react"
 import Image from "next/image"
-import type { InvitationData } from "@/app/(dashboard)/invitations/page"
+import type { InvitationData } from "@/app/(dashboard)/editor/page"
 
 interface PreviewProps {
   invitationData: InvitationData

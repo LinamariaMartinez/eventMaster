@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ImageIcon, Type, Calendar, Clock, MapPin, User, Link, Plus, Move, Trash2 } from "lucide-react"
 import Image from "next/image"
-import type { InvitationData } from "@/app/(dashboard)/invitations/page"
+import type { InvitationData } from "@/app/(dashboard)/editor/page"
 
 interface VisualEditorProps {
   invitationData: InvitationData

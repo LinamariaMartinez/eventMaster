@@ -169,5 +169,5 @@ Si tienes problemas con los scripts:
 
 ---
 
-**Última actualización**: Diciembre 2024
+**Última actualización**: Diciembre 2025
 **Autor**: Sistema de configuración automatizada

@@ -12,7 +12,7 @@ export default function Home() {
           </div>
           <div className="nav-logo">
             <Image
-              src="/logo-catalina.png"
+              src="/logo/catalina-logo.png"
               alt="Catalina Lezama ED"
               className="nav-logo-img"
               width={40}
@@ -22,13 +22,24 @@ export default function Home() {
           </div>
           <div className="nav-right">
             <a href="#contacto">Contacto</a>
-            <a href="/login" className="nav-cta">Acceso Equipo</a>
+            <a href="/login" className="nav-cta">
+              Acceso Equipo
+            </a>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
       <section className="hero">
+        <div style={{ position: "absolute", inset: 0, zIndex: -1 }}>
+          <Image
+            src="/hero/hero-background.jpg"
+            alt="Hero Background"
+            fill
+            style={{ objectFit: "cover" }}
+            priority
+          />
+        </div>
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">
@@ -82,7 +93,12 @@ export default function Home() {
           <div className="services-grid">
             <div className="service-item service-1">
               <div className="service-image">
-                <div className="service-placeholder">Imagen Boda</div>
+                <Image
+                  src="/romantic-vintage-invitation-floral-design.png"
+                  alt="Servicio de Bodas"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
                 <div className="service-overlay">
                   <h3>BODAS</h3>
                 </div>
@@ -91,7 +107,12 @@ export default function Home() {
 
             <div className="service-item service-2">
               <div className="service-image">
-                <div className="service-placeholder">Imagen Catering</div>
+                <Image
+                  src="/services/catering.jpg"
+                  alt="Servicio de Catering"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
                 <div className="service-overlay">
                   <h3>CATERING</h3>
                 </div>
@@ -100,7 +121,12 @@ export default function Home() {
 
             <div className="service-item service-3">
               <div className="service-image">
-                <div className="service-placeholder">Imagen Decoración</div>
+                <Image
+                  src="/services/decoracion.jpg"
+                  alt="Servicio de Decoración"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
                 <div className="service-overlay">
                   <h3>DECORACIÓN</h3>
                 </div>
@@ -109,9 +135,14 @@ export default function Home() {
 
             <div className="service-item service-4">
               <div className="service-image">
-                <div className="service-placeholder">Imagen Quinceañeras</div>
+                <Image
+                  src="/elegant-classic-invitation-burgundy-cream.png"
+                  alt="Servicio de Bouquet"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
                 <div className="service-overlay">
-                  <h3>QUINCEAÑERAS</h3>
+                  <h3>BOUQUET</h3>
                 </div>
               </div>
             </div>
@@ -127,9 +158,12 @@ export default function Home() {
 
             <div className="service-item service-6">
               <div className="service-image">
-                <div className="service-placeholder">
-                  Imagen Entretenimiento
-                </div>
+                <Image
+                  src="/services/entretenimiento.jpg"
+                  alt="Servicio de Entretenimiento"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
                 <div className="service-overlay">
                   <h3>ENTRETENIMIENTO</h3>
                 </div>
@@ -146,20 +180,38 @@ export default function Home() {
 
           <div className="gallery-grid">
             <div className="gallery-item gallery-item-1">
-              <div className="gallery-placeholder">
-                <span>Boda María & Carlos</span>
+              <Image
+                src="/services/decoracion.jpg"
+                alt="Boda Elegante"
+                fill
+                style={{ objectFit: "cover" }}
+              />
+              <div className="gallery-overlay">
+                <span>Boda Elegante</span>
               </div>
             </div>
 
             <div className="gallery-item gallery-item-2">
-              <div className="gallery-placeholder">
-                <span>XV Años Sofía</span>
+              <Image
+                src="/services/catering.jpg"
+                alt="Cena de Gala"
+                fill
+                style={{ objectFit: "cover" }}
+              />
+              <div className="gallery-overlay">
+                <span>Cena de Gala</span>
               </div>
             </div>
 
             <div className="gallery-item gallery-item-3">
-              <div className="gallery-placeholder">
-                <span>Aniversario 25 años</span>
+              <Image
+                src="/services/entretenimiento.jpg"
+                alt="Fiesta de XV Años"
+                fill
+                style={{ objectFit: "cover" }}
+              />
+              <div className="gallery-overlay">
+                <span>Fiesta de XV Años</span>
               </div>
             </div>
 
@@ -177,7 +229,7 @@ export default function Home() {
 
             <div className="gallery-item gallery-item-6">
               <div className="gallery-placeholder">
-                <span>Graduación</span>
+                <span>Celebración Familiar</span>
               </div>
             </div>
           </div>

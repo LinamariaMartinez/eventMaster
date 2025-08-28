@@ -5,32 +5,6 @@ import { User, AuthError } from "@supabase/supabase-js";
 
 export type AuthUser = User;
 
-export const signUp = async (email: string, password: string, name: string) => {
-  const supabase = getSupabaseBrowser();
-
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          full_name: name,
-        },
-      },
-    });
-
-    if (error) {
-      console.error("SignUp error:", error);
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error("SignUp failed:", error);
-    throw error;
-  }
-};
 
 // Credenciales demo hardcodeadas
 const DEMO_CREDENTIALS = [
@@ -329,24 +303,12 @@ export const getAuthErrorMessage = (
     return "Por favor confirma tu email antes de iniciar sesión.";
   }
 
-  if (message.includes("user already registered")) {
-    return "Este email ya está registrado. ¿Intentas iniciar sesión?";
-  }
-
   if (message.includes("password should be at least")) {
     return "La contraseña debe tener al menos 6 caracteres.";
   }
 
   if (message.includes("invalid email")) {
     return "El formato del email no es válido.";
-  }
-
-  if (message.includes("weak password")) {
-    return "La contraseña es muy débil. Usa al menos 6 caracteres.";
-  }
-
-  if (message.includes("signup disabled")) {
-    return "El registro de nuevos usuarios está temporalmente deshabilitado.";
   }
 
   if (message.includes("email rate limit exceeded")) {
