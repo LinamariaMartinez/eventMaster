@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, MapPin, Users } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Send } from "lucide-react";
 import Link from "next/link";
 import { eventStorage, Event } from "@/lib/storage";
 
@@ -161,23 +161,34 @@ export default function EventsPage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-4">
-                  <Link href={`/events/${event.id}/edit`} className="flex-1">
+                <div className="space-y-2 mt-4">
+                  <div className="flex gap-2">
+                    <Link href={`/events/${event.id}/edit`} className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full bg-transparent"
+                      >
+                        Editar
+                      </Button>
+                    </Link>
+                    <Link href={`/events/${event.id}`} className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full bg-transparent"
+                      >
+                        Ver Detalles
+                      </Button>
+                    </Link>
+                  </div>
+                  <Link href={`/invitations/editor?eventId=${event.id}`} className="w-full">
                     <Button
-                      variant="outline"
                       size="sm"
-                      className="w-full bg-transparent"
+                      className="w-full"
                     >
-                      Editar
-                    </Button>
-                  </Link>
-                  <Link href={`/events/${event.id}`} className="flex-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full bg-transparent"
-                    >
-                      Ver Detalles
+                      <Send className="h-4 w-4 mr-2" />
+                      Crear Invitación
                     </Button>
                   </Link>
                 </div>

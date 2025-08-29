@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { HeroSlider } from "@/components/landing/hero-slider";
 
 export default function Home() {
   return (
@@ -29,32 +30,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="hero">
-        <div style={{ position: "absolute", inset: 0, zIndex: -1 }}>
-          <Image
-            src="/hero/hero-background.jpg"
-            alt="Hero Background"
-            fill
-            style={{ objectFit: "cover" }}
-            priority
-          />
-        </div>
-        <div className="hero-overlay"></div>
-        <div className="hero-content">
-          <h1 className="hero-title">
-            EVENTOS QUE
-            <br />
-            <span>NADIE OLVIDA</span>
-          </h1>
-          <p className="hero-subtitle">
-            NO solo organizamos eventos, diseñamos experiencias{" "}
-            <strong>BRUTALES </strong> que quedan grabadas para siempre en el
-            corazón de tus invitados.
-          </p>
-          <button className="hero-button">Planea tu Evento</button>
-        </div>
-      </section>
+      <HeroSlider />
 
       {/* About Section */}
       <section className="about">
@@ -94,7 +70,7 @@ export default function Home() {
             <div className="service-item service-1">
               <div className="service-image">
                 <Image
-                  src="/romantic-vintage-invitation-floral-design.png"
+                  src="/services/boda.jpg"
                   alt="Servicio de Bodas"
                   fill
                   style={{ objectFit: "cover" }}
@@ -136,7 +112,7 @@ export default function Home() {
             <div className="service-item service-4">
               <div className="service-image">
                 <Image
-                  src="/elegant-classic-invitation-burgundy-cream.png"
+                  src="/services/bouquet.jpg"
                   alt="Servicio de Bouquet"
                   fill
                   style={{ objectFit: "cover" }}

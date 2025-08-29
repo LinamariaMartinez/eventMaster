@@ -22,6 +22,83 @@ export interface Guest {
   phone?: string;
   status: "confirmed" | "pending" | "declined";
   eventId: string;
+  guestCount: number;
+  message?: string;
+  dietaryRestrictions?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvitationType {
+  id: "simple" | "premium";
+  name: string;
+  description: string;
+  features: string[];
+  price: string;
+}
+
+export interface InvitationTemplate {
+  id: string;
+  name: string;
+  category: "wedding" | "corporate" | "birthday";
+  type: "simple" | "premium";
+  thumbnail: string;
+  styles: {
+    backgroundColor: string;
+    textColor: string;
+    accentColor: string;
+    fontFamily: string;
+    fontSize: string;
+    backgroundImage?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
+    backgroundType: "solid" | "gradient" | "image";
+  };
+  layout: {
+    headerHeight: number;
+    contentPadding: number;
+    borderRadius: number;
+    shadowLevel: number;
+  };
+}
+
+export interface Invitation {
+  id: string;
+  eventId: string;
+  templateId: string;
+  title: string;
+  description: string;
+  type: "simple" | "premium";
+  customStyles: {
+    backgroundColor: string;
+    textColor: string;
+    accentColor: string;
+    fontFamily: string;
+    fontSize: string;
+    backgroundImage?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
+    backgroundType: "solid" | "gradient" | "image";
+  };
+  layout: {
+    headerHeight: number;
+    contentPadding: number;
+    borderRadius: number;
+    shadowLevel: number;
+  };
+  content: {
+    hostName: string;
+    eventDate: string;
+    eventTime: string;
+    venue: string;
+    dressCode?: string;
+    additionalInfo?: string;
+  };
+  publicUrl: string;
+  status: "draft" | "published";
+  sentCount: number;
+  openedCount: number;
+  respondedCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +108,8 @@ const STORAGE_KEYS = {
   EVENTS: "catalina_events",
   GUESTS: "catalina_guests",
   TEMPLATES: "catalina_templates",
+  INVITATIONS: "catalina_invitations",
+  INVITATION_TEMPLATES: "catalina_invitation_templates",
 } as const;
 
 // Utilidades de localStorage con manejo de errores
@@ -282,12 +361,306 @@ function getDefaultEvents(): Event[] {
   ];
 }
 
+// Funciones para manejar invitaciones
+export const invitationStorage = {
+  getAll: (): Invitation[] => {
+    const data = safeLocalStorage.getItem(STORAGE_KEYS.INVITATIONS);
+    if (!data) return [];
+
+    try {
+      const invitations = JSON.parse(data);
+      return Array.isArray(invitations) ? invitations : [];
+    } catch (error) {
+      console.error("Error parsing invitations from localStorage:", error);
+      return [];
+    }
+  },
+
+  save: (invitations: Invitation[]): boolean => {
+    return safeLocalStorage.setItem(
+      STORAGE_KEYS.INVITATIONS,
+      JSON.stringify(invitations),
+    );
+  },
+
+  add: (invitation: Omit<Invitation, "id" | "createdAt" | "updatedAt">): Invitation => {
+    const newInvitation: Invitation = {
+      ...invitation,
+      id: Date.now().toString(),
+      publicUrl: `/invitation/${Date.now().toString()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const invitations = invitationStorage.getAll();
+    invitations.push(newInvitation);
+    invitationStorage.save(invitations);
+
+    return newInvitation;
+  },
+
+  update: (
+    id: string,
+    updates: Partial<Omit<Invitation, "id" | "createdAt">>,
+  ): Invitation | null => {
+    const invitations = invitationStorage.getAll();
+    const index = invitations.findIndex((i) => i.id === id);
+
+    if (index === -1) return null;
+
+    invitations[index] = {
+      ...invitations[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    invitationStorage.save(invitations);
+    return invitations[index];
+  },
+
+  remove: (id: string): boolean => {
+    const invitations = invitationStorage.getAll();
+    const filteredInvitations = invitations.filter((i) => i.id !== id);
+
+    if (filteredInvitations.length === invitations.length) return false;
+
+    return invitationStorage.save(filteredInvitations);
+  },
+
+  getById: (id: string): Invitation | null => {
+    const invitations = invitationStorage.getAll();
+    return invitations.find((i) => i.id === id) || null;
+  },
+
+  getByEventId: (eventId: string): Invitation[] => {
+    const invitations = invitationStorage.getAll();
+    return invitations.filter((i) => i.eventId === eventId);
+  },
+
+  getByPublicUrl: (publicUrl: string): Invitation | null => {
+    const invitations = invitationStorage.getAll();
+    return invitations.find((i) => i.publicUrl === publicUrl) || null;
+  },
+};
+
+// Funciones para manejar plantillas de invitación
+export const invitationTemplateStorage = {
+  getAll: (): InvitationTemplate[] => {
+    const data = safeLocalStorage.getItem(STORAGE_KEYS.INVITATION_TEMPLATES);
+    if (!data) return getDefaultInvitationTemplates();
+
+    try {
+      const templates = JSON.parse(data);
+      return Array.isArray(templates) ? templates : getDefaultInvitationTemplates();
+    } catch (error) {
+      console.error("Error parsing invitation templates from localStorage:", error);
+      return getDefaultInvitationTemplates();
+    }
+  },
+
+  save: (templates: InvitationTemplate[]): boolean => {
+    return safeLocalStorage.setItem(
+      STORAGE_KEYS.INVITATION_TEMPLATES,
+      JSON.stringify(templates),
+    );
+  },
+
+  getByCategory: (category: "wedding" | "corporate" | "birthday"): InvitationTemplate[] => {
+    const templates = invitationTemplateStorage.getAll();
+    return templates.filter((t) => t.category === category);
+  },
+
+  getByType: (type: "simple" | "premium"): InvitationTemplate[] => {
+    const templates = invitationTemplateStorage.getAll();
+    return templates.filter((t) => t.type === type);
+  },
+
+  getById: (id: string): InvitationTemplate | null => {
+    const templates = invitationTemplateStorage.getAll();
+    return templates.find((t) => t.id === id) || null;
+  },
+};
+
+// Plantillas por defecto
+function getDefaultInvitationTemplates(): InvitationTemplate[] {
+  return [
+    // Wedding Templates
+    {
+      id: "wedding-elegant-simple",
+      name: "Elegante Clásico",
+      category: "wedding",
+      type: "simple",
+      thumbnail: "/romantic-vintage-invitation-floral-design.png",
+      styles: {
+        backgroundColor: "#f8f6f0",
+        textColor: "#5a4037",
+        accentColor: "#d4af37",
+        fontFamily: "serif",
+        fontSize: "16px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 120,
+        contentPadding: 32,
+        borderRadius: 12,
+        shadowLevel: 2,
+      },
+    },
+    {
+      id: "wedding-romantic-premium",
+      name: "Romántico Floral",
+      category: "wedding",
+      type: "premium",
+      thumbnail: "/romantic-vintage-invitation-floral-design.png",
+      styles: {
+        backgroundColor: "#fdf2f8",
+        textColor: "#831843",
+        accentColor: "#be185d",
+        fontFamily: "script",
+        fontSize: "18px",
+        gradientFrom: "#fdf2f8",
+        gradientTo: "#fce7f3",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 150,
+        contentPadding: 40,
+        borderRadius: 16,
+        shadowLevel: 3,
+      },
+    },
+    // Corporate Templates
+    {
+      id: "corporate-modern-simple",
+      name: "Moderno Empresarial",
+      category: "corporate",
+      type: "simple",
+      thumbnail: "/modern-minimalist-invitation-clean-design.png",
+      styles: {
+        backgroundColor: "#ffffff",
+        textColor: "#1f2937",
+        accentColor: "#3b82f6",
+        fontFamily: "sans-serif",
+        fontSize: "16px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 100,
+        contentPadding: 24,
+        borderRadius: 8,
+        shadowLevel: 1,
+      },
+    },
+    {
+      id: "corporate-professional-premium",
+      name: "Profesional Premium",
+      category: "corporate",
+      type: "premium",
+      thumbnail: "/elegant-classic-invitation-burgundy-cream.png",
+      styles: {
+        backgroundColor: "#1e293b",
+        textColor: "#f1f5f9",
+        accentColor: "#f59e0b",
+        fontFamily: "sans-serif",
+        fontSize: "16px",
+        gradientFrom: "#1e293b",
+        gradientTo: "#334155",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 120,
+        contentPadding: 32,
+        borderRadius: 12,
+        shadowLevel: 3,
+      },
+    },
+    // Birthday Templates
+    {
+      id: "birthday-festive-simple",
+      name: "Festivo Simple",
+      category: "birthday",
+      type: "simple",
+      thumbnail: "/festive-colorful-invitation-celebration.png",
+      styles: {
+        backgroundColor: "#fef3c7",
+        textColor: "#92400e",
+        accentColor: "#f59e0b",
+        fontFamily: "sans-serif",
+        fontSize: "16px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 110,
+        contentPadding: 28,
+        borderRadius: 10,
+        shadowLevel: 2,
+      },
+    },
+    {
+      id: "birthday-colorful-premium",
+      name: "Colorido Premium",
+      category: "birthday",
+      type: "premium",
+      thumbnail: "/festive-colorful-invitation-celebration.png",
+      styles: {
+        backgroundColor: "#a855f7",
+        textColor: "#ffffff",
+        accentColor: "#fbbf24",
+        fontFamily: "sans-serif",
+        fontSize: "18px",
+        gradientFrom: "#a855f7",
+        gradientTo: "#ec4899",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 140,
+        contentPadding: 36,
+        borderRadius: 16,
+        shadowLevel: 3,
+      },
+    },
+  ];
+}
+
+// Datos por defecto para tipos de invitación
+export const getInvitationTypes = (): InvitationType[] => [
+  {
+    id: "simple",
+    name: "Simple",
+    description: "Invitaciones básicas con diseño limpio y funcional",
+    features: [
+      "Diseño simple y elegante",
+      "3 plantillas por categoría",
+      "Colores y fuentes básicos",
+      "URL pública personalizada",
+      "Formulario RSVP básico",
+    ],
+    price: "Gratis",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    description: "Invitaciones avanzadas con funciones premium",
+    features: [
+      "Diseños premium con gradientes",
+      "Editor visual avanzado",
+      "Subida de imágenes personalizadas",
+      "Animaciones y efectos",
+      "Formulario RSVP avanzado",
+      "Estadísticas detalladas",
+    ],
+    price: "$9.99/mes",
+  },
+];
+
 // Utilidad para limpiar todos los datos
 export const clearAllData = (): boolean => {
   try {
     safeLocalStorage.removeItem(STORAGE_KEYS.EVENTS);
     safeLocalStorage.removeItem(STORAGE_KEYS.GUESTS);
     safeLocalStorage.removeItem(STORAGE_KEYS.TEMPLATES);
+    safeLocalStorage.removeItem(STORAGE_KEYS.INVITATIONS);
+    safeLocalStorage.removeItem(STORAGE_KEYS.INVITATION_TEMPLATES);
     return true;
   } catch (error) {
     console.error("Error clearing all data:", error);
