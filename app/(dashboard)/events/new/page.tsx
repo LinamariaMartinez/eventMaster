@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { EventFormData } from "@/types";
 import { toast } from "sonner";
+import { eventStorage } from "@/lib/storage";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -47,17 +48,24 @@ export default function NewEventPage() {
     },
   ];
 
-  const handleSubmit = async (_data: EventFormData) => {
+  const handleSubmit = async (data: EventFormData) => {
     setIsLoading(true);
 
     try {
-      // Aquí iría la llamada a la API
-
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Create event using localStorage
+      const newEvent = eventStorage.add({
+        title: data.title,
+        description: data.description || "",
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        maxGuests: data.settings.maxGuestsPerInvite * 50, // Default max guests
+        confirmedGuests: 0,
+        status: "draft"
+      });
 
       toast.success("Evento creado exitosamente");
-      router.push("/events");
+      router.push(`/events/${newEvent.id}`);
     } catch (error) {
       console.error("Error creating event:", error);
       toast.error("Error al crear el evento");

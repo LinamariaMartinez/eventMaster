@@ -4,19 +4,12 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, Mail, TrendingUp, Clock, MapPin } from "lucide-react";
-
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  attendees: number;
-  status: 'draft' | 'published' | 'completed';
-}
+import { eventStorage, guestStorage } from "@/lib/storage";
+import { useEventsStorage } from "@/hooks/use-events-storage";
 
 
 export default function DashboardPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const { events, loading } = useEventsStorage();
   const [stats, setStats] = useState({
     totalEvents: 0,
     totalGuests: 0,
@@ -25,28 +18,33 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const storedEvents = localStorage.getItem('events');
-    if (storedEvents) {
-      const eventData = JSON.parse(storedEvents);
-      setEvents(eventData);
+    if (!loading && events.length > 0) {
+      const allGuests = guestStorage.getAll();
+      const totalGuests = events.reduce((sum, event) => {
+        const eventGuests = allGuests.filter(guest => guest.eventId === event.id);
+        return sum + eventGuests.length;
+      }, 0);
       
-      const totalGuests = eventData.reduce((sum: number, event: Event) => sum + event.attendees, 0);
-      const upcomingEvents = eventData.filter((event: Event) => 
+      const confirmedGuests = events.reduce((sum, event) => {
+        return sum + (event.confirmedGuests || 0);
+      }, 0);
+      
+      const upcomingEventsCount = events.filter(event => 
         new Date(event.date) > new Date() && event.status === 'published'
       ).length;
       
       setStats({
-        totalEvents: eventData.length,
+        totalEvents: events.length,
         totalGuests,
         totalInvitations: totalGuests,
-        upcomingEvents
+        upcomingEvents: upcomingEventsCount
       });
     }
-  }, []);
+  }, [events, loading]);
 
   const upcomingEvents = events
     .filter(event => new Date(event.date) > new Date() && event.status === 'published')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => new Date(event.date).getTime() - new Date(event.date).getTime())
     .slice(0, 3);
 
   return (
@@ -133,7 +131,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {event.attendees} invitados
+                      {event.confirmedGuests || 0} confirmados
                     </div>
                   </div>
                 ))}
