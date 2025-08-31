@@ -97,7 +97,7 @@ const nextConfig = {
       // Rewrite para APIs internas si es necesario
       {
         source: "/api/supabase/:path*",
-        destination: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/:path*`,
+        destination: `https://your-project-id.supabase.co/:path*`,
       },
     ];
   },
