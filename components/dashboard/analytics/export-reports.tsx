@@ -39,7 +39,7 @@ export function ExportReports() {
     setSelectedReports([])
   }
 
-  const handleQuickExport = (_format: string) => {
+  const handleQuickExport = () => {
   }
 
   return (
@@ -53,11 +53,11 @@ export function ExportReports() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleQuickExport("pdf")}>
+          <DropdownMenuItem onClick={handleQuickExport}>
             <FileText className="h-4 w-4 mr-2" />
             Reporte PDF Completo
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleQuickExport("excel")}>
+          <DropdownMenuItem onClick={handleQuickExport}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Datos en Excel
           </DropdownMenuItem>

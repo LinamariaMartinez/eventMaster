@@ -35,7 +35,6 @@ const mockGuests = [
 ]
 
 export function ActionControls({
-  invitationData: _invitationData,
   onSave,
   onExportPDF,
   onExportImage,

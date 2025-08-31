@@ -58,7 +58,7 @@ export default function PublicInvitationPage() {
           text: `Te invitamos a nuestro evento: ${invitation?.title || "Evento especial"}`,
           url: url,
         });
-      } catch (error) {
+      } catch {
         // Fallback to copy to clipboard
         await navigator.clipboard.writeText(url);
         toast({
@@ -326,7 +326,7 @@ export default function PublicInvitationPage() {
               <div className="sticky top-20">
                 <RSVPForm 
                   invitation={invitation}
-                  onSubmit={(data) => {
+                  onSubmit={() => {
                     // Update invitation stats
                     invitationStorage.update(invitation.id, {
                       respondedCount: invitation.respondedCount + 1,

@@ -86,7 +86,7 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
       try {
         const text = e.target?.result as string
         const lines = text.split("\n")
-        const _headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
+        lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
 
         const importedGuests: Guest[] = lines
           .slice(1)
@@ -115,7 +115,7 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
         setImportStatus("success")
         setImportMessage(`${importedGuests.length} invitados importados exitosamente`)
         setTimeout(() => setImportStatus("idle"), 3000)
-      } catch (_error) {
+      } catch {
         setImportStatus("error")
         setImportMessage("Error al procesar el archivo. Verifica el formato.")
         setTimeout(() => setImportStatus("idle"), 3000)

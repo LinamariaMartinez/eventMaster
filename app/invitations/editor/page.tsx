@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Save, Send, Eye } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, Send } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +19,7 @@ import { InvitationTypeSelector } from "@/components/invitations/invitation-type
 import { TemplateSelector } from "@/components/invitations/template-selector";
 import { VisualEditor } from "@/components/invitations/visual-editor";
 import { InvitationPreview } from "@/components/invitations/invitation-preview";
+import { PremiumFeaturesEditor } from "@/components/invitations/premium-features-editor";
 
 // Storage
 import { 
@@ -36,10 +36,11 @@ const steps = [
   { id: "template", title: "Plantilla", description: "Elige un diseño base" },
   { id: "content", title: "Contenido", description: "Personaliza el texto" },
   { id: "design", title: "Diseño", description: "Ajusta colores y estilos" },
+  { id: "premium", title: "Premium", description: "Características avanzadas" },
   { id: "preview", title: "Vista Previa", description: "Revisa y publica" },
 ];
 
-export default function InvitationEditorPage() {
+function InvitationEditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -96,6 +97,7 @@ export default function InvitationEditorPage() {
           description: event.description,
           content: {
             ...prev.content,
+            hostName: prev.content?.hostName || "",
             eventDate: event.date,
             eventTime: event.time,
             venue: event.location,
@@ -107,13 +109,23 @@ export default function InvitationEditorPage() {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      // Skip premium features step for simple invitations
+      if (currentStep === 3 && invitation.type === "simple") {
+        setCurrentStep(currentStep + 2); // Skip premium step
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      // Skip premium features step for simple invitations going backwards
+      if (currentStep === 5 && invitation.type === "simple") {
+        setCurrentStep(currentStep - 2); // Skip premium step
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
     }
   };
 
@@ -143,6 +155,10 @@ export default function InvitationEditorPage() {
       setInvitation(prev => ({
         ...prev,
         content: {
+          hostName: prev.content?.hostName || "",
+          eventDate: prev.content?.eventDate || "",
+          eventTime: prev.content?.eventTime || "",
+          venue: prev.content?.venue || "",
           ...prev.content,
           [contentField]: value,
         },
@@ -205,7 +221,9 @@ export default function InvitationEditorPage() {
         return invitation.title && invitation.eventId;
       case 3: // Design
         return true; // Always can proceed from design
-      case 4: // Preview
+      case 4: // Premium features (only for premium invitations)
+        return invitation.type === "simple" || true; // Simple can skip, Premium always can proceed
+      case 5: // Preview
         return true;
       default:
         return false;
@@ -349,6 +367,7 @@ export default function InvitationEditorPage() {
                               title: event.title,
                               description: event.description,
                               content: {
+                                hostName: prev.content?.hostName || "Anfitrión",
                                 ...prev.content,
                                 eventDate: event.date,
                                 eventTime: event.time,
@@ -436,8 +455,36 @@ export default function InvitationEditorPage() {
               />
             )}
 
-            {/* Step 4: Preview */}
-            {currentStep === 4 && (
+            {/* Step 4: Premium Features */}
+            {currentStep === 4 && invitation.type === "premium" && (
+              <PremiumFeaturesEditor
+                invitation={invitation}
+                onUpdate={handleInvitationUpdate}
+              />
+            )}
+
+            {/* Step 4: Simple Skip or Premium Features Complete */}
+            {currentStep === 4 && invitation.type === "simple" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Características Premium</CardTitle>
+                  <CardDescription>
+                    Las características premium no están disponibles para invitaciones simples
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      Tu invitación simple está lista con WhatsApp CTA y plantillas visuales. 
+                      ¡Continúa al siguiente paso para publicar!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 5: Preview */}
+            {currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publicar Invitación</CardTitle>
@@ -492,5 +539,13 @@ export default function InvitationEditorPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function InvitationEditorPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <InvitationEditorContent />
+    </Suspense>
   );
 }

@@ -8,15 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, Users, Send } from "lucide-react";
-import { Invitation, guestStorage } from "@/lib/storage";
+import { Invitation, Guest, guestStorage } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 interface RSVPFormProps {
   invitation: Invitation;
-  onSubmit?: (guestData: any) => void;
+  onSubmit?: (data: { guest: Guest; stats: { sentCount: number; openedCount: number; respondedCount: number } }) => void;
 }
 
 interface RSVPFormData {

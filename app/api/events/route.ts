@@ -26,7 +26,7 @@ const eventSchema = z.object({
   })
 })
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await getSupabaseServer()
 

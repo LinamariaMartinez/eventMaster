@@ -89,7 +89,7 @@ export default function EditEventPage() {
       } else {
         throw new Error("No se pudo actualizar el evento");
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "No se pudo actualizar el evento",
@@ -115,7 +115,7 @@ export default function EditEventPage() {
         } else {
           throw new Error("No se pudo eliminar el evento");
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "No se pudo eliminar el evento",

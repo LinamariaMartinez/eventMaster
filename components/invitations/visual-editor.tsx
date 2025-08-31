@@ -18,18 +18,36 @@ interface VisualEditorProps {
 }
 
 export function VisualEditor({ invitation, onUpdate, isPremium }: VisualEditorProps) {
-  const handleStyleUpdate = (key: string, value: any) => {
+  const handleStyleUpdate = (key: string, value: string | boolean | undefined) => {
+    const defaultStyles = {
+      backgroundColor: "#ffffff",
+      textColor: "#000000",
+      accentColor: "#3b82f6",
+      fontFamily: "sans-serif",
+      fontSize: "16px",
+      backgroundType: "solid" as const,
+    };
+    
     onUpdate({
       customStyles: {
+        ...defaultStyles,
         ...invitation.customStyles,
         [key]: value,
       },
     });
   };
 
-  const handleLayoutUpdate = (key: string, value: any) => {
+  const handleLayoutUpdate = (key: string, value: number) => {
+    const defaultLayout = {
+      headerHeight: 120,
+      contentPadding: 32,
+      borderRadius: 12,
+      shadowLevel: 2,
+    };
+    
     onUpdate({
       layout: {
+        ...defaultLayout,
         ...invitation.layout,
         [key]: value,
       },
@@ -86,7 +104,7 @@ export function VisualEditor({ invitation, onUpdate, isPremium }: VisualEditorPr
               Texto
             </TabsTrigger>
             <TabsTrigger value="background" className="flex items-center gap-1" disabled={!isPremium}>
-              <Image className="h-4 w-4" />
+              <Image className="h-4 w-4" aria-hidden="true" />
               Fondo
             </TabsTrigger>
             <TabsTrigger value="layout" className="flex items-center gap-1" disabled={!isPremium}>
@@ -291,7 +309,7 @@ export function VisualEditor({ invitation, onUpdate, isPremium }: VisualEditorPr
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <Image className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <Image className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
                 <h4 className="font-medium mb-2">Función Premium</h4>
                 <p className="text-sm">
                   Actualiza a Premium para personalizar fondos con gradientes e imágenes

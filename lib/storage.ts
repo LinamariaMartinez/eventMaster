@@ -91,10 +91,22 @@ export interface Invitation {
     eventDate: string;
     eventTime: string;
     venue: string;
+    venueAddress?: string; // Full address for map
+    venueCoordinates?: {
+      lat: number;
+      lng: number;
+    };
     dressCode?: string;
     additionalInfo?: string;
+    giftInfo?: string;
+    giftRegistryUrl?: string;
+  };
+  gallery?: {
+    images: string[];
+    captions?: string[];
   };
   publicUrl: string;
+  uniqueToken: string; // Unique token for secure URL access
   status: "draft" | "published";
   sentCount: number;
   openedCount: number;
@@ -111,6 +123,20 @@ const STORAGE_KEYS = {
   INVITATIONS: "catalina_invitations",
   INVITATION_TEMPLATES: "catalina_invitation_templates",
 } as const;
+
+// Utility functions for generating unique IDs and tokens
+const generateUniqueId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+const generateUniqueToken = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+};
 
 // Utilidades de localStorage con manejo de errores
 const safeLocalStorage = {
@@ -383,11 +409,13 @@ export const invitationStorage = {
     );
   },
 
-  add: (invitation: Omit<Invitation, "id" | "createdAt" | "updatedAt">): Invitation => {
+  add: (invitation: Omit<Invitation, "id" | "createdAt" | "updatedAt" | "uniqueToken">): Invitation => {
+    const uniqueToken = generateUniqueToken();
     const newInvitation: Invitation = {
       ...invitation,
-      id: Date.now().toString(),
-      publicUrl: `/invitation/${Date.now().toString()}`,
+      id: generateUniqueId(),
+      uniqueToken,
+      publicUrl: `/invite/${uniqueToken}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -440,6 +468,11 @@ export const invitationStorage = {
   getByPublicUrl: (publicUrl: string): Invitation | null => {
     const invitations = invitationStorage.getAll();
     return invitations.find((i) => i.publicUrl === publicUrl) || null;
+  },
+
+  getByToken: (token: string): Invitation | null => {
+    const invitations = invitationStorage.getAll();
+    return invitations.find((i) => i.uniqueToken === token) || null;
   },
 };
 
@@ -619,6 +652,112 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
         shadowLevel: 3,
       },
     },
+    // Additional Simple Templates - More Visual Variety
+    {
+      id: "wedding-garden-simple",
+      name: "Jardín Natural",
+      category: "wedding",
+      type: "simple",
+      thumbnail: "/garden-natural-invitation.png",
+      styles: {
+        backgroundColor: "#f0f9f0",
+        textColor: "#1f4d1f",
+        accentColor: "#16a34a",
+        fontFamily: "sans-serif",
+        fontSize: "16px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 130,
+        contentPadding: 36,
+        borderRadius: 18,
+        shadowLevel: 2,
+      },
+    },
+    {
+      id: "wedding-vintage-simple",
+      name: "Vintage Retro",
+      category: "wedding",
+      type: "simple",
+      thumbnail: "/vintage-retro-invitation.png",
+      styles: {
+        backgroundColor: "#fef7ed",
+        textColor: "#7c2d12",
+        accentColor: "#ea580c",
+        fontFamily: "serif",
+        fontSize: "17px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 125,
+        contentPadding: 30,
+        borderRadius: 20,
+        shadowLevel: 3,
+      },
+    },
+    {
+      id: "corporate-tech-simple",
+      name: "Tech Innovador",
+      category: "corporate",
+      type: "simple",
+      thumbnail: "/tech-innovative-invitation.png",
+      styles: {
+        backgroundColor: "#f1f5f9",
+        textColor: "#0f172a",
+        accentColor: "#06b6d4",
+        fontFamily: "sans-serif",
+        fontSize: "15px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 95,
+        contentPadding: 26,
+        borderRadius: 6,
+        shadowLevel: 1,
+      },
+    },
+    {
+      id: "corporate-luxury-simple",
+      name: "Lujo Ejecutivo",
+      category: "corporate",
+      type: "simple",
+      thumbnail: "/luxury-executive-invitation.png",
+      styles: {
+        backgroundColor: "#1f1f23",
+        textColor: "#d4d4d8",
+        accentColor: "#fbbf24",
+        fontFamily: "serif",
+        fontSize: "16px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 115,
+        contentPadding: 32,
+        borderRadius: 12,
+        shadowLevel: 4,
+      },
+    },
+    {
+      id: "birthday-tropical-simple",
+      name: "Tropical Vibrante",
+      category: "birthday",
+      type: "simple",
+      thumbnail: "/tropical-vibrant-invitation.png",
+      styles: {
+        backgroundColor: "#fef3c7",
+        textColor: "#0f766e",
+        accentColor: "#14b8a6",
+        fontFamily: "sans-serif",
+        fontSize: "17px",
+        backgroundType: "solid",
+      },
+      layout: {
+        headerHeight: 135,
+        contentPadding: 34,
+        borderRadius: 22,
+        shadowLevel: 2,
+      },
+    },
   ];
 }
 
@@ -627,29 +766,29 @@ export const getInvitationTypes = (): InvitationType[] => [
   {
     id: "simple",
     name: "Simple",
-    description: "Invitaciones básicas con diseño limpio y funcional",
+    description: "Invitaciones con plantillas visuales variadas y CTA WhatsApp",
     features: [
-      "Diseño simple y elegante",
-      "3 plantillas por categoría",
-      "Colores y fuentes básicos",
+      "Plantillas visuales variadas por categoría",
+      "Diseños atractivos preconfigurados",
+      "CTA con WhatsApp Business API",
       "URL pública personalizada",
-      "Formulario RSVP básico",
+      "Vista previa inmediata",
     ],
-    price: "Gratis",
+    price: "Incluido",
   },
   {
     id: "premium",
     name: "Premium",
-    description: "Invitaciones avanzadas con funciones premium",
+    description: "Editor avanzado con formulario embebido y funciones completas",
     features: [
-      "Diseños premium con gradientes",
-      "Editor visual avanzado",
+      "Editor visual completo y avanzado",
+      "Formulario embebido en preview",
+      "URL funcional de ejemplo",
       "Subida de imágenes personalizadas",
-      "Animaciones y efectos",
-      "Formulario RSVP avanzado",
+      "Gradientes y efectos premium",
       "Estadísticas detalladas",
     ],
-    price: "$9.99/mes",
+    price: "Plan Avanzado",
   },
 ];
 

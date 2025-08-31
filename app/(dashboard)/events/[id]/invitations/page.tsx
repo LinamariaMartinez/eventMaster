@@ -142,7 +142,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
     toast.success(`${newGuests.length} invitados importados`);
   };
 
-  const handleEditGuest = (_guest: Guest) => {
+  const handleEditGuest = () => {
     // Abrir modal de edición
     toast.info("Función de edición próximamente");
   };
@@ -154,7 +154,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
     }
   };
 
-  const handleSendReminder = (_guestId: string) => {
+  const handleSendReminder = () => {
     // Enviar recordatorio
     toast.success("Recordatorio enviado");
   };

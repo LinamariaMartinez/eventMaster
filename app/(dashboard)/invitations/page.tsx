@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Eye, 
   Edit, 
-  Download, 
   Send, 
   Plus, 
   Trash2, 
@@ -37,16 +36,11 @@ export default function InvitationsPage() {
   const templates = invitationTemplateStorage.getAll();
   const events = eventStorage.getAll();
 
-  useEffect(() => {
-    loadInvitations();
-  }, []);
-
-  const loadInvitations = () => {
+  const loadInvitations = useCallback(() => {
     try {
       const savedInvitations = invitationStorage.getAll();
       setInvitations(savedInvitations);
-    } catch (error) {
-      console.error("Error loading invitations:", error);
+    } catch {
       toast({
         title: "Error",
         description: "No se pudieron cargar las invitaciones",
@@ -55,7 +49,11 @@ export default function InvitationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadInvitations();
+  }, [loadInvitations]);
 
   const handleCopyUrl = async (invitation: Invitation) => {
     const fullUrl = `${window.location.origin}${invitation.publicUrl}`;
@@ -75,7 +73,7 @@ export default function InvitationsPage() {
           title: "Invitación eliminada",
           description: "La invitación ha sido eliminada correctamente",
         });
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "No se pudo eliminar la invitación",

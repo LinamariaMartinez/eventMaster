@@ -33,7 +33,6 @@ export function VisualEditor({
   invitationData,
   onContentChange,
   onImageAdd,
-  onImageUpdate: _onImageUpdate,
   onImageRemove,
 }: VisualEditorProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)

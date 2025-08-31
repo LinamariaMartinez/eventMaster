@@ -93,7 +93,7 @@ const mockResponseData = [
 
 export default function EstadisticasPage() {
   const [timeRange, setTimeRange] = useState("6m");
-  const [_selectedMetric, _setSelectedMetric] = useState("all");
+  // Removed unused selectedMetric state
 
   return (
     <DashboardLayout>

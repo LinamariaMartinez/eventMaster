@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Smartphone, Monitor, Eye, Copy, ExternalLink, Share } from "lucide-react";
 import { Invitation, Event } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { PremiumPreviewWithForm } from "./premium-preview-with-form";
+import { createWhatsAppInvitationLink } from "@/lib/whatsapp-service";
 
 interface InvitationPreviewProps {
   invitation: Partial<Invitation>;
@@ -42,7 +43,7 @@ export function InvitationPreview({
           text: `Te invitamos a nuestro evento: ${invitation.title || "Evento especial"}`,
           url: `${window.location.origin}${invitation.publicUrl}`,
         });
-      } catch (error) {
+      } catch {
         handleCopyUrl();
       }
     } else {
@@ -162,9 +163,34 @@ export function InvitationPreview({
             <p className="font-medium">
               {invitation.content?.hostName ? `Te invita: ${invitation.content.hostName}` : "Esperamos verte allí"}
             </p>
-            <p className="text-sm opacity-75 mt-2">
-              Por favor confirma tu asistencia
-            </p>
+            
+            {/* Simple: WhatsApp CTA */}
+            {invitation.type === "simple" && (
+              <div className="mt-4">
+                <p className="text-sm opacity-75 mb-3">
+                  Confirma tu asistencia vía WhatsApp:
+                </p>
+                <a
+                  href={createWhatsAppInvitationLink(invitation)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors hover:opacity-90"
+                  style={{ 
+                    backgroundColor: invitation.customStyles?.accentColor || "#25D366",
+                    textDecoration: 'none'
+                  }}
+                >
+                  📱 Confirmar por WhatsApp
+                </a>
+              </div>
+            )}
+            
+            {/* Premium: Simple RSVP text for preview */}
+            {invitation.type === "premium" && (
+              <p className="text-sm opacity-75 mt-2">
+                Por favor confirma tu asistencia usando el formulario
+              </p>
+            )}
           </div>
 
           {/* Additional Info */}
@@ -239,15 +265,25 @@ export function InvitationPreview({
           className={`transition-all duration-300 mx-auto bg-gray-100 ${
             viewMode === "mobile" 
               ? "w-[360px] h-[640px]" 
-              : "w-full h-[600px]"
+              : invitation.type === "premium" 
+                ? "w-full h-[800px]" 
+                : "w-full h-[600px]"
           }`}
           style={{
             maxWidth: viewMode === "mobile" ? "360px" : "100%",
             borderRadius: viewMode === "mobile" ? "24px" : "0",
-            overflow: "hidden",
+            overflow: invitation.type === "premium" ? "auto" : "hidden",
           }}
         >
-          {previewContent}
+          {invitation.type === "premium" ? (
+            <PremiumPreviewWithForm
+              invitation={invitation}
+              event={event}
+              viewMode={viewMode}
+            />
+          ) : (
+            previewContent
+          )}
         </div>
       </CardContent>
     </Card>

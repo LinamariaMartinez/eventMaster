@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, Mail, TrendingUp, Clock, MapPin } from "lucide-react";
-import { eventStorage, guestStorage } from "@/lib/storage";
+import { guestStorage } from "@/lib/storage";
 import { useEventsStorage } from "@/hooks/use-events-storage";
 
 
@@ -25,9 +25,7 @@ export default function DashboardPage() {
         return sum + eventGuests.length;
       }, 0);
       
-      const confirmedGuests = events.reduce((sum, event) => {
-        return sum + (event.confirmedGuests || 0);
-      }, 0);
+      // Calculate confirmed guests (currently unused but kept for future use)
       
       const upcomingEventsCount = events.filter(event => 
         new Date(event.date) > new Date() && event.status === 'published'
@@ -44,7 +42,7 @@ export default function DashboardPage() {
 
   const upcomingEvents = events
     .filter(event => new Date(event.date) > new Date() && event.status === 'published')
-    .sort((a, b) => new Date(event.date).getTime() - new Date(event.date).getTime())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
   return (

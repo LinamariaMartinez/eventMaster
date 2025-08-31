@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { invitationStorage, eventStorage, guestStorage, type Invitation, type Event } from "@/lib/storage";
+import type { Event as EventWithSettings } from "@/types";
 
 const confirmationSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -47,29 +49,34 @@ interface PageProps {
 export default function InvitationPage({ params }: PageProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  // Mock event data - vendría de la API
-  const event = {
-    id: params.id,
-    title: "Boda de María y Carlos",
-    date: "15 de Febrero, 2025",
-    time: "18:00",
-    location: "Salón de Eventos Los Jardines, Medellín",
-    description:
-      "Celebremos juntos este momento tan especial en nuestras vidas. Tu presencia hará que este día sea aún más memorable.",
-    settings: {
-      allowPlusOnes: true,
-      requirePhone: false,
-      requireEmail: true,
-      maxGuestsPerInvite: 4,
-      colors: {
-        primary: "#8B4B6B",
-        secondary: "#F5F1E8",
-        accent: "#D4A574",
-      },
-      rsvpDeadline: "10 de Febrero, 2025",
-    },
-  };
+  // Load invitation and event data by token
+  useEffect(() => {
+    const loadInvitationData = async () => {
+      try {
+        const foundInvitation = invitationStorage.getByToken(params.id);
+        
+        if (!foundInvitation) {
+          setNotFound(true);
+          return;
+        }
+        
+        setInvitation(foundInvitation);
+        
+        const foundEvent = eventStorage.getById(foundInvitation.eventId);
+        setEvent(foundEvent);
+        
+      } catch (error) {
+        console.error('Error loading invitation:', error);
+        setNotFound(true);
+      }
+    };
+
+    loadInvitationData();
+  }, [params.id]);
 
   const form = useForm<ConfirmationForm>({
     resolver: zodResolver(confirmationSchema),
@@ -86,14 +93,26 @@ export default function InvitationPage({ params }: PageProps) {
 
   const watchResponse = form.watch("response");
 
-  const handleSubmit = async (_data: ConfirmationForm) => {
+  const handleSubmit = async (data: ConfirmationForm) => {
+    if (!invitation || !event) return;
+    
     setIsLoading(true);
 
     try {
-      // Aquí iría la llamada a la API para guardar la confirmación
+      // Save guest data to database
+      const guestData = {
+        name: data.name,
+        email: data.email || "",
+        phone: data.phone || "",
+        status: data.response === "yes" ? "confirmed" : data.response === "no" ? "declined" : "pending",
+        eventId: event.id,
+        guestCount: data.guest_count,
+        message: data.additional_notes || "",
+        dietaryRestrictions: data.dietary_restrictions || "",
+      } as const;
 
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const savedGuest = guestStorage.add(guestData);
+      console.log('Guest RSVP saved:', savedGuest);
 
       setIsSubmitted(true);
       toast.success("¡Confirmación enviada exitosamente!");
@@ -105,12 +124,48 @@ export default function InvitationPage({ params }: PageProps) {
     }
   };
 
-  if (isSubmitted) {
+  // Loading state
+  if (!invitation && !notFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full mx-auto mb-4"></div>
+          <p>Cargando invitación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (notFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8">
+            <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-red-600 text-2xl">❌</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Invitación No Encontrada
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Esta invitación no existe o ha sido eliminada.
+            </p>
+            <Button asChild>
+              <Link href="/">Volver al Inicio</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isSubmitted && invitation && event) {
     return (
       <div
         className="min-h-screen flex items-center justify-center p-4"
         style={{
-          background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)`,
+          background: `linear-gradient(135deg, ${invitation.customStyles.backgroundColor} 0%, ${invitation.customStyles.accentColor} 100%)`,
         }}
       >
         <Card className="w-full max-w-md text-center">
@@ -138,7 +193,7 @@ export default function InvitationPage({ params }: PageProps) {
             <div className="space-y-3">
               <Button
                 className="w-full"
-                style={{ backgroundColor: event.settings.colors.primary }}
+                style={{ backgroundColor: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
                 asChild
               >
                 <a
@@ -161,30 +216,41 @@ export default function InvitationPage({ params }: PageProps) {
     );
   }
 
+  // Ensure both invitation and event are loaded before rendering
+  if (!invitation || !event) {
+    return null;
+  }
+
   return (
     <div
       className="min-h-screen p-4"
       style={{
-        background: `linear-gradient(135deg, ${event.settings.colors.primary} 0%, ${event.settings.colors.accent} 100%)`,
+        background: `linear-gradient(135deg, ${invitation.customStyles.backgroundColor} 0%, ${invitation.customStyles.accentColor} 100%)`,
       }}
     >
       <div className="max-w-2xl mx-auto">
         {/* Event Header */}
         <Card
           className="mb-8"
-          style={{ backgroundColor: event.settings.colors.secondary }}
+          style={{ 
+            backgroundColor: invitation.customStyles.backgroundColor,
+            color: invitation.customStyles.textColor 
+          }}
         >
           <CardContent className="text-center py-8">
             <div className="mb-6">
               <Heart
                 className="h-12 w-12 mx-auto mb-4"
-                style={{ color: event.settings.colors.primary }}
+                style={{ color: invitation.customStyles.accentColor }}
               />
               <h1
-                className="text-4xl font-playfair font-bold mb-4"
-                style={{ color: event.settings.colors.primary }}
+                className="text-4xl font-bold mb-4"
+                style={{ 
+                  color: invitation.customStyles.accentColor,
+                  fontFamily: invitation.customStyles.fontFamily === 'serif' ? 'serif' : 'sans-serif'
+                }}
               >
-                {event.title}
+                {invitation.title}
               </h1>
               <p className="text-lg opacity-80 mb-6">
                 Nos complace invitarte a nuestra celebración
@@ -195,29 +261,29 @@ export default function InvitationPage({ params }: PageProps) {
               <div className="flex items-center justify-center space-x-2">
                 <Calendar
                   className="h-5 w-5"
-                  style={{ color: event.settings.colors.accent }}
+                  style={{ color: invitation.customStyles.accentColor }}
                 />
-                <span>{event.date}</span>
+                <span>{invitation.content.eventDate || event.date}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <Clock
                   className="h-5 w-5"
-                  style={{ color: event.settings.colors.accent }}
+                  style={{ color: invitation.customStyles.accentColor }}
                 />
-                <span>{event.time}</span>
+                <span>{invitation.content.eventTime || event.time}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <MapPin
                   className="h-5 w-5"
-                  style={{ color: event.settings.colors.accent }}
+                  style={{ color: invitation.customStyles.accentColor }}
                 />
-                <span>{event.location}</span>
+                <span>{invitation.content.venue || event.location}</span>
               </div>
             </div>
 
-            {event.description && (
+            {(invitation.description || event.description) && (
               <p className="mt-6 text-gray-700 leading-relaxed">
-                {event.description}
+                {invitation.description || event.description}
               </p>
             )}
           </CardContent>
@@ -228,13 +294,13 @@ export default function InvitationPage({ params }: PageProps) {
           <CardHeader className="text-center pb-4">
             <h2
               className="text-2xl font-bold"
-              style={{ color: event.settings.colors.primary }}
+              style={{ color: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
             >
               Confirma tu Asistencia
             </h2>
-            {event.settings.rsvpDeadline && (
+            {(event as unknown as EventWithSettings).settings.rsvpDeadline && (
               <p className="text-sm text-gray-600">
-                Por favor responde antes del {event.settings.rsvpDeadline}
+                Por favor responde antes del {(event as unknown as EventWithSettings).settings.rsvpDeadline}
               </p>
             )}
           </CardHeader>
@@ -263,11 +329,11 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Email */}
-              {event.settings.requireEmail && (
+              {(event as unknown as EventWithSettings).settings.requireEmail && (
                 <div>
                   <Label htmlFor="email" className="flex items-center">
                     <Mail className="h-4 w-4 mr-2" />
-                    Email {event.settings.requireEmail ? "*" : "(Opcional)"}
+                    Email {(event as unknown as EventWithSettings).settings.requireEmail ? "*" : "(Opcional)"}
                   </Label>
                   <Input
                     id="email"
@@ -287,7 +353,7 @@ export default function InvitationPage({ params }: PageProps) {
               <div>
                 <Label htmlFor="phone" className="flex items-center">
                   <Phone className="h-4 w-4 mr-2" />
-                  Teléfono {event.settings.requirePhone ? "*" : "(Opcional)"}
+                  Teléfono {(event as unknown as EventWithSettings).settings.requirePhone ? "*" : "(Opcional)"}
                 </Label>
                 <Input
                   id="phone"
@@ -336,7 +402,7 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Guest Count */}
-              {event.settings.allowPlusOnes && watchResponse === "yes" && (
+              {(event as unknown as EventWithSettings).settings.allowPlusOnes && watchResponse === "yes" && (
                 <div>
                   <Label htmlFor="guest_count">
                     Número de acompañantes (incluyéndote)
@@ -345,15 +411,15 @@ export default function InvitationPage({ params }: PageProps) {
                     id="guest_count"
                     type="number"
                     min="1"
-                    max={event.settings.maxGuestsPerInvite}
+                    max={(event as unknown as EventWithSettings).settings.maxGuestsPerInvite}
                     {...form.register("guest_count", {
                       valueAsNumber: true,
                       min: 1,
-                      max: event.settings.maxGuestsPerInvite,
+                      max: (event as unknown as EventWithSettings).settings.maxGuestsPerInvite,
                     })}
                   />
                   <p className="text-sm text-gray-600 mt-1">
-                    Máximo {event.settings.maxGuestsPerInvite} personas por
+                    Máximo {(event as unknown as EventWithSettings).settings.maxGuestsPerInvite} personas por
                     invitación
                   </p>
                 </div>
@@ -390,7 +456,7 @@ export default function InvitationPage({ params }: PageProps) {
               <Button
                 type="submit"
                 className="w-full text-lg py-3"
-                style={{ backgroundColor: event.settings.colors.primary }}
+                style={{ backgroundColor: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
                 disabled={isLoading}
               >
                 {isLoading ? "Enviando..." : "Confirmar Asistencia"}

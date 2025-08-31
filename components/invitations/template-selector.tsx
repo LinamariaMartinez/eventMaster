@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Building2, Gift, Check, Crown } from "lucide-react";
 import { InvitationTemplate } from "@/lib/storage";
-import Image from "next/image";
 
 interface TemplateSelectorProps {
   selectedTemplate: string | null;
@@ -65,7 +64,7 @@ export function TemplateSelector({
         </p>
       </div>
 
-      <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as any)}>
+      <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as "wedding" | "corporate" | "birthday")}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="wedding" className="flex items-center gap-2">
             <Heart className="h-4 w-4" />
