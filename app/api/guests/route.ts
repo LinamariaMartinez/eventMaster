@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const guestSchema = z.object({
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     if (isBulkImport) {
       const data = bulkGuestsSchema.parse(body)
       
-      const supabase = await getSupabaseServer()
+      const supabase = await createClient()
 
       // Verificar autenticación
       const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       // Single guest creation
       const data = guestSchema.parse(body)
       
-      const supabase = await getSupabaseServer()
+      const supabase = await createClient()
 
       // Verificar autenticación
       const { data: { user }, error: authError } = await supabase.auth.getUser()
