@@ -1,47 +1,43 @@
+// lib/supabase.ts - Versión robusta para producción
+
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import { Database } from "@/types/database.types";
 
-// Singleton instances
-let browserClient: ReturnType<typeof createBrowserClient<Database>> | null =
-  null;
-let adminClient: ReturnType<typeof createClient<Database>> | null = null;
+// Función para validar variables de entorno
+const validateSupabaseConfig = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Browser client singleton (for client-side use)
-export const getSupabaseBrowser = () => {
-  if (typeof window === "undefined") {
+  if (!url || !anonKey) {
+    console.error("❌ Supabase Config Error:", {
+      url: url ? "✅ OK" : "❌ Missing NEXT_PUBLIC_SUPABASE_URL",
+      anonKey: anonKey ? "✅ OK" : "❌ Missing NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      env: process.env.NODE_ENV,
+    });
+
     throw new Error(
-      "getSupabaseBrowser should only be called on the client side",
+      `Missing Supabase environment variables. Required: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY`,
     );
   }
 
-  if (!browserClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing Supabase environment variables");
-    }
-
-    browserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
-  }
-
-  return browserClient;
+  return { url, anonKey };
 };
 
-// Server client (for server-side use)
+// Cliente para el navegador
+export const getSupabaseBrowser = () => {
+  const { url, anonKey } = validateSupabaseConfig();
+
+  return createBrowserClient<Database>(url, anonKey);
+};
+
+// Cliente para el servidor
 export const getSupabaseServer = async () => {
-  // Import cookies only when needed in server context
-  const { cookies } = await import("next/headers");
+  const { url, anonKey } = validateSupabaseConfig();
   const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing Supabase environment variables");
-  }
-
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -52,81 +48,76 @@ export const getSupabaseServer = async () => {
             cookieStore.set(name, value, options),
           );
         } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing user sessions.
+          // En algunos contextos server no se pueden setear cookies
         }
       },
     },
   });
 };
 
-// Admin client singleton (for server-side admin operations)
-export const getSupabaseAdmin = () => {
-  if (!adminClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Cliente simple para casos especiales
+export const createSimpleSupabaseClient = () => {
+  const { url, anonKey } = validateSupabaseConfig();
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error("Missing Supabase environment variables");
-    }
-
-    adminClient = createClient<Database>(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-  }
-
-  return adminClient;
-};
-
-// Legacy compatibility functions
-export const getSupabase = () => {
-  if (typeof window !== "undefined") {
-    return getSupabaseBrowser();
-  }
-  throw new Error(
-    "getSupabase() called on server side. Use getSupabaseServer() instead.",
-  );
-};
-
-// Middleware client (special case for middleware)
-export const createMiddlewareClient = (
-  request: Request,
-  response: Response,
-) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing Supabase environment variables");
-  }
-
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        // For middleware, we need to handle cookies differently
-        const cookies = request.headers.get("cookie");
-        if (!cookies) return [];
-
-        return cookies.split("; ").map((cookie) => {
-          const [name, value] = cookie.split("=");
-          return { name, value };
-        });
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.headers.append(
-            "Set-Cookie",
-            `${name}=${value}; Path=${options?.path || "/"}; HttpOnly=${options?.httpOnly !== false}; SameSite=${options?.sameSite || "Lax"}; Secure=${options?.secure !== false}`,
-          );
-        });
-      },
+  return createSupabaseClient<Database>(url, anonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
     },
   });
 };
 
-// Export for backwards compatibility
+// Middleware client con manejo de errores mejorado
+export const createMiddlewareClient = (
+  request: Request,
+  response: Response,
+) => {
+  try {
+    const { url, anonKey } = validateSupabaseConfig();
+
+    return createServerClient<Database>(url, anonKey, {
+      cookies: {
+        getAll() {
+          try {
+            const cookies = request.headers.get("cookie");
+            if (!cookies) return [];
+
+            return cookies.split("; ").map((cookie) => {
+              const [name, value] = cookie.split("=");
+              return { name, value: value || "" };
+            });
+          } catch (error) {
+            console.error("Error parsing cookies:", error);
+            return [];
+          }
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const cookieOptions = [
+                `${name}=${value}`,
+                `Path=${options?.path || "/"}`,
+                options?.httpOnly !== false ? "HttpOnly" : "",
+                `SameSite=${options?.sameSite || "Lax"}`,
+                options?.secure !== false ? "Secure" : "",
+              ]
+                .filter(Boolean)
+                .join("; ");
+
+              response.headers.append("Set-Cookie", cookieOptions);
+            });
+          } catch (error) {
+            console.error("Error setting cookies:", error);
+          }
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Failed to create middleware client:", error);
+    throw error;
+  }
+};
+
+// Export por compatibilidad
 export const supabase =
   typeof window !== "undefined" ? getSupabaseBrowser() : null;
