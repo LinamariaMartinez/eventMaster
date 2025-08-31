@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -34,7 +34,7 @@ const updateEventSchema = z.object({
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const resolvedParams = await params
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const includeGuests = searchParams.get('include_guests') === 'true'
     const includeConfirmations = searchParams.get('include_confirmations') === 'true'
@@ -127,7 +127,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json()
     const data = updateEventSchema.parse(body)
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -198,7 +198,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const resolvedParams = await params
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()

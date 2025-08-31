@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { createEventSpreadsheet } from '@/lib/google-sheets'
 import { generatePublicUrl } from '@/lib/utils'
 import { z } from 'zod'
@@ -28,7 +28,7 @@ const eventSchema = z.object({
 
 export async function GET() {
   try {
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = eventSchema.parse(body)
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()

@@ -1,6 +1,6 @@
 "use client";
 
-import { getSupabaseBrowser } from "./supabase";
+import { createClient } from "./supabase/client";
 import { User, AuthError } from "@supabase/supabase-js";
 
 export type AuthUser = User;
@@ -53,7 +53,7 @@ export const signIn = async (email: string, password: string) => {
   }
 
   // Si no es usuario demo, intentar con Supabase
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -128,7 +128,7 @@ export const signOut = async () => {
   // Limpiar completamente la sesión demo
   cleanDemoSession();
   
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   try {
     const { error } = await supabase.auth.signOut();
@@ -160,7 +160,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     }
   }
 
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   try {
     const {
@@ -197,7 +197,7 @@ export const getSession = async () => {
     }
   }
 
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   try {
     const {
@@ -220,7 +220,7 @@ export const getSession = async () => {
 export const onAuthStateChange = (
   callback: (user: AuthUser | null) => void,
 ) => {
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   return supabase.auth.onAuthStateChange((event, session) => {
     console.log("Auth state changed:", event, session?.user?.id);
@@ -229,7 +229,7 @@ export const onAuthStateChange = (
 };
 
 export const refreshSession = async () => {
-  const supabase = getSupabaseBrowser();
+  const supabase = createClient();
 
   try {
     const { data, error } = await supabase.auth.refreshSession();

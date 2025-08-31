@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') // wedding, birthday, corporate
     const activeOnly = searchParams.get('active') !== 'false' // default true
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     let query = supabase
       .from('templates')
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación (solo admins pueden crear plantillas)
     const { data: { user }, error: authError } = await supabase.auth.getUser()

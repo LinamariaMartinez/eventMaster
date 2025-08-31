@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { addConfirmationToSheet } from '@/lib/google-sheets'
 import { z } from 'zod'
 
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = confirmationSchema.parse(body)
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar que el evento existe
     const { data: event, error: eventError } = await supabase
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createClient()
 
     // Verificar autenticación para ver confirmaciones
     const { data: { user } } = await supabase.auth.getUser()
