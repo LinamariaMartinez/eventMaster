@@ -97,20 +97,20 @@ export default function EstadisticasPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="flex flex-col h-full bg-gradient-to-br from-cream/20 to-white">
+        {/* Header mejorado */}
+        <div className="flex items-center justify-between p-6 bg-gradient-to-r from-burgundy to-burgundy/90 text-white">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Estadísticas y Análisis
+            <h1 className="text-3xl font-bold">
+              Análisis Detallado
             </h1>
-            <p className="text-muted-foreground">
-              Métricas de rendimiento de tus eventos e invitaciones
+            <p className="text-burgundy-100 mt-1">
+              Métricas completas y exportación de datos de tus eventos
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -121,33 +121,47 @@ export default function EstadisticasPage() {
                 <SelectItem value="all">Todo el tiempo</SelectItem>
               </SelectContent>
             </Select>
-            <ExportReports />
+            <div className="bg-white/10 rounded-lg p-1">
+              <ExportReports />
+            </div>
           </div>
         </div>
 
         {/* Overview Stats */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 bg-white border-b border-burgundy/10">
           <OverviewStats stats={mockStats} />
         </div>
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <Tabs defaultValue="overview" className="h-full">
-            <div className="border-b border-border px-6 py-2">
-              <TabsList>
-                <TabsTrigger value="overview" className="gap-2">
+            <div className="bg-white border-b border-burgundy/10 px-6 py-4 shadow-sm">
+              <TabsList className="bg-burgundy/5 border border-burgundy/20">
+                <TabsTrigger 
+                  value="overview" 
+                  className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
                   <BarChart3 className="h-4 w-4" />
                   Resumen General
                 </TabsTrigger>
-                <TabsTrigger value="events" className="gap-2">
+                <TabsTrigger 
+                  value="events" 
+                  className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
                   <CalendarDays className="h-4 w-4" />
                   Rendimiento de Eventos
                 </TabsTrigger>
-                <TabsTrigger value="guests" className="gap-2">
+                <TabsTrigger 
+                  value="guests" 
+                  className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
                   <Users className="h-4 w-4" />
                   Análisis de Invitados
                 </TabsTrigger>
-                <TabsTrigger value="trends" className="gap-2">
+                <TabsTrigger 
+                  value="trends" 
+                  className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
                   <TrendingUp className="h-4 w-4" />
                   Tendencias
                 </TabsTrigger>

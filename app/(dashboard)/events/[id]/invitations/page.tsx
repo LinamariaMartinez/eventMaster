@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GuestList } from "@/components/dashboard/guests/guest-list 2";
-import { CSVImport } from "@/components/dashboard/guests/csv-import";
-import { StatsCard } from "@/components/dashboard/stats-card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Plus,
   Upload,
@@ -219,30 +218,65 @@ export default function EventInvitationsPage({ params }: PageProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Invitados"
-          value={stats.total}
-          icon={Users}
-          description={`${totalExpectedGuests} personas esperadas`}
-        />
-        <StatsCard
-          title="Confirmados"
-          value={stats.confirmed}
-          icon={CheckCircle}
-          description={`${confirmedGuestCount} personas confirmadas`}
-        />
-        <StatsCard
-          title="Pendientes"
-          value={stats.pending}
-          icon={Clock}
-          description="Esperando respuesta"
-        />
-        <StatsCard
-          title="Declinaron"
-          value={stats.declined}
-          icon={XCircle}
-          description="No asistirán"
-        />
+        <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 text-burgundy" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-burgundy">{stats.total}</div>
+                <p className="text-sm text-slate-600">Total Invitados</p>
+                <p className="text-xs text-slate-500">{totalExpectedGuests} personas esperadas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{stats.confirmed}</div>
+                <p className="text-sm text-slate-600">Confirmados</p>
+                <p className="text-xs text-slate-500">{confirmedGuestCount} personas confirmadas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-yellow-500 bg-gradient-to-r from-yellow-50 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Clock className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                <p className="text-sm text-slate-600">Pendientes</p>
+                <p className="text-xs text-slate-500">Esperando respuesta</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-50 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <XCircle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">{stats.declined}</div>
+                <p className="text-sm text-slate-600">Declinaron</p>
+                <p className="text-xs text-slate-500">No asistirán</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
@@ -269,19 +303,90 @@ export default function EventInvitationsPage({ params }: PageProps) {
       </Card>
 
       {/* Guest List */}
-      <GuestList
-        guests={guests}
-        onEdit={handleEditGuest}
-        onDelete={handleDeleteGuest}
-        onSendReminder={handleSendReminder}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-burgundy">Lista de Invitados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {guests.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-burgundy/20">
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Nombre</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Email</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Estado</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Acompañantes</th>
+                    <th className="text-center py-3 px-4 font-semibold text-slate-700">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {guests.map((guest) => (
+                    <tr key={guest.id} className="border-b hover:bg-cream/20 transition-colors">
+                      <td className="py-3 px-4 font-medium text-slate-900">{guest.name}</td>
+                      <td className="py-3 px-4 text-slate-600">{guest.email}</td>
+                      <td className="py-3 px-4">
+                        <Badge 
+                          className={
+                            guest.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            guest.status === 'declined' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }
+                        >
+                          {guest.status === 'confirmed' ? 'Confirmado' :
+                           guest.status === 'declined' ? 'Rechazado' : 'Pendiente'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">{guest.guest_count || 1}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEditGuest()}>
+                            Editar
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteGuest(guest.id)}>
+                            Eliminar
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-burgundy/30 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">No hay invitados</h3>
+              <p className="text-slate-600 mb-4">Comienza añadiendo invitados a este evento</p>
+              <Button className="bg-burgundy hover:bg-burgundy/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Añadir Invitado
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* CSV Import Modal */}
+      {/* CSV Import Modal - Simple placeholder */}
       {showCSVImport && (
-        <CSVImport
-          onImport={handleImportGuests}
-          onClose={() => setShowCSVImport(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Importar Invitados CSV</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input type="file" accept=".csv" />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowCSVImport(false)}>
+                  Cancelar
+                </Button>
+                <Button className="bg-burgundy hover:bg-burgundy/90">
+                  Importar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

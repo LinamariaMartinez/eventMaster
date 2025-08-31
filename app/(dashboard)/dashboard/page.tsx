@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Mail, TrendingUp, Clock, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Users, Mail, TrendingUp, Clock, MapPin, Plus, Eye, BarChart3 } from "lucide-react";
 import { guestStorage } from "@/lib/storage";
 import { useEventsStorage } from "@/hooks/use-events-storage";
+import Link from "next/link";
 
 
 export default function DashboardPage() {
@@ -47,134 +49,206 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
+        {/* Header con acciones rápidas */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Bienvenida</h2>
+            <p className="text-slate-600 mt-1">Resumen ejecutivo de tus eventos</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/events/new">
+              <Button className="bg-burgundy hover:bg-burgundy/90 text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Evento
+              </Button>
+            </Link>
+            <Link href="/analytics">
+              <Button variant="outline" className="border-burgundy text-burgundy hover:bg-burgundy/10">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Ver Análisis
+              </Button>
+            </Link>
+          </div>
         </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      {/* Métricas principales - más visual y simplificado */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Eventos</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-700">Eventos Totales</CardTitle>
+            <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-burgundy" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.upcomingEvents} próximos eventos
+            <div className="text-3xl font-bold text-burgundy">{stats.totalEvents}</div>
+            <p className="text-sm text-slate-600 mt-1">
+              {stats.upcomingEvents} próximos
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Invitados</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-700">Total Invitados</CardTitle>
+            <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+              <Users className="h-5 w-5 text-burgundy" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalGuests}</div>
-            <p className="text-xs text-muted-foreground">
-              En todos los eventos
+            <div className="text-3xl font-bold text-burgundy">{stats.totalGuests}</div>
+            <p className="text-sm text-slate-600 mt-1">
+              Todos los eventos
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Invitaciones Enviadas</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-700">Invitaciones</CardTitle>
+            <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+              <Mail className="h-5 w-5 text-burgundy" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvitations}</div>
-            <p className="text-xs text-muted-foreground">
-              Total de invitaciones
+            <div className="text-3xl font-bold text-burgundy">{stats.totalInvitations}</div>
+            <p className="text-sm text-slate-600 mt-1">
+              Enviadas
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasa de Respuesta</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-700">Confirmaciones</CardTitle>
+            <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-burgundy" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">85%</div>
-            <p className="text-xs text-muted-foreground">
-              Promedio de confirmación
+            <div className="text-3xl font-bold text-burgundy">85%</div>
+            <p className="text-sm text-slate-600 mt-1">
+              Tasa promedio
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Próximos Eventos</CardTitle>
+      {/* Próximos eventos - sección principal */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 border-burgundy/20 bg-gradient-to-r from-cream/10 to-white">
+          <CardHeader className="border-b border-burgundy/10">
+            <CardTitle className="text-burgundy flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Próximos Eventos
+            </CardTitle>
             <CardDescription>
-              Eventos programados para los próximos días
+              Eventos que requieren tu atención
             </CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
+          <CardContent className="pt-6">
             {upcomingEvents.length > 0 ? (
               <div className="space-y-4">
-                {upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">{event.title}</p>
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{new Date(event.date).toLocaleDateString('es-CO')}</span>
-                        <MapPin className="h-3 w-3 ml-2" />
-                        <span>{event.location}</span>
+                {upcomingEvents.map((event, index) => (
+                  <div key={event.id} className="group flex items-center justify-between p-4 rounded-lg bg-white border border-burgundy/10 hover:border-burgundy/30 transition-all">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-burgundy text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">{event.title}</h3>
+                          <div className="flex items-center gap-4 text-sm text-slate-600 mt-1">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {new Date(event.date).toLocaleDateString('es-CO')}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {event.location}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {event.confirmedGuests || 0} confirmados
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-burgundy">{event.confirmedGuests || 0}</div>
+                        <div className="text-xs text-slate-600">confirmados</div>
+                      </div>
+                      <Link href={`/events/${event.id}`}>
+                        <Button size="sm" variant="outline" className="border-burgundy text-burgundy hover:bg-burgundy hover:text-white">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <Calendar className="h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">No hay eventos próximos</p>
-                <p className="text-xs text-muted-foreground">Crea tu primer evento para comenzar</p>
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-burgundy/30 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No hay eventos próximos</h3>
+                <p className="text-slate-600 mb-4">Crea tu primer evento para comenzar</p>
+                <Link href="/events/new">
+                  <Button className="bg-burgundy hover:bg-burgundy/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Evento
+                  </Button>
+                </Link>
               </div>
             )}
           </CardContent>
         </Card>
         
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
-            <CardDescription>
-              Últimas acciones en tu cuenta
-            </CardDescription>
+        <Card className="border-burgundy/20 bg-gradient-to-b from-cream/10 to-white">
+          <CardHeader className="border-b border-burgundy/10">
+            <CardTitle className="text-burgundy text-sm">Acciones Rápidas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Nuevo evento creado</p>
-                  <p className="text-xs text-muted-foreground">Hace 2 horas</p>
+          <CardContent className="pt-6 space-y-4">
+            <Link href="/events/new" className="block">
+              <div className="p-4 rounded-lg bg-white border border-burgundy/10 hover:border-burgundy/30 hover:bg-burgundy/5 transition-all cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center group-hover:bg-burgundy/20">
+                    <Plus className="h-5 w-5 text-burgundy" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Nuevo Evento</h3>
+                    <p className="text-sm text-slate-600">Crear evento nuevo</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Invitaciones enviadas</p>
-                  <p className="text-xs text-muted-foreground">Hace 5 horas</p>
+            </Link>
+            
+            <Link href="/invitations" className="block">
+              <div className="p-4 rounded-lg bg-white border border-burgundy/10 hover:border-burgundy/30 hover:bg-burgundy/5 transition-all cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center group-hover:bg-burgundy/20">
+                    <Mail className="h-5 w-5 text-burgundy" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Invitaciones</h3>
+                    <p className="text-sm text-slate-600">Gestionar invitaciones</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Confirmación recibida</p>
-                  <p className="text-xs text-muted-foreground">Hace 1 día</p>
+            </Link>
+            
+            <Link href="/analytics" className="block">
+              <div className="p-4 rounded-lg bg-white border border-burgundy/10 hover:border-burgundy/30 hover:bg-burgundy/5 transition-all cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center group-hover:bg-burgundy/20">
+                    <BarChart3 className="h-5 w-5 text-burgundy" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Estadísticas</h3>
+                    <p className="text-sm text-slate-600">Ver análisis detallado</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           </CardContent>
         </Card>
         </div>

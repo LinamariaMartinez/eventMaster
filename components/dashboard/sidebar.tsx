@@ -26,7 +26,7 @@ const navigation = [
   { name: "Invitaciones", href: "/invitations", icon: Mail },
   { name: "Invitados", href: "/guests", icon: Users },
   { name: "Estadísticas", href: "/analytics", icon: BarChart3 },
-  { name: "Notificaciones", href: "/notifications", icon: Bell }, // Updated href to match new route
+  { name: "Notificaciones", href: "/notifications", icon: Bell },
   { name: "Configuración", href: "/settings", icon: Settings },
 ];
 

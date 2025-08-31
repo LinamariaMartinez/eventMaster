@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
-import { GuestList } from "@/components/dashboard/guests/guest-list";
-import { GuestForm } from "@/components/dashboard/guests/guest-form";
-import { ImportExportPanel } from "@/components/dashboard/guests/import-export-panel";
-import { GuestStats } from "@/components/dashboard/guests/guest-stats";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,431 +13,453 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Users } from "lucide-react";
+  Users,
+  Search,
+  Filter,
+  Download,
+  Mail,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Calendar,
+  Phone,
+  MessageSquare,
+} from "lucide-react";
+import { guestStorage } from "@/lib/storage";
+import { useEventsStorage } from "@/hooks/use-events-storage";
+import { toast } from "sonner";
 
-export interface Guest {
+interface Guest {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  status: "pending" | "confirmed" | "declined" | "maybe";
-  eventId?: string;
-  eventName?: string;
-  invitedAt: string;
-  respondedAt?: string;
-  notes?: string;
-  tags: string[];
-  customFields: Record<string, string>;
+  status: "confirmed" | "pending" | "declined";
+  eventId: string;
+  guestCount: number;
+  message?: string;
+  dietaryRestrictions?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Mock guest data
-const mockGuests: Guest[] = [
-  {
-    id: "1",
-    name: "María García",
-    email: "maria@email.com",
-    phone: "+34 600 123 456",
-    status: "confirmed",
-    eventId: "evt1",
-    eventName: "Cena de Gala 2025",
-    invitedAt: "2025-01-15T10:00:00Z",
-    respondedAt: "2025-01-16T14:30:00Z",
-    notes: "Vegetariana, alergia a frutos secos",
-    tags: ["VIP", "Prensa"],
-    customFields: { empresa: "Tech Corp", cargo: "CEO" },
-  },
-  {
-    id: "2",
-    name: "Juan Pérez",
-    email: "juan@email.com",
-    phone: "+34 600 234 567",
-    status: "pending",
-    eventId: "evt1",
-    eventName: "Cena de Gala 2025",
-    invitedAt: "2025-01-15T10:00:00Z",
-    tags: ["Cliente"],
-    customFields: { empresa: "Design Studio", cargo: "Director" },
-  },
-  {
-    id: "3",
-    name: "Ana López",
-    email: "ana@email.com",
-    phone: "+34 600 345 678",
-    status: "declined",
-    eventId: "evt2",
-    eventName: "Conferencia Tech",
-    invitedAt: "2025-01-10T09:00:00Z",
-    respondedAt: "2025-01-12T16:45:00Z",
-    notes: "Conflicto de agenda",
-    tags: ["Ponente"],
-    customFields: { empresa: "Innovation Lab", cargo: "CTO" },
-  },
-  {
-    id: "4",
-    name: "Carlos Ruiz",
-    email: "carlos@email.com",
-    status: "maybe",
-    eventId: "evt1",
-    eventName: "Cena de Gala 2025",
-    invitedAt: "2025-01-15T10:00:00Z",
-    tags: ["Socio"],
-    customFields: { empresa: "Business Partners", cargo: "Socio" },
-  },
-  {
-    id: "5",
-    name: "Laura Martín",
-    email: "laura@email.com",
-    phone: "+34 600 456 789",
-    status: "confirmed",
-    eventId: "evt2",
-    eventName: "Conferencia Tech",
-    invitedAt: "2025-01-10T09:00:00Z",
-    respondedAt: "2025-01-11T11:20:00Z",
-    tags: ["Asistente", "Networking"],
-    customFields: { empresa: "StartupXYZ", cargo: "Fundadora" },
-  },
-];
-
-export default function InvitadosPage() {
-  const [guests, setGuests] = useState<Guest[]>(mockGuests);
+export default function GuestsPage() {
+  const { events, loading: eventsLoading } = useEventsStorage();
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [eventFilter, setEventFilter] = useState<string>("all");
-  const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
 
-  // Filter guests based on search and filters
-  const filteredGuests = guests.filter((guest) => {
-    const matchesSearch =
-      guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.tags.some((tag) =>
-        tag.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-
-    const matchesStatus =
-      statusFilter === "all" || guest.status === statusFilter;
-    const matchesEvent = eventFilter === "all" || guest.eventId === eventFilter;
-
-    return matchesSearch && matchesStatus && matchesEvent;
-  });
-
-  // Get unique events for filter
-  const events = Array.from(
-    new Set(guests.map((g) => g.eventId).filter(Boolean)),
-  ).map((eventId) => {
-    const guest = guests.find((g) => g.eventId === eventId);
-    return { id: eventId, name: guest?.eventName || `Evento ${eventId}` };
-  });
-
-  const handleAddGuest = (guestData: Omit<Guest, "id" | "invitedAt">) => {
-    const newGuest: Guest = {
-      ...guestData,
-      id: Date.now().toString(),
-      invitedAt: new Date().toISOString(),
-    };
-    setGuests([...guests, newGuest]);
-    setShowAddDialog(false);
-  };
-
-  const handleEditGuest = (guestData: Omit<Guest, "id" | "invitedAt">) => {
-    if (!editingGuest) return;
-
-    const updatedGuest: Guest = {
-      ...guestData,
-      id: editingGuest.id,
-      invitedAt: editingGuest.invitedAt,
+  // Load guests data
+  useEffect(() => {
+    const loadGuests = () => {
+      try {
+        const allGuests = guestStorage.getAll();
+        setGuests(allGuests);
+      } catch (error) {
+        console.error("Error loading guests:", error);
+        toast.error("Error al cargar los invitados");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setGuests(guests.map((g) => (g.id === editingGuest.id ? updatedGuest : g)));
-    setEditingGuest(null);
+    if (!eventsLoading) {
+      loadGuests();
+    }
+  }, [eventsLoading]);
+
+  // Filter and search guests
+  const filteredGuests = useMemo(() => {
+    return guests.filter((guest) => {
+      const matchesSearch = 
+        guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (guest.email && guest.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesEvent = selectedEventId === "all" || guest.eventId === selectedEventId;
+      
+      const matchesStatus = statusFilter === "all" || guest.status === statusFilter;
+
+      return matchesSearch && matchesEvent && matchesStatus;
+    });
+  }, [guests, searchTerm, selectedEventId, statusFilter]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = filteredGuests.length;
+    const confirmed = filteredGuests.filter(g => g.status === "confirmed").length;
+    const pending = filteredGuests.filter(g => g.status === "pending").length;
+    const declined = filteredGuests.filter(g => g.status === "declined").length;
+    const totalPeople = filteredGuests.reduce((sum, g) => sum + (g.guestCount || 1), 0);
+
+    return { total, confirmed, pending, declined, totalPeople };
+  }, [filteredGuests]);
+
+  // Get event name by ID
+  const getEventName = (eventId: string) => {
+    const event = events.find(e => e.id === eventId);
+    return event ? event.title : "Evento no encontrado";
   };
 
-  const handleDeleteGuest = (guestId: string) => {
-    setGuests(guests.filter((g) => g.id !== guestId));
-    setSelectedGuests(selectedGuests.filter((id) => id !== guestId));
+  // Get event date by ID
+  const getEventDate = (eventId: string) => {
+    const event = events.find(e => e.id === eventId);
+    return event ? new Date(event.date).toLocaleDateString('es-CO') : "";
   };
 
-  const handleBulkStatusUpdate = (status: Guest["status"]) => {
-    setGuests(
-      guests.map((g) =>
-        selectedGuests.includes(g.id)
-          ? { ...g, status, respondedAt: new Date().toISOString() }
-          : g,
-      ),
+  // Handle export
+  const handleExport = () => {
+    const exportData = filteredGuests.map((guest) => ({
+      Nombre: guest.name,
+      Email: guest.email || "",
+      Teléfono: guest.phone || "",
+      Estado: guest.status,
+      Evento: getEventName(guest.eventId),
+      Acompañantes: guest.guestCount || 1,
+      Mensaje: guest.message || "",
+      "Restricciones Dietarias": guest.dietaryRestrictions || "",
+      "Fecha de Creación": new Date(guest.createdAt).toLocaleDateString('es-CO'),
+    }));
+
+    // Simple CSV export
+    const headers = Object.keys(exportData[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...exportData.map(row => 
+        headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `invitados_${selectedEventId}_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Lista de invitados exportada");
+  };
+
+  if (loading || eventsLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-burgundy border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600">Cargando invitados...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
-    setSelectedGuests([]);
-  };
-
-  const handleImportGuests = (importedGuests: Guest[]) => {
-    setGuests([...guests, ...importedGuests]);
-  };
-
-  const getStatusStats = () => {
-    const stats = guests.reduce(
-      (acc, guest) => {
-        acc[guest.status] = (acc[guest.status] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    return {
-      total: guests.length,
-      confirmed: stats.confirmed || 0,
-      pending: stats.pending || 0,
-      declined: stats.declined || 0,
-      maybe: stats.maybe || 0,
-    };
-  };
+  }
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 bg-gradient-to-br from-cream/20 to-white">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Gestión de Invitados
-            </h1>
-            <p className="text-muted-foreground">
-              Administra tu lista de invitados y sus respuestas
-            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Gestión de Invitados</h2>
+            <p className="text-slate-600 mt-1">Vista global de todos los invitados por evento</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Agregar Invitado
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Agregar Nuevo Invitado</DialogTitle>
-                </DialogHeader>
-                <GuestForm
-                  onSubmit={handleAddGuest}
-                  onCancel={() => setShowAddDialog(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Button onClick={handleExport} className="bg-burgundy hover:bg-burgundy/90 text-white">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
         </div>
 
-        {/* Stats */}
-        <div className="p-6 border-b border-border">
-          <GuestStats stats={getStatusStats()} />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Panel - Filters and Actions */}
-          <div className="w-80 border-r border-border p-4 space-y-6 overflow-y-auto">
-            {/* Search */}
-            <div>
-              <h3 className="text-sm font-medium mb-2">Buscar Invitados</h3>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nombre, email o etiqueta..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+        {/* Filters */}
+        <Card className="border-burgundy/20 bg-white">
+          <CardHeader className="border-b border-burgundy/10">
+            <CardTitle className="text-burgundy flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid gap-4 md:grid-cols-4">
+              {/* Search */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Buscar</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Nombre o email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-burgundy/20 focus:border-burgundy"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Filters */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Filtrar por Estado</h3>
+              {/* Event Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Evento</label>
+                <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                  <SelectTrigger className="border-burgundy/20 focus:border-burgundy">
+                    <SelectValue placeholder="Seleccionar evento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Todos los eventos
+                      </span>
+                    </SelectItem>
+                    {events.map((event) => (
+                      <SelectItem key={event.id} value={event.id}>
+                        <span className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {event.title}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Estado</label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="border-burgundy/20 focus:border-burgundy">
+                    <SelectValue placeholder="Seleccionar estado" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos los estados</SelectItem>
                     <SelectItem value="confirmed">Confirmados</SelectItem>
                     <SelectItem value="pending">Pendientes</SelectItem>
                     <SelectItem value="declined">Rechazados</SelectItem>
-                    <SelectItem value="maybe">Tal vez</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium mb-2">Filtrar por Evento</h3>
-                <Select value={eventFilter} onValueChange={setEventFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los eventos</SelectItem>
-                    {events.map((event) => (
-                      <SelectItem key={event.id} value={event.id!}>
-                        {event.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Clear Filters */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 invisible">Acciones</label>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-burgundy/20 text-burgundy hover:bg-burgundy/10"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedEventId("all");
+                    setStatusFilter("all");
+                  }}
+                >
+                  Limpiar filtros
+                </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Bulk Actions */}
-            {selectedGuests.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">
-                  Acciones Masivas ({selectedGuests.length} seleccionados)
-                </h3>
-                <div className="space-y-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start bg-transparent"
-                    onClick={() => handleBulkStatusUpdate("confirmed")}
-                  >
-                    Marcar como Confirmados
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start bg-transparent"
-                    onClick={() => handleBulkStatusUpdate("declined")}
-                  >
-                    Marcar como Rechazados
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start bg-transparent"
-                    onClick={() => setSelectedGuests([])}
-                  >
-                    Deseleccionar Todo
-                  </Button>
+        {/* Stats */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
+                  <Users className="h-5 w-5 text-burgundy" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-burgundy">{stats.total}</div>
+                  <p className="text-sm text-slate-600">Total Invitados</p>
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {/* Import/Export */}
-            <ImportExportPanel
-              guests={filteredGuests}
-              onImport={handleImportGuests}
-            />
-          </div>
-
-          {/* Right Panel - Guest List */}
-          <div className="flex-1 overflow-hidden">
-            <Tabs defaultValue="list" className="h-full flex flex-col">
-              <div className="border-b border-border px-6 py-2">
-                <TabsList>
-                  <TabsTrigger value="list" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    Lista ({filteredGuests.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="cards">Vista de Tarjetas</TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="list" className="flex-1 overflow-hidden m-0">
-                <GuestList
-                  guests={filteredGuests}
-                  selectedGuests={selectedGuests}
-                  onSelectionChange={setSelectedGuests}
-                  onEdit={setEditingGuest}
-                  onDelete={handleDeleteGuest}
-                />
-              </TabsContent>
-
-              <TabsContent
-                value="cards"
-                className="flex-1 overflow-y-auto m-0 p-6"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredGuests.map((guest) => (
-                    <div
-                      key={guest.id}
-                      className="p-4 border border-border rounded-lg space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{guest.name}</h4>
-                        <Badge
-                          variant={
-                            guest.status === "confirmed"
-                              ? "default"
-                              : guest.status === "declined"
-                                ? "destructive"
-                                : guest.status === "maybe"
-                                  ? "secondary"
-                                  : "outline"
-                          }
-                        >
-                          {guest.status === "confirmed"
-                            ? "Confirmado"
-                            : guest.status === "declined"
-                              ? "Rechazado"
-                              : guest.status === "maybe"
-                                ? "Tal vez"
-                                : "Pendiente"}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {guest.email}
-                      </p>
-                      {guest.phone && (
-                        <p className="text-sm text-muted-foreground">
-                          {guest.phone}
-                        </p>
-                      )}
-                      {guest.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {guest.tags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+          <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-white">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">{stats.confirmed}</div>
+                  <p className="text-sm text-slate-600">Confirmados</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-yellow-500 bg-gradient-to-r from-yellow-50 to-white">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                  <p className="text-sm text-slate-600">Pendientes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-50 to-white">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <XCircle className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{stats.declined}</div>
+                  <p className="text-sm text-slate-600">Rechazados</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.totalPeople}</div>
+                  <p className="text-sm text-slate-600">Total Personas</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Edit Dialog */}
-        <Dialog
-          open={!!editingGuest}
-          onOpenChange={() => setEditingGuest(null)}
-        >
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Editar Invitado</DialogTitle>
-            </DialogHeader>
-            {editingGuest && (
-              <GuestForm
-                initialData={editingGuest}
-                onSubmit={handleEditGuest}
-                onCancel={() => setEditingGuest(null)}
-              />
+        {/* Guests Table */}
+        <Card className="border-burgundy/20 bg-white">
+          <CardHeader className="border-b border-burgundy/10">
+            <CardTitle className="text-burgundy">
+              Lista de Invitados
+              {selectedEventId !== "all" && (
+                <span className="text-sm text-slate-600 font-normal ml-2">
+                  - {getEventName(selectedEventId)}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredGuests.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-burgundy/5 border-b border-burgundy/10">
+                    <tr>
+                      <th className="text-left py-4 px-6 font-semibold text-slate-700">Invitado</th>
+                      <th className="text-left py-4 px-6 font-semibold text-slate-700">Evento</th>
+                      <th className="text-left py-4 px-6 font-semibold text-slate-700">Estado</th>
+                      <th className="text-left py-4 px-6 font-semibold text-slate-700">Contacto</th>
+                      <th className="text-center py-4 px-6 font-semibold text-slate-700">Personas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredGuests.map((guest, index) => (
+                      <tr 
+                        key={guest.id} 
+                        className={`border-b hover:bg-cream/20 transition-colors ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-burgundy/10 rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-burgundy" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-900">{guest.name}</div>
+                              {guest.message && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
+                                  <MessageSquare className="h-3 w-3" />
+                                  <span>Tiene mensaje</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className="font-medium text-slate-900">{getEventName(guest.eventId)}</div>
+                            <div className="text-sm text-slate-500 flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {getEventDate(guest.eventId)}
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <Badge 
+                            className={
+                              guest.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-200' :
+                              guest.status === 'declined' ? 'bg-red-100 text-red-800 border-red-200' :
+                              'bg-yellow-100 text-yellow-800 border-yellow-200'
+                            }
+                          >
+                            {guest.status === 'confirmed' ? 'Confirmado' :
+                             guest.status === 'declined' ? 'Rechazado' : 'Pendiente'}
+                          </Badge>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <div className="space-y-1">
+                            {guest.email && (
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate max-w-48">{guest.email}</span>
+                              </div>
+                            )}
+                            {guest.phone && (
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Phone className="h-3 w-3" />
+                                <span>{guest.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center w-8 h-8 bg-burgundy/10 text-burgundy rounded-full text-sm font-semibold">
+                            {guest.guestCount || 1}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <Users className="h-16 w-16 text-burgundy/30 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  {guests.length === 0 ? "No hay invitados" : "No se encontraron invitados"}
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  {guests.length === 0 
+                    ? "Los invitados aparecerán aquí cuando se añadan a los eventos" 
+                    : "Prueba con diferentes filtros para encontrar invitados"
+                  }
+                </p>
+                {searchTerm || selectedEventId !== "all" || statusFilter !== "all" ? (
+                  <Button 
+                    variant="outline" 
+                    className="border-burgundy/20 text-burgundy hover:bg-burgundy/10"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedEventId("all");
+                      setStatusFilter("all");
+                    }}
+                  >
+                    Limpiar filtros
+                  </Button>
+                ) : null}
+              </div>
             )}
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
