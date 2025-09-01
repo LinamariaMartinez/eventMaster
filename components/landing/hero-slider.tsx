@@ -3,87 +3,58 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-interface Slide {
-  id: number;
-  image: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  cta: string;
-  category: string;
-}
+// Background images for carousel
+const backgroundImages = [
+  "/hero/hero-background3.jpg",
+  "/hero/hero-background2.jpg",
+  "/hero/hero-background.jpg",
+  "/hero/hero-background4.jpg",
+];
 
-const slides: Slide[] = [
-  {
-    id: 1,
-    image: "/hero/hero-background.jpg",
-    title: "BODAS DE",
-    subtitle: "ENSUEÑO",
-    description:
-      "Creamos momentos únicos e inolvidables para el día más importante de tu vida. Cada detalle pensado para hacer realidad tus sueños.",
-    cta: "Planea tu Boda",
-    category: "Bodas",
-  },
-  {
-    id: 2,
-    image: "/hero/hero-background2.jpg",
-    title: "EVENTOS",
-    subtitle: "CORPORATIVOS",
-    description:
-      "Profesionalismo y elegancia se combinan para crear experiencias empresariales impactantes que reflejen la excelencia de tu marca.",
-    cta: "Organiza tu Evento",
-    category: "Corporativo",
-  },
-  {
-    id: 3,
-    image: "/hero/hero-background3.jpg",
-    title: "CELEBRACIONES",
-    subtitle: "FAMILIARES",
-    description:
-      "Cumpleaños, quinceañeros, baby showers... Celebramos contigo los momentos más especiales de tu familia con alegría y estilo.",
-    cta: "Celebra con Nosotros",
-    category: "Familiar",
-  },
-  {
-    id: 4,
-    image: "/hero/hero-background4.jpg",
-    title: "EXPERIENCIAS BRUTALES",
-    subtitle: "",
-    description:
-      "No solo organizamos eventos, diseñamos experiencias que quedan grabadas para siempre en el corazón de tus invitados.",
-    cta: "Crea tu Experiencia",
-    category: "Premium",
-  },
+// Rotating text phrases
+const rotatingTexts = [
+  "Nadie Olvida",
+  "Marcan Historia",
+  "Son BRUTALES",
+  "Quedan en el Corazón",
 ];
 
 export function HeroSlider() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentBg, setCurrentBg] = useState(0);
+  const [currentText, setCurrentText] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
 
-  // Auto-advance slides every 4 seconds
+  // Auto-advance background images every 5 seconds
   useEffect(() => {
     if (!isAutoplay) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 4000);
+      setCurrentBg((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [isAutoplay]);
+
+  // Auto-rotate text every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentText((prev) => (prev + 1) % rotatingTexts.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Pause autoplay on hover
   const handleMouseEnter = () => setIsAutoplay(false);
   const handleMouseLeave = () => setIsAutoplay(true);
 
-  // Manual slide navigation
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
+  // Manual background navigation
+  const goToBg = (index: number) => {
+    setCurrentBg(index);
     setIsAutoplay(false);
     // Resume autoplay after 8 seconds of inactivity
     setTimeout(() => setIsAutoplay(true), 8000);
   };
-
-  const currentSlideData = slides[currentSlide];
 
   return (
     <section
@@ -93,16 +64,16 @@ export function HeroSlider() {
     >
       {/* Background Images */}
       <div className="hero-slider-backgrounds">
-        {slides.map((slide, index) => (
+        {backgroundImages.map((image, index) => (
           <div
-            key={slide.id}
+            key={index}
             className={`hero-slider-background ${
-              index === currentSlide ? "active" : ""
+              index === currentBg ? "active" : ""
             }`}
           >
             <Image
-              src={slide.image}
-              alt={`${slide.category} - ${slide.title} ${slide.subtitle}`}
+              src={image}
+              alt={`Eventos que ${rotatingTexts[currentText]}`}
               fill
               style={{ objectFit: "cover" }}
               priority={index === 0}
@@ -118,44 +89,47 @@ export function HeroSlider() {
 
       {/* Content */}
       <div className="hero-slider-content">
-        <div className="hero-slider-text">
-          {/* Category Badge */}
-          <div className="hero-category-badge">{currentSlideData.category}</div>
+        {/* Top Section - Title and Description */}
+        <div className="hero-slider-top">
+          <div className="hero-slider-text-overlay">
+            <h1 className="hero-slider-title">
+              EVENTOS QUE
+              <br />
+              <span key={currentText}>{rotatingTexts[currentText]}</span>
+            </h1>
 
-          {/* Main Title */}
-          <h1 className="hero-slider-title">
-            {currentSlideData.title}
-            <br />
-            <span>{currentSlideData.subtitle}</span>
-          </h1>
+            <p className="hero-slider-description">
+              NO solo organizamos eventos, diseñamos experiencias
+            </p>
+          </div>
+        </div>
 
-          {/* Description */}
-          <p className="hero-slider-description">
-            {currentSlideData.description}
-          </p>
+        {/* Center Section - Protagonizes the image */}
+        <div className="hero-slider-center"></div>
 
-          {/* CTA Button */}
-          <button className="hero-slider-button">{currentSlideData.cta}</button>
+        {/* Bottom Section - CTA */}
+        <div className="hero-slider-bottom">
+          <button className="hero-slider-button">Crea tu Experiencia</button>
         </div>
       </div>
 
       {/* Slide Indicators */}
       <div className="hero-slider-indicators">
-        {slides.map((_, index) => (
+        {backgroundImages.map((_, index) => (
           <button
             key={index}
             className={`hero-slider-indicator ${
-              index === currentSlide ? "active" : ""
+              index === currentBg ? "active" : ""
             }`}
-            onClick={() => goToSlide(index)}
-            aria-label={`Ir al slide ${index + 1}`}
+            onClick={() => goToBg(index)}
+            aria-label={`Ir al fondo ${index + 1}`}
           >
             <span className="hero-slider-indicator-progress">
-              {index === currentSlide && (
+              {index === currentBg && (
                 <span
                   className="hero-slider-indicator-fill"
                   style={{
-                    animationDuration: isAutoplay ? "4s" : "0s",
+                    animationDuration: isAutoplay ? "5s" : "0s",
                     animationPlayState: isAutoplay ? "running" : "paused",
                   }}
                 />
@@ -170,18 +144,22 @@ export function HeroSlider() {
         <button
           className="hero-slider-nav-btn hero-slider-nav-prev"
           onClick={() =>
-            goToSlide(currentSlide === 0 ? slides.length - 1 : currentSlide - 1)
+            goToBg(
+              currentBg === 0 ? backgroundImages.length - 1 : currentBg - 1,
+            )
           }
-          aria-label="Slide anterior"
+          aria-label="Fondo anterior"
         >
           ←
         </button>
         <button
           className="hero-slider-nav-btn hero-slider-nav-next"
           onClick={() =>
-            goToSlide(currentSlide === slides.length - 1 ? 0 : currentSlide + 1)
+            goToBg(
+              currentBg === backgroundImages.length - 1 ? 0 : currentBg + 1,
+            )
           }
-          aria-label="Siguiente slide"
+          aria-label="Siguiente fondo"
         >
           →
         </button>
