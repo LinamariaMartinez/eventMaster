@@ -21,7 +21,7 @@ import type { Guest } from "@/app/(dashboard)/guests/page";
 
 interface GuestFormProps {
   initialData?: Guest;
-  onSubmit: (data: Omit<Guest, "id" | "invitedAt">) => void;
+  onSubmit: (data: Omit<Guest, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
 }
 
@@ -48,6 +48,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
     phone: initialData?.phone || "",
     status: initialData?.status || ("pending" as Guest["status"]),
     eventId: initialData?.eventId || "",
+    guestCount: initialData?.guestCount || 1,
+    message: initialData?.message || "",
+    dietaryRestrictions: initialData?.dietaryRestrictions || "",
     notes: initialData?.notes || "",
     tags: initialData?.tags || [],
     customFields: initialData?.customFields || {},

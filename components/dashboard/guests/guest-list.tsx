@@ -53,8 +53,8 @@ export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, o
         bValue = b.status
         break
       case "invitedAt":
-        aValue = new Date(a.invitedAt).getTime()
-        bValue = new Date(b.invitedAt).getTime()
+        aValue = new Date(a.createdAt).getTime()
+        bValue = new Date(b.createdAt).getTime()
         break
       case "eventName":
         aValue = (a.eventName || "").toLowerCase()
@@ -184,18 +184,18 @@ export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, o
                 <span className="text-sm">{guest.eventName || "Sin evento"}</span>
               </TableCell>
               <TableCell>
-                <span className="text-sm text-muted-foreground">{formatDate(guest.invitedAt)}</span>
+                <span className="text-sm text-muted-foreground">{formatDate(guest.createdAt)}</span>
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1">
-                  {guest.tags.slice(0, 2).map((tag) => (
+                  {guest.tags?.slice(0, 2).map((tag) => (
                     <Badge key={tag} variant="outline" className="text-xs">
                       {tag}
                     </Badge>
                   ))}
-                  {guest.tags.length > 2 && (
+                  {(guest.tags?.length || 0) > 2 && (
                     <Badge variant="outline" className="text-xs">
-                      +{guest.tags.length - 2}
+                      +{(guest.tags?.length || 0) - 2}
                     </Badge>
                   )}
                 </div>

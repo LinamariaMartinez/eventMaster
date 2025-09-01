@@ -30,18 +30,23 @@ import { guestStorage } from "@/lib/storage";
 import { useEventsStorage } from "@/hooks/use-events-storage";
 import { toast } from "sonner";
 
-interface Guest {
+export interface Guest {
   id: string;
   name: string;
   email: string;
   phone?: string;
   status: "confirmed" | "pending" | "declined";
   eventId: string;
+  eventName?: string;
   guestCount: number;
   message?: string;
   dietaryRestrictions?: string;
   createdAt: string;
   updatedAt: string;
+  respondedAt?: string;
+  notes?: string;
+  tags?: string[];
+  customFields?: Record<string, string>;
 }
 
 export default function GuestsPage() {
