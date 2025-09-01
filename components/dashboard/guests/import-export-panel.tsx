@@ -41,12 +41,12 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
       guest.phone || "",
       guest.status,
       guest.eventName || "",
-      new Date(guest.invitedAt).toLocaleDateString("es-ES"),
+      new Date(guest.createdAt).toLocaleDateString("es-ES"),
       guest.respondedAt ? new Date(guest.respondedAt).toLocaleDateString("es-ES") : "",
       guest.notes || "",
-      guest.tags.join("; "),
-      guest.customFields.empresa || "",
-      guest.customFields.cargo || "",
+      (guest.tags || []).join("; "),
+      (guest.customFields?.empresa || ""),
+      (guest.customFields?.cargo || ""),
     ])
 
     const csvContent = [headers, ...csvData].map((row) => row.map((field) => `"${field}"`).join(",")).join("\n")
@@ -94,14 +94,21 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
           .map((line, index) => {
             const values = line.split(",").map((v) => v.replace(/"/g, "").trim())
 
+            const now = new Date().toISOString()
             return {
               id: `imported_${Date.now()}_${index}`,
               name: values[0] || "",
               email: values[1] || "",
               phone: values[2] || undefined,
               status: (values[3] as Guest["status"]) || "pending",
+              eventId: "default-event", // Default event ID for imported guests
               eventName: values[4] || undefined,
-              invitedAt: new Date().toISOString(),
+              guestCount: 1, // Default guest count
+              message: undefined,
+              dietaryRestrictions: undefined,
+              createdAt: now,
+              updatedAt: now,
+              respondedAt: undefined,
               notes: values[7] || undefined,
               tags: values[8] ? values[8].split(";").map((t) => t.trim()) : [],
               customFields: {

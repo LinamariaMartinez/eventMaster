@@ -91,19 +91,19 @@ const nextConfig = {
     return config;
   },
 
-  // Configuración para APIs externas
+  // Configuración para APIs externas  
   async rewrites() {
     return [
-      // Rewrite para APIs internas si es necesario
-      {
-        source: "/api/supabase/:path*",
-        destination: `https://your-project-id.supabase.co/:path*`,
-      },
+      // Rewrite para APIs internas si es necesario - comentado porque puede causar conflictos
+      // {
+      //   source: "/api/supabase/:path*",
+      //   destination: `https://your-project-id.supabase.co/:path*`,
+      // },
     ];
   },
 
-  // Configuración de output
-  output: "standalone",
+  // Configuración de output - comentado para Vercel deployment
+  // output: "standalone",
 
   // Configuración de TypeScript
   typescript: {
