@@ -137,7 +137,7 @@ export function TemplateSelector({
                       </Badge>
                     )}
                     {selectedTemplate === template.id && (
-                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
                           <Check className="h-6 w-6" />
                         </div>

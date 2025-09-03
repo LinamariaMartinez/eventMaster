@@ -158,9 +158,11 @@ export function DataConsent({ onConsentChange, required = true, className = "" }
               Descargar Política
             </Button>
 
-            <Button variant="outline" size="sm" className="text-xs">
-              <UserX className="w-3 h-3 mr-1" />
-              Ejercer Derechos
+            <Button variant="outline" size="sm" className="text-xs" asChild>
+              <a href="/gestion-datos" target="_blank" rel="noopener noreferrer">
+                <UserX className="w-3 h-3 mr-1" />
+                Ejercer Derechos
+              </a>
             </Button>
           </div>
 
