@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,48 +12,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, MapPin, Users, Send } from "lucide-react";
 import Link from "next/link";
-import { eventStorage, Event } from "@/lib/storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { events, loading: isLoading } = useSupabaseEvents();
 
-  useEffect(() => {
-    // Cargar eventos desde localStorage
-    try {
-      const storedEvents = eventStorage.getAll();
-      setEvents(storedEvents);
-    } catch (error) {
-      console.error("Error loading events:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "published":
-        return "bg-green-100 text-green-800";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "published":
-        return "Publicado";
-      case "draft":
-        return "Borrador";
-      case "cancelled":
-        return "Cancelado";
-      default:
-        return status;
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   if (isLoading) {
@@ -64,9 +32,7 @@ export default function EventsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Eventos</h1>
-              <p className="text-muted-foreground">
-                Cargando tus eventos...
-              </p>
+              <p className="text-muted-foreground">Cargando tus eventos...</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -130,70 +96,79 @@ export default function EventsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-            <Card key={event.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                    <CardDescription>{event.description}</CardDescription>
+              <Card
+                key={event.id}
+                className="hover:shadow-md transition-shadow"
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                      <CardDescription>
+                        {event.description || "Sin descripción"}
+                      </CardDescription>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      Activo
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(event.status)}>
-                    {getStatusText(event.status)}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {event.date} a las {event.time}
-                    </span>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {formatDate(event.date)} a las {event.time}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span>
+                        Creado{" "}
+                        {new Date(event.created_at).toLocaleDateString("es-CO")}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{event.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>
-                      {event.confirmedGuests}/{event.maxGuests} confirmados
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2 mt-4">
-                  <div className="flex gap-2">
-                    <Link href={`/events/${event.id}/edit`} className="flex-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-transparent"
+                  <div className="space-y-2 mt-4">
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/events/${event.id}/edit`}
+                        className="flex-1"
                       >
-                        Editar
-                      </Button>
-                    </Link>
-                    <Link href={`/events/${event.id}`} className="flex-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-transparent"
-                      >
-                        Ver Detalles
-                      </Button>
-                    </Link>
-                  </div>
-                  <Link href={`/invitations/editor?eventId=${event.id}`} className="w-full">
-                    <Button
-                      size="sm"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full bg-transparent"
+                        >
+                          Editar
+                        </Button>
+                      </Link>
+                      <Link href={`/events/${event.id}`} className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full bg-transparent"
+                        >
+                          Ver Detalles
+                        </Button>
+                      </Link>
+                    </div>
+                    <Link
+                      href={`/events/${event.id}/invitations`}
                       className="w-full"
                     >
-                      <Send className="h-4 w-4 mr-2" />
-                      Crear Invitación
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                      <Button size="sm" className="w-full">
+                        <Send className="h-4 w-4 mr-2" />
+                        Gestionar Invitados
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

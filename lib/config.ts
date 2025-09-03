@@ -14,7 +14,7 @@ export const config = {
   features: {
     // Feature flags for production deployment
     enableSupabaseAuth: !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-    enableDemoMode: true, // Always allow demo mode
+    enableDemoMode: false, // Demo mode disabled - use real Supabase only
     enableDebugEndpoints: process.env.NODE_ENV !== 'production',
   }
 };

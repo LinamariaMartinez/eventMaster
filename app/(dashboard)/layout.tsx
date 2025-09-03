@@ -1,24 +1,15 @@
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import "./../globals.css";
+import { AuthGuard } from "./auth-guard";
 
-export default function RootLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-}
-        `}</style>
-      </head>
-      <body>{children}</body>
-    </html>
+    <AuthGuard>
+      <div className="dashboard-layout">
+        {children}
+      </div>
+    </AuthGuard>
   );
 }

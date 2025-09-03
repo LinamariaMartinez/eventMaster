@@ -41,7 +41,7 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
       guest.phone || "",
       guest.status,
       guest.eventName || "",
-      new Date(guest.createdAt).toLocaleDateString("es-ES"),
+      new Date(guest.createdAt || guest.created_at || new Date()).toLocaleDateString("es-ES"),
       guest.respondedAt ? new Date(guest.respondedAt).toLocaleDateString("es-ES") : "",
       guest.notes || "",
       (guest.tags || []).join("; "),
@@ -86,7 +86,8 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
       try {
         const text = e.target?.result as string
         const lines = text.split("\n")
-        const _headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
+        const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim())
+        console.log('CSV headers:', headers) // Using headers for logging
 
         const importedGuests: Guest[] = lines
           .slice(1)
@@ -99,13 +100,17 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
               id: `imported_${Date.now()}_${index}`,
               name: values[0] || "",
               email: values[1] || "",
-              phone: values[2] || undefined,
+              phone: values[2] || null,
               status: (values[3] as Guest["status"]) || "pending",
-              eventId: "default-event", // Default event ID for imported guests
+              event_id: "default-event", // Default event ID for imported guests
               eventName: values[4] || undefined,
-              guestCount: 1, // Default guest count
-              message: undefined,
-              dietaryRestrictions: undefined,
+              guest_count: 1, // Default guest count
+              message: null,
+              dietary_restrictions: null,
+              created_at: now,
+              // Legacy camelCase properties for compatibility
+              eventId: "default-event",
+              guestCount: 1,
               createdAt: now,
               updatedAt: now,
               respondedAt: undefined,
@@ -122,7 +127,8 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
         setImportStatus("success")
         setImportMessage(`${importedGuests.length} invitados importados exitosamente`)
         setTimeout(() => setImportStatus("idle"), 3000)
-      } catch (_error) {
+      } catch (error) {
+        console.error('CSV import error:', error)
         setImportStatus("error")
         setImportMessage("Error al procesar el archivo. Verifica el formato.")
         setTimeout(() => setImportStatus("idle"), 3000)

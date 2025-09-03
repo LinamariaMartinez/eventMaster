@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { OverviewStats } from "@/components/dashboard/analytics/overview-stats";
 import { EventPerformanceChart } from "@/components/dashboard/analytics/event-performance-chart";
@@ -19,80 +19,113 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, TrendingUp, Users, BarChart3 } from "lucide-react";
-
-// Mock data for statistics
-const mockStats = {
-  totalEvents: 24,
-  totalGuests: 1247,
-  totalInvitations: 2156,
-  avgResponseRate: 78,
-  avgConfirmationRate: 65,
-  activeEvents: 8,
-  completedEvents: 16,
-  upcomingEvents: 3,
-};
-
-const mockEventPerformance = [
-  {
-    name: "Cena de Gala 2025",
-    guests: 150,
-    confirmed: 120,
-    declined: 20,
-    pending: 10,
-    responseRate: 93,
-  },
-  {
-    name: "Conferencia Tech",
-    guests: 300,
-    confirmed: 180,
-    declined: 80,
-    pending: 40,
-    responseRate: 87,
-  },
-  {
-    name: "Networking Empresarial",
-    guests: 80,
-    confirmed: 65,
-    declined: 10,
-    pending: 5,
-    responseRate: 94,
-  },
-  {
-    name: "Lanzamiento Producto",
-    guests: 200,
-    confirmed: 140,
-    declined: 35,
-    pending: 25,
-    responseRate: 88,
-  },
-  {
-    name: "Workshop Innovación",
-    guests: 50,
-    confirmed: 42,
-    declined: 5,
-    pending: 3,
-    responseRate: 94,
-  },
-];
-
-const mockTrendsData = [
-  { month: "Ene", invitations: 180, responses: 145, confirmations: 120 },
-  { month: "Feb", invitations: 220, responses: 185, confirmations: 150 },
-  { month: "Mar", invitations: 280, responses: 235, confirmations: 190 },
-  { month: "Apr", invitations: 320, responses: 275, confirmations: 220 },
-  { month: "May", invitations: 380, responses: 310, confirmations: 250 },
-  { month: "Jun", invitations: 420, responses: 350, confirmations: 280 },
-];
-
-const mockResponseData = [
-  { name: "Confirmados", value: 65, color: "#22c55e" },
-  { name: "Pendientes", value: 13, color: "#f59e0b" },
-  { name: "Rechazados", value: 15, color: "#ef4444" },
-  { name: "Tal vez", value: 7, color: "#3b82f6" },
-];
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
 
 export default function EstadisticasPage() {
   const [timeRange, setTimeRange] = useState("6m");
+  const { events } = useSupabaseEvents();
+  const { guests } = useSupabaseGuests();
+
+  // Calculate real stats from Supabase data
+  const realStats = useMemo(() => {
+    const now = new Date();
+    const confirmedGuests = guests.filter(g => g.status === 'confirmed');
+    const pendingGuests = guests.filter(g => g.status === 'pending');
+    const declinedGuests = guests.filter(g => g.status === 'declined');
+    
+    // Categorize events by date
+    const upcomingEvents = events.filter(event => {
+      const eventDate = new Date(event.date + 'T' + event.time);
+      return eventDate > now;
+    });
+    
+    const completedEvents = events.filter(event => {
+      const eventDate = new Date(event.date + 'T' + event.time);
+      return eventDate < now;
+    });
+
+    const totalGuests = guests.length;
+    const responseRate = totalGuests > 0 ? Math.round(((confirmedGuests.length + declinedGuests.length) / totalGuests) * 100) : 0;
+    const confirmationRate = totalGuests > 0 ? Math.round((confirmedGuests.length / totalGuests) * 100) : 0;
+
+    return {
+      totalEvents: events.length,
+      totalGuests: totalGuests,
+      totalInvitations: totalGuests, // Assuming 1:1 guest to invitation ratio
+      avgResponseRate: responseRate,
+      avgConfirmationRate: confirmationRate,
+      activeEvents: upcomingEvents.length,
+      completedEvents: completedEvents.length,
+      upcomingEvents: upcomingEvents.length,
+    };
+  }, [events, guests]);
+
+  // Calculate event performance from real data
+  const realEventPerformance = useMemo(() => {
+    return events.map(event => {
+      const eventGuests = guests.filter(g => g.event_id === event.id);
+      const confirmed = eventGuests.filter(g => g.status === 'confirmed').length;
+      const declined = eventGuests.filter(g => g.status === 'declined').length;
+      const pending = eventGuests.filter(g => g.status === 'pending').length;
+      const responseRate = eventGuests.length > 0 ? Math.round(((confirmed + declined) / eventGuests.length) * 100) : 0;
+      
+      return {
+        name: event.title,
+        guests: eventGuests.length,
+        confirmed: confirmed,
+        declined: declined,
+        pending: pending,
+        responseRate: responseRate,
+      };
+    }).sort((a, b) => b.guests - a.guests); // Sort by most guests
+  }, [events, guests]);
+
+  // Generate trends data based on events creation dates
+  const realTrendsData = useMemo(() => {
+    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const last6Months = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEvents = events.filter(event => {
+        const eventDate = new Date(event.created_at);
+        return eventDate.getMonth() === date.getMonth() && eventDate.getFullYear() === date.getFullYear();
+      });
+      
+      const monthGuests = guests.filter(guest => {
+        const guestDate = new Date(guest.created_at);
+        return guestDate.getMonth() === date.getMonth() && guestDate.getFullYear() === date.getFullYear();
+      });
+      
+      const responses = monthGuests.filter(g => g.status !== 'pending').length;
+      const confirmations = monthGuests.filter(g => g.status === 'confirmed').length;
+      
+      last6Months.push({
+        month: months[date.getMonth()],
+        invitations: monthGuests.length,
+        responses: responses,
+        confirmations: confirmations,
+      });
+    }
+    
+    return last6Months;
+  }, [events, guests]);
+
+  // Calculate response distribution
+  const realResponseData = useMemo(() => {
+    const confirmedGuests = guests.filter(g => g.status === 'confirmed').length;
+    const pendingGuests = guests.filter(g => g.status === 'pending').length;
+    const declinedGuests = guests.filter(g => g.status === 'declined').length;
+    const total = guests.length || 1; // Avoid division by zero
+    
+    return [
+      { name: "Confirmados", value: Math.round((confirmedGuests / total) * 100), color: "#22c55e" },
+      { name: "Pendientes", value: Math.round((pendingGuests / total) * 100), color: "#f59e0b" },
+      { name: "Rechazados", value: Math.round((declinedGuests / total) * 100), color: "#ef4444" },
+    ].filter(item => item.value > 0); // Only show non-zero values
+  }, [guests]);
   // Removed unused selectedMetric state
 
   return (
@@ -110,18 +143,18 @@ export default function EstadisticasPage() {
           </div>
           <div className="flex items-center gap-3">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-40 bg-accessible-dark border-white/40 text-white select-trigger-accessible">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1m">Último mes</SelectItem>
-                <SelectItem value="3m">3 meses</SelectItem>
-                <SelectItem value="6m">6 meses</SelectItem>
-                <SelectItem value="1y">1 año</SelectItem>
-                <SelectItem value="all">Todo el tiempo</SelectItem>
+              <SelectContent className="select-content-accessible">
+                <SelectItem value="1m" className="select-item-accessible">Último mes</SelectItem>
+                <SelectItem value="3m" className="select-item-accessible">3 meses</SelectItem>
+                <SelectItem value="6m" className="select-item-accessible">6 meses</SelectItem>
+                <SelectItem value="1y" className="select-item-accessible">1 año</SelectItem>
+                <SelectItem value="all" className="select-item-accessible">Todo el tiempo</SelectItem>
               </SelectContent>
             </Select>
-            <div className="bg-white/10 rounded-lg p-1">
+            <div className="bg-accessible-dark rounded-lg p-1">
               <ExportReports />
             </div>
           </div>
@@ -129,7 +162,7 @@ export default function EstadisticasPage() {
 
         {/* Overview Stats */}
         <div className="p-6 bg-white border-b border-burgundy/10">
-          <OverviewStats stats={mockStats} />
+          <OverviewStats stats={realStats} />
         </div>
 
         {/* Main Content */}
@@ -170,15 +203,15 @@ export default function EstadisticasPage() {
 
             <TabsContent value="overview" className="m-0 p-6 space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GuestResponseChart data={mockResponseData} />
-                <InvitationTrendsChart data={mockTrendsData.slice(-3)} />
+                <GuestResponseChart data={realResponseData} />
+                <InvitationTrendsChart data={realTrendsData.slice(-3)} />
               </div>
-              <TopEventsTable events={mockEventPerformance.slice(0, 5)} />
+              <TopEventsTable events={realEventPerformance.slice(0, 5)} />
             </TabsContent>
 
             <TabsContent value="events" className="m-0 p-6 space-y-6">
               <div className="grid grid-cols-1 gap-6">
-                <EventPerformanceChart events={mockEventPerformance} />
+                <EventPerformanceChart events={realEventPerformance} />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
@@ -195,12 +228,12 @@ export default function EstadisticasPage() {
                               <div
                                 className="h-full bg-green-500"
                                 style={{
-                                  width: `${(mockStats.activeEvents / mockStats.totalEvents) * 100}%`,
+                                  width: `${realStats.totalEvents > 0 ? (realStats.activeEvents / realStats.totalEvents) * 100 : 0}%`,
                                 }}
                               />
                             </div>
                             <span className="text-sm font-medium">
-                              {mockStats.activeEvents}
+                              {realStats.activeEvents}
                             </span>
                           </div>
                         </div>
@@ -211,12 +244,12 @@ export default function EstadisticasPage() {
                               <div
                                 className="h-full bg-blue-500"
                                 style={{
-                                  width: `${(mockStats.completedEvents / mockStats.totalEvents) * 100}%`,
+                                  width: `${realStats.totalEvents > 0 ? (realStats.completedEvents / realStats.totalEvents) * 100 : 0}%`,
                                 }}
                               />
                             </div>
                             <span className="text-sm font-medium">
-                              {mockStats.completedEvents}
+                              {realStats.completedEvents}
                             </span>
                           </div>
                         </div>
@@ -227,12 +260,12 @@ export default function EstadisticasPage() {
                               <div
                                 className="h-full bg-yellow-500"
                                 style={{
-                                  width: `${(mockStats.upcomingEvents / mockStats.totalEvents) * 100}%`,
+                                  width: `${realStats.totalEvents > 0 ? (realStats.upcomingEvents / realStats.totalEvents) * 100 : 0}%`,
                                 }}
                               />
                             </div>
                             <span className="text-sm font-medium">
-                              {mockStats.upcomingEvents}
+                              {realStats.upcomingEvents}
                             </span>
                           </div>
                         </div>
@@ -254,7 +287,7 @@ export default function EstadisticasPage() {
                             variant="default"
                             className="bg-green-100 text-green-800"
                           >
-                            {mockStats.avgResponseRate}%
+                            {realStats.avgResponseRate}%
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
@@ -263,14 +296,14 @@ export default function EstadisticasPage() {
                             variant="outline"
                             className="border-blue-200 text-blue-800"
                           >
-                            {mockStats.avgConfirmationRate}%
+                            {realStats.avgConfirmationRate}%
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Invitados por Evento</span>
                           <span className="text-sm font-medium">
                             {Math.round(
-                              mockStats.totalGuests / mockStats.totalEvents,
+                              realStats.totalEvents > 0 ? realStats.totalGuests / realStats.totalEvents : 0,
                             )}
                           </span>
                         </div>
@@ -280,8 +313,8 @@ export default function EstadisticasPage() {
                           </span>
                           <span className="text-sm font-medium">
                             {Math.round(
-                              mockStats.totalInvitations /
-                                mockStats.totalEvents,
+                              realStats.totalEvents > 0 ? realStats.totalInvitations /
+                                realStats.totalEvents : 0,
                             )}
                           </span>
                         </div>
@@ -294,7 +327,7 @@ export default function EstadisticasPage() {
 
             <TabsContent value="guests" className="m-0 p-6 space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GuestResponseChart data={mockResponseData} />
+                <GuestResponseChart data={realResponseData} />
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm font-medium">
@@ -400,7 +433,7 @@ export default function EstadisticasPage() {
             </TabsContent>
 
             <TabsContent value="trends" className="m-0 p-6 space-y-6">
-              <InvitationTrendsChart data={mockTrendsData} />
+              <InvitationTrendsChart data={realTrendsData} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>

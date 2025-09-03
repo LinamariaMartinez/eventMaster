@@ -131,6 +131,11 @@ export function TemplateSelector({
                         Premium
                       </Badge>
                     )}
+                    {template.id.includes('landing') && (
+                      <Badge className="absolute top-2 left-2 bg-purple-500">
+                        🌟 Landing
+                      </Badge>
+                    )}
                     {selectedTemplate === template.id && (
                       <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
@@ -147,6 +152,24 @@ export function TemplateSelector({
                         {getCategoryIcon(template.category)}
                       </div>
                     </div>
+                    
+                    {template.features && template.features.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-xs text-muted-foreground mb-2">Características incluidas:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {template.features.slice(0, 3).map((feature, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
+                          {template.features.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{template.features.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     
                     <Button 
                       size="sm" 

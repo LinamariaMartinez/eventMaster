@@ -5,32 +5,42 @@ import { DashboardLayout } from "@/components/dashboard/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Mail, TrendingUp, Clock, MapPin, Plus, Eye, BarChart3 } from "lucide-react";
-import { guestStorage } from "@/lib/storage";
-import { useEventsStorage } from "@/hooks/use-events-storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthStatus } from "@/components/debug/auth-status";
 import Link from "next/link";
 
 
 export default function DashboardPage() {
-  const { events, loading } = useEventsStorage();
+  // All hooks must be called before any conditional returns
+  const { user, isAuthenticated, loading: authLoading, redirectToLogin } = useAuth();
+  const { events, loading: eventsLoading } = useSupabaseEvents();
+  const { guests, loading: guestsLoading } = useSupabaseGuests();
+  
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      console.log('[DashboardPage] User not authenticated, redirecting to login');
+      redirectToLogin();
+    }
+  }, [authLoading, isAuthenticated, redirectToLogin]);
+  
   const [stats, setStats] = useState({
     totalEvents: 0,
     totalGuests: 0,
     totalInvitations: 0,
     upcomingEvents: 0
   });
+  
+  const loading = authLoading || eventsLoading || guestsLoading;
 
   useEffect(() => {
-    if (!loading && events.length > 0) {
-      const allGuests = guestStorage.getAll();
-      const totalGuests = events.reduce((sum, event) => {
-        const eventGuests = allGuests.filter(guest => guest.eventId === event.id);
-        return sum + eventGuests.length;
-      }, 0);
-      
-      // Calculate confirmed guests (currently unused but kept for future use)
+    if (!loading && events.length >= 0) {
+      const totalGuests = guests.length;
       
       const upcomingEventsCount = events.filter(event => 
-        new Date(event.date) > new Date() && event.status === 'published'
+        new Date(event.date) > new Date()
       ).length;
       
       setStats({
@@ -40,12 +50,32 @@ export default function DashboardPage() {
         upcomingEvents: upcomingEventsCount
       });
     }
-  }, [events, loading]);
+  }, [events, guests, loading]);
+
+  // Show loading while checking authentication or loading data
+  if (loading || !isAuthenticated) {
+    return (
+      <DashboardLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-burgundy border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">
+              {authLoading ? 'Verificando autenticación...' : 'Cargando dashboard...'}
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const upcomingEvents = events
-    .filter(event => new Date(event.date) > new Date() && event.status === 'published')
+    .filter(event => new Date(event.date) > new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
+    .slice(0, 3)
+    .map(event => ({
+      ...event,
+      confirmedGuests: guests.filter(g => g.event_id === event.id && g.status === 'confirmed').length
+    }));
 
   return (
     <DashboardLayout>
@@ -54,7 +84,14 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-slate-900">Bienvenida</h2>
-            <p className="text-slate-600 mt-1">Resumen ejecutivo de tus eventos</p>
+            <p className="text-slate-600 mt-1">
+              Resumen ejecutivo de tus eventos
+              {user && (
+                <span className="block text-sm text-burgundy font-medium mt-1">
+                  {user.user_metadata?.name || user.email}
+                </span>
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/events/new">
@@ -174,7 +211,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-burgundy">{event.confirmedGuests || 0}</div>
+                        <div className="text-lg font-bold text-burgundy">{event.confirmedGuests}</div>
                         <div className="text-xs text-slate-600">confirmados</div>
                       </div>
                       <Link href={`/events/${event.id}`}>
@@ -251,6 +288,11 @@ export default function DashboardPage() {
             </Link>
           </CardContent>
         </Card>
+        </div>
+        
+        {/* Debug: Auth Status - Remove this in production */}
+        <div className="fixed bottom-4 right-4">
+          <AuthStatus />
         </div>
       </div>
     </DashboardLayout>

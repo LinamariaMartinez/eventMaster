@@ -1,62 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Event } from "@/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { formatDate, getEventStatus } from "@/lib/utils"
-import { 
+import { useState } from "react";
+import Link from "next/link";
+import { Event } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatDate, getEventStatus } from "@/lib/utils";
+import {
   Calendar,
   MapPin,
   Users,
   MoreHorizontal,
   Edit,
   Copy,
-  Trash2
-} from "lucide-react"
+  Trash2,
+} from "lucide-react";
 
 interface EventListProps {
-  events: Event[]
-  onEdit?: (event: Event) => void
-  onDelete?: (eventId: string) => void
-  onCopyLink?: (event: Event) => void
+  events: Event[];
+  onEdit?: (event: Event) => void;
+  onDelete?: (eventId: string) => void;
+  onCopyLink?: (event: Event) => void;
 }
 
-export function EventList({ 
-  events, 
-  onEdit, 
-  onDelete, 
-  onCopyLink 
+export function EventList({
+  events,
+  onEdit,
+  onDelete,
+  onCopyLink,
 }: EventListProps) {
-  const [showActions, setShowActions] = useState<string | null>(null)
+  const [showActions, setShowActions] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-800'
-      case 'ongoing':
-        return 'bg-green-100 text-green-800'
-      case 'past':
-        return 'bg-gray-100 text-gray-800'
+      case "upcoming":
+        return "bg-blue-100 text-blue-800";
+      case "ongoing":
+        return "bg-green-100 text-green-800";
+      case "past":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'upcoming':
-        return 'Próximo'
-      case 'ongoing':
-        return 'En curso'
-      case 'past':
-        return 'Finalizado'
+      case "upcoming":
+        return "Próximo";
+      case "ongoing":
+        return "En curso";
+      case "past":
+        return "Finalizado";
       default:
-        return 'Desconocido'
+        return "Desconocido";
     }
-  }
+  };
 
   if (events.length === 0) {
     return (
@@ -70,28 +70,26 @@ export function EventList({
             Comienza creando tu primer evento
           </p>
           <Button asChild>
-            <Link href="/dashboard/events/new">
-              Crear Evento
-            </Link>
+            <Link href="/events/new">Crear Evento</Link>
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
       {events.map((event) => {
-        const status = getEventStatus(event.date)
-        
+        const status = getEventStatus(event.date);
+
         return (
           <Card key={event.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-lg font-semibold mb-2">
-                    <Link 
-                      href={`/dashboard/events/${event.id}`}
+                    <Link
+                      href={`/events/${event.id}`}
                       className="hover:text-[#8B4B6B] transition-colors"
                     >
                       {event.title}
@@ -116,9 +114,11 @@ export function EventList({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setShowActions(
-                        showActions === event.id ? null : event.id
-                      )}
+                      onClick={() =>
+                        setShowActions(
+                          showActions === event.id ? null : event.id,
+                        )
+                      }
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
@@ -127,8 +127,8 @@ export function EventList({
                         <button
                           className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 flex items-center"
                           onClick={() => {
-                            onEdit?.(event)
-                            setShowActions(null)
+                            onEdit?.(event);
+                            setShowActions(null);
                           }}
                         >
                           <Edit className="h-4 w-4 mr-2" />
@@ -137,8 +137,8 @@ export function EventList({
                         <button
                           className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 flex items-center"
                           onClick={() => {
-                            onCopyLink?.(event)
-                            setShowActions(null)
+                            onCopyLink?.(event);
+                            setShowActions(null);
                           }}
                         >
                           <Copy className="h-4 w-4 mr-2" />
@@ -147,8 +147,8 @@ export function EventList({
                         <button
                           className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 flex items-center text-red-600"
                           onClick={() => {
-                            onDelete?.(event.id)
-                            setShowActions(null)
+                            onDelete?.(event.id);
+                            setShowActions(null);
                           }}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -169,7 +169,7 @@ export function EventList({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Link
-                    href={`/dashboard/events/${event.id}/invitations`}
+                    href={`/events/${event.id}/invitations`}
                     className="text-sm text-[#8B4B6B] hover:underline flex items-center"
                   >
                     <Users className="h-4 w-4 mr-1" />
@@ -183,16 +183,14 @@ export function EventList({
                     </Link>
                   </Button>
                   <Button size="sm" asChild>
-                    <Link href={`/dashboard/events/${event.id}`}>
-                      Ver detalles
-                    </Link>
+                    <Link href={`/events/${event.id}`}>Ver detalles</Link>
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

@@ -19,17 +19,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X, Plus } from "lucide-react";
 import type { Guest } from "@/app/(dashboard)/guests/page";
 
+interface Event {
+  id: string;
+  title: string;
+}
+
 interface GuestFormProps {
   initialData?: Guest;
   onSubmit: (data: Omit<Guest, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
+  events: Event[];
 }
-
-const mockEvents = [
-  { id: "evt1", name: "Cena de Gala 2025" },
-  { id: "evt2", name: "Conferencia Tech" },
-  { id: "evt3", name: "Networking Empresarial" },
-];
 
 const commonTags = [
   "VIP",
@@ -41,7 +41,7 @@ const commonTags = [
   "Networking",
 ];
 
-export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
+export function GuestForm({ initialData, onSubmit, onCancel, events }: GuestFormProps) {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     email: initialData?.email || "",
@@ -63,13 +63,15 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const eventName = mockEvents.find((e) => e.id === formData.eventId)?.name;
+    const eventName = events.find((e) => e.id === formData.eventId)?.title;
 
     onSubmit({
       ...formData,
+      event_id: formData.eventId,
+      guest_count: formData.guestCount,
+      dietary_restrictions: formData.dietaryRestrictions,
+      created_at: new Date().toISOString(),
       eventName,
-      respondedAt:
-        formData.status !== "pending" ? new Date().toISOString() : undefined,
     });
   };
 
@@ -193,9 +195,9 @@ export function GuestForm({ initialData, onSubmit, onCancel }: GuestFormProps) {
                 <SelectValue placeholder="Seleccionar evento" />
               </SelectTrigger>
               <SelectContent>
-                {mockEvents.map((event) => (
+                {events.map((event) => (
                   <SelectItem key={event.id} value={event.id}>
-                    {event.name}
+                    {event.title}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  debugSessions, 
-  cleanDemoSession, 
-  hasDemoSession, 
   getCurrentUser,
   signOut,
   AuthUser
@@ -17,34 +14,34 @@ import { toast } from "sonner";
 import Link from "next/link";
 
 interface DebugInfo {
-  localStorage: {
-    demo_user: string | null;
-    demo_session: {
-      user?: AuthUser;
-      expires_at?: number;
-      access_token?: string;
-    } | null;
-  };
-  cookies: string;
-  hasDemoSession: boolean;
-  error?: string;
+  currentUser: AuthUser | null;
+  hasUser: boolean;
+  userEmail?: string;
+  userId?: string;
 }
 
 export default function DebugPage() {
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const refreshDebugInfo = async () => {
     setIsLoading(true);
     try {
-      const info = debugSessions();
+      console.log('[DebugPage] Refreshing debug info...');
       const user = await getCurrentUser();
-      setDebugInfo(info as DebugInfo);
-      setCurrentUser(user);
+      
+      const info: DebugInfo = {
+        currentUser: user,
+        hasUser: !!user,
+        userEmail: user?.email,
+        userId: user?.id
+      };
+      
+      console.log('[DebugPage] Debug info:', info);
+      setDebugInfo(info);
     } catch (error) {
-      console.error("Error refreshing debug info:", error);
+      console.error('[DebugPage] Error refreshing debug info:', error);
       toast.error("Error obteniendo información de debug");
     } finally {
       setIsLoading(false);
@@ -55,188 +52,118 @@ export default function DebugPage() {
     refreshDebugInfo();
   }, []);
 
-  const handleCleanSessions = () => {
-    cleanDemoSession();
-    toast.success("Sesiones demo limpiadas");
-    refreshDebugInfo();
-  };
-
   const handleLogout = async () => {
     try {
+      console.log('[DebugPage] Logging out...');
       await signOut();
       toast.success("Logout completado");
-      refreshDebugInfo();
+      router.push('/');
     } catch (error) {
-      console.error("Error en logout:", error);
-      toast.error("Error en logout");
+      console.error('[DebugPage] Logout error:', error);
+      toast.error("Error durante logout");
     }
   };
 
-  const testFlow = (step: string) => {
-    toast.info(`Navegando a: ${step}`);
-    switch(step) {
-      case 'landing':
-        router.push('/');
-        break;
-      case 'login':
-        router.push('/login');
-        break;
-      case 'dashboard':
-        router.push('/dashboard');
-        break;
-      default:
-        break;
-    }
+  const handleGoToLogin = () => {
+    router.push('/login');
+  };
+
+  const handleGoToDashboard = () => {
+    router.push('/dashboard');
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Debug de Autenticación</h1>
-          <p className="text-muted-foreground">
-            Herramienta para debuggear el flujo de autenticación
-          </p>
-        </div>
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Debug Authentication</h1>
         <div className="flex gap-2">
-          <Button onClick={refreshDebugInfo} disabled={isLoading}>
-            {isLoading ? "Actualizando..." : "Refrescar"}
+          <Button onClick={refreshDebugInfo} disabled={isLoading} variant="outline">
+            {isLoading ? "Cargando..." : "Refresh"}
           </Button>
-          <Button variant="outline" asChild>
-            <Link href="/">Volver al Inicio</Link>
+          <Button onClick={handleGoToLogin} variant="secondary">
+            Ir a Login
+          </Button>
+          <Button onClick={handleGoToDashboard}>
+            Ir a Dashboard
           </Button>
         </div>
       </div>
 
-      {/* Estado Actual */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Estado de Autenticación</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Estado:</span>
-            <Badge variant={currentUser ? "default" : "secondary"}>
-              {currentUser ? "Autenticado" : "No autenticado"}
-            </Badge>
-          </div>
-          
-          {currentUser && (
-            <div className="space-y-2">
-              <div><strong>ID:</strong> {currentUser.id}</div>
-              <div><strong>Email:</strong> {currentUser.email}</div>
-              <div><strong>Nombre:</strong> {currentUser.user_metadata?.name || "N/A"}</div>
-              <div><strong>Rol:</strong> {currentUser.user_metadata?.role || "N/A"}</div>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Sesión Demo Válida:</span>
-            <Badge variant={hasDemoSession() ? "default" : "secondary"}>
-              {hasDemoSession() ? "Sí" : "No"}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Información de Debug */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Información Técnica</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {debugInfo ? (
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2">LocalStorage</h4>
-                <div className="bg-muted p-3 rounded-md text-sm">
-                  <div><strong>demo_user:</strong> {debugInfo.localStorage.demo_user ? "✓" : "✗"}</div>
-                  <div><strong>demo_session:</strong> {debugInfo.localStorage.demo_session ? "✓" : "✗"}</div>
-                  {debugInfo.localStorage.demo_session && debugInfo.localStorage.demo_session.expires_at && (
-                    <div className="mt-2">
-                      <strong>Expira:</strong> {new Date(debugInfo.localStorage.demo_session.expires_at).toLocaleString()}
-                    </div>
-                  )}
-                </div>
+      <div className="grid gap-6">
+        {/* Current User Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Usuario Actual
+              <Badge variant={debugInfo?.hasUser ? "default" : "destructive"}>
+                {debugInfo?.hasUser ? "Autenticado" : "No Autenticado"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {debugInfo ? (
+              <div className="space-y-2">
+                {debugInfo.hasUser ? (
+                  <>
+                    <p><strong>ID:</strong> {debugInfo.userId}</p>
+                    <p><strong>Email:</strong> {debugInfo.userEmail}</p>
+                    <Button onClick={handleLogout} variant="destructive" size="sm">
+                      Cerrar Sesión
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground">No hay usuario autenticado</p>
+                )}
               </div>
-              
-              <div>
-                <h4 className="font-medium mb-2">Cookies</h4>
-                <div className="bg-muted p-3 rounded-md text-sm">
-                  {debugInfo.cookies || "No hay cookies"}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div>Cargando información de debug...</div>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <p>Cargando información del usuario...</p>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Controles de Testing */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Controles de Testing</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-2">Test de Flujo Completo</h4>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => testFlow('landing')}>
-                1. Landing
+        {/* Authentication Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Acciones de Autenticación</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleGoToLogin} variant="outline">
+                Página de Login
               </Button>
-              <Button variant="outline" onClick={() => testFlow('login')}>
-                2. Login
+              <Button onClick={handleGoToDashboard} variant="outline">
+                Dashboard (requiere auth)
               </Button>
-              <Button variant="outline" onClick={() => testFlow('dashboard')}>
-                3. Dashboard
+              <Button onClick={refreshDebugInfo} disabled={isLoading}>
+                Refrescar Estado
               </Button>
             </div>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-2">Credenciales Demo</h4>
-            <div className="bg-muted p-3 rounded-md text-sm space-y-1">
-              <div>• admin@catalinalezama.com / demo123</div>
-              <div>• equipo@catalinalezama.com / equipo123</div>
-              <div>• demo@demo.com / demo123</div>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-2">Acciones</h4>
-            <div className="flex gap-2">
-              <Button variant="destructive" onClick={handleCleanSessions}>
-                Limpiar Sesiones Demo
-              </Button>
-              <Button variant="destructive" onClick={handleLogout}>
-                Logout Completo
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Instrucciones */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Instrucciones de Testing</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div><strong>Flujo Normal:</strong></div>
-          <div>1. Ir a Landing page (botón &quot;1. Landing&quot;)</div>
-          <div>2. Hacer clic en &quot;Acceso Equipo&quot;</div>
-          <div>3. Usar credenciales demo para login</div>
-          <div>4. Verificar redirección al dashboard</div>
-          <div>5. Hacer logout desde el header</div>
-          <div>6. Verificar redirección al landing</div>
-          
-          <div className="mt-4"><strong>Problemas a Verificar:</strong></div>
-          <div>• /login debe ser accesible sin redirecciones forzadas</div>
-          <div>• Logout debe limpiar completamente la sesión</div>
-          <div>• No debe haber sesiones &quot;fantasma&quot; activas</div>
-        </CardContent>
-      </Card>
+        {/* Navigation */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Navegación</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/">
+                <Button variant="link">Inicio</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="link">Dashboard</Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="link">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="link">Registro</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

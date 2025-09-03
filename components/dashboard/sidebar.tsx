@@ -39,9 +39,11 @@ export function Sidebar() {
     try {
       await signOut();
       toast.success("Sesión cerrada correctamente");
-      router.push("/");
+      // signOut now handles the redirect automatically
     } catch {
       toast.error("Error al cerrar sesión");
+      // Even if signOut fails, try to redirect
+      router.push("/");
     }
   };
 

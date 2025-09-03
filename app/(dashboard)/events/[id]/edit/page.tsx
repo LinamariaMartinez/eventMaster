@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
-import { eventStorage, Event } from "@/lib/storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { useToast } from "@/hooks/use-toast";
+import type { Database, Json } from "@/types/database.types";
+
+type Event = Database['public']['Tables']['events']['Row'];
 
 export default function EditEventPage() {
   const params = useParams();
@@ -19,6 +21,7 @@ export default function EditEventPage() {
   const { toast } = useToast();
   const eventId = params.id as string;
 
+  const { getEvent, updateEvent, removeEvent } = useSupabaseEvents();
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,26 +32,25 @@ export default function EditEventPage() {
     date: "",
     time: "",
     location: "",
-    maxGuests: 0,
-    status: "draft" as "draft" | "published" | "cancelled"
+    settings: {} as Record<string, unknown>
   });
 
   useEffect(() => {
     if (eventId) {
       try {
-        const eventData = eventStorage.getById(eventId);
+        const eventData = getEvent(eventId);
         if (eventData) {
           setEvent(eventData);
           setFormData({
             title: eventData.title,
-            description: eventData.description,
+            description: eventData.description || "",
             date: eventData.date,
             time: eventData.time,
             location: eventData.location,
-            maxGuests: eventData.maxGuests,
-            status: eventData.status
+            settings: (typeof eventData.settings === 'object' && eventData.settings !== null) ? eventData.settings as Record<string, unknown> : {}
           });
         }
+        setIsLoading(false);
       } catch (error) {
         console.error("Error loading event:", error);
         toast({
@@ -56,11 +58,10 @@ export default function EditEventPage() {
           description: "No se pudo cargar el evento",
           variant: "destructive"
         });
-      } finally {
         setIsLoading(false);
       }
     }
-  }, [eventId, toast]);
+  }, [eventId, getEvent, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,14 +71,13 @@ export default function EditEventPage() {
     setIsSaving(true);
 
     try {
-      const updatedEvent = eventStorage.update(event.id, {
+      const updatedEvent = await updateEvent(event.id, {
         title: formData.title,
         description: formData.description,
         date: formData.date,
         time: formData.time,
         location: formData.location,
-        maxGuests: formData.maxGuests,
-        status: formData.status
+        settings: formData.settings as Json
       });
 
       if (updatedEvent) {
@@ -100,12 +100,12 @@ export default function EditEventPage() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!event) return;
 
     if (window.confirm("¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.")) {
       try {
-        const deleted = eventStorage.remove(event.id);
+        const deleted = await removeEvent(event.id);
         if (deleted) {
           toast({
             title: "Evento eliminado",
@@ -245,34 +245,6 @@ export default function EditEventPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="maxGuests">Número máximo de invitados</Label>
-                <Input
-                  id="maxGuests"
-                  type="number"
-                  min="1"
-                  value={formData.maxGuests}
-                  onChange={(e) => handleInputChange("maxGuests", parseInt(e.target.value))}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado del evento</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => handleInputChange("status", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Borrador</SelectItem>
-                    <SelectItem value="published">Publicado</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="flex justify-between pt-6">
                 <Button

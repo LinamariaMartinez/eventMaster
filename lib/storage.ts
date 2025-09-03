@@ -60,6 +60,7 @@ export interface InvitationTemplate {
     borderRadius: number;
     shadowLevel: number;
   };
+  features?: string[];
 }
 
 export interface Invitation {
@@ -177,14 +178,14 @@ const safeLocalStorage = {
 export const eventStorage = {
   getAll: (): Event[] => {
     const data = safeLocalStorage.getItem(STORAGE_KEYS.EVENTS);
-    if (!data) return getDefaultEvents();
+    if (!data) return [];
 
     try {
       const events = JSON.parse(data);
-      return Array.isArray(events) ? events : getDefaultEvents();
+      return Array.isArray(events) ? events : [];
     } catch (error) {
       console.error("Error parsing events from localStorage:", error);
-      return getDefaultEvents();
+      return [];
     }
   },
 
@@ -315,77 +316,6 @@ export const guestStorage = {
   },
 };
 
-// Datos por defecto para demo - Eventos colombianos realistas
-function getDefaultEvents(): Event[] {
-  return [
-    {
-      id: "1",
-      title: "Gala de la Independencia 2025",
-      description:
-        "Celebración del Día de la Independencia con cena de gala, orquesta en vivo y reconocimientos a empresarios destacados del año",
-      date: "2025-07-20",
-      time: "19:00",
-      location: "Hotel Tequendama, Salón Bolívar - Bogotá",
-      maxGuests: 120,
-      confirmedGuests: 85,
-      status: "published",
-      createdAt: "2025-06-01T10:00:00.000Z",
-      updatedAt: "2025-06-15T14:30:00.000Z",
-    },
-    {
-      id: "2",
-      title: "Feria de Flores y Networking",
-      description: "Evento de networking empresarial durante la temporada de la Feria de las Flores, con degustación de café colombiano",
-      date: "2025-08-08",
-      time: "16:00",
-      location: "Plaza Mayor, Pabellón Amarillo - Medellín",
-      maxGuests: 80,
-      confirmedGuests: 62,
-      status: "published",
-      createdAt: "2025-07-01T09:00:00.000Z",
-      updatedAt: "2025-07-20T11:15:00.000Z",
-    },
-    {
-      id: "3",
-      title: "Conferencia Café y Tecnología",
-      description: "Simposio internacional sobre innovación en la industria cafetera colombiana y nuevas tecnologías agrícolas",
-      date: "2025-09-15",
-      time: "08:30",
-      location: "Centro de Convenciones Corferias - Bogotá",
-      maxGuests: 250,
-      confirmedGuests: 180,
-      status: "published",
-      createdAt: "2025-08-01T08:00:00.000Z",
-      updatedAt: "2025-08-25T16:45:00.000Z",
-    },
-    {
-      id: "4",
-      title: "Noche de Salsa y Emprendimiento",
-      description: "Encuentro de emprendedores caleños con show de salsa, presentación de startups y premios al mejor proyecto",
-      date: "2025-10-12",
-      time: "20:00",
-      location: "Hotel Intercontinental, Terraza Panorámica - Cali",
-      maxGuests: 150,
-      confirmedGuests: 95,
-      status: "draft",
-      createdAt: "2025-09-01T12:00:00.000Z",
-      updatedAt: "2025-09-15T18:20:00.000Z",
-    },
-    {
-      id: "5", 
-      title: "Festival Gastronómico Caribe",
-      description: "Degustación de platos típicos del Caribe colombiano con chefs invitados de Cartagena y Barranquilla",
-      date: "2025-11-28",
-      time: "18:30",
-      location: "Centro Histórico, Plaza Santo Domingo - Cartagena",
-      maxGuests: 100,
-      confirmedGuests: 72,
-      status: "draft",
-      createdAt: "2025-10-01T15:30:00.000Z",
-      updatedAt: "2025-10-18T10:45:00.000Z",
-    },
-  ];
-}
 
 // Funciones para manejar invitaciones
 export const invitationStorage = {
@@ -715,6 +645,103 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
         borderRadius: 6,
         shadowLevel: 1,
       },
+    },
+    // Premium Landing Page Templates - Modern Digital Invitations
+    {
+      id: "premium-elegant-landing",
+      name: "Elegante Landing Page",
+      category: "wedding",
+      type: "premium",
+      thumbnail: "/elegant-landing-preview.png",
+      styles: {
+        backgroundColor: "#F5F1E8",
+        textColor: "#4A4A4A",
+        accentColor: "#D4AF37",
+        fontFamily: "serif",
+        fontSize: "18px",
+        gradientFrom: "#F5F1E8",
+        gradientTo: "#E8DCC6",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 200,
+        contentPadding: 0, // Full page layout
+        borderRadius: 0,
+        shadowLevel: 0,
+      },
+      features: ["Hero Section", "Event Timeline", "Menu Display", "RSVP Form", "Thank You Section", "Floating Navigation", "Smooth Scrolling", "Responsive Design"]
+    },
+    {
+      id: "premium-modern-landing",
+      name: "Moderno Landing Page",
+      category: "corporate",
+      type: "premium",
+      thumbnail: "/modern-landing-preview.png",
+      styles: {
+        backgroundColor: "#F1F5F9",
+        textColor: "#334155",
+        accentColor: "#3B82F6",
+        fontFamily: "sans-serif",
+        fontSize: "16px",
+        gradientFrom: "#F1F5F9",
+        gradientTo: "#E2E8F0",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 200,
+        contentPadding: 0,
+        borderRadius: 0,
+        shadowLevel: 0,
+      },
+      features: ["Corporate Design", "Professional Layout", "Business Timeline", "Catering Menu", "Professional RSVP", "Modern Navigation", "Clean Typography", "Mobile Optimized"]
+    },
+    {
+      id: "premium-romantic-landing",
+      name: "Romántico Landing Page",
+      category: "wedding",
+      type: "premium",
+      thumbnail: "/romantic-landing-preview.png",
+      styles: {
+        backgroundColor: "#FDF2F8",
+        textColor: "#831843",
+        accentColor: "#EC4899",
+        fontFamily: "script",
+        fontSize: "18px",
+        gradientFrom: "#FDF2F8",
+        gradientTo: "#FCE7F3",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 200,
+        contentPadding: 0,
+        borderRadius: 0,
+        shadowLevel: 0,
+      },
+      features: ["Romantic Design", "Love Story Timeline", "Wedding Menu", "Elegant RSVP", "Heartfelt Messages", "Smooth Animations", "Romantic Icons", "Photo Integration"]
+    },
+    {
+      id: "premium-celebration-landing",
+      name: "Celebración Landing Page",
+      category: "birthday",
+      type: "premium",
+      thumbnail: "/celebration-landing-preview.png",
+      styles: {
+        backgroundColor: "#FEF3C7",
+        textColor: "#92400E",
+        accentColor: "#F59E0B",
+        fontFamily: "sans-serif",
+        fontSize: "17px",
+        gradientFrom: "#FEF3C7",
+        gradientTo: "#FDE68A",
+        backgroundType: "gradient",
+      },
+      layout: {
+        headerHeight: 200,
+        contentPadding: 0,
+        borderRadius: 0,
+        shadowLevel: 0,
+      },
+      features: ["Festive Design", "Party Timeline", "Birthday Menu", "Fun RSVP", "Celebration Mood", "Colorful Layout", "Party Icons", "Gift Registry"]
     },
     {
       id: "corporate-luxury-simple",

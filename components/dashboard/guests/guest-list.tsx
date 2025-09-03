@@ -45,16 +45,16 @@ export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, o
         bValue = b.name.toLowerCase()
         break
       case "email":
-        aValue = a.email.toLowerCase()
-        bValue = b.email.toLowerCase()
+        aValue = (a.email || "").toLowerCase()
+        bValue = (b.email || "").toLowerCase()
         break
       case "status":
         aValue = a.status
         bValue = b.status
         break
       case "invitedAt":
-        aValue = new Date(a.createdAt).getTime()
-        bValue = new Date(b.createdAt).getTime()
+        aValue = new Date(a.createdAt || a.created_at || new Date()).getTime()
+        bValue = new Date(b.createdAt || b.created_at || new Date()).getTime()
         break
       case "eventName":
         aValue = (a.eventName || "").toLowerCase()
@@ -184,7 +184,7 @@ export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, o
                 <span className="text-sm">{guest.eventName || "Sin evento"}</span>
               </TableCell>
               <TableCell>
-                <span className="text-sm text-muted-foreground">{formatDate(guest.createdAt)}</span>
+                <span className="text-sm text-muted-foreground">{formatDate(guest.createdAt || guest.created_at || new Date().toISOString())}</span>
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1">
