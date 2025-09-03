@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle, XCircle, Clock, Users, Send } from "lucide-react";
 import { Invitation, Guest, guestStorage } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { DataConsent, ConsentState } from "@/components/legal/data-consent";
 
 interface RSVPFormProps {
   invitation: Invitation;
@@ -38,6 +39,12 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
     message: "",
     dietaryRestrictions: "",
   });
+  const [consents, setConsents] = useState<ConsentState>({
+    dataProcessing: false,
+    communications: false,
+    analytics: false,
+    marketing: false,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -50,6 +57,17 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required consent
+    if (!consents.dataProcessing) {
+      toast({
+        title: "Consentimiento requerido",
+        description: "Debe aceptar el tratamiento de datos personales para enviar su confirmación.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -282,7 +300,16 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {/* Data Consent Component */}
+          <div className="border-t pt-6">
+            <DataConsent 
+              onConsentChange={setConsents}
+              required={true}
+              className="border-0 shadow-none p-0"
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isSubmitting || !consents.dataProcessing}>
             {isSubmitting ? (
               <>
                 <Clock className="h-4 w-4 mr-2 animate-spin" />

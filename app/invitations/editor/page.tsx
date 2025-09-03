@@ -360,14 +360,14 @@ function InvitationEditorContent() {
                       <Select
                         value={invitation.eventId || ""}
                         onValueChange={(value) => {
-                          const event = eventStorage.getById(value);
+                          const event = events.find(e => e.id === value);
                           if (event) {
                             setSelectedEvent(event);
                             setInvitation(prev => ({
                               ...prev,
                               eventId: event.id,
                               title: event.title,
-                              description: event.description,
+                              description: event.description || "",
                               content: {
                                 hostName: prev.content?.hostName || "Anfitrión",
                                 ...prev.content,

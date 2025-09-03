@@ -263,6 +263,12 @@ export default function Home() {
               <a href="#cumpleanos">Cumpleaños</a>
               <a href="#eventos">Eventos</a>
             </div>
+            <div className="footer-column">
+              <h4>Legal</h4>
+              <a href="/politica-privacidad">Política de Privacidad</a>
+              <a href="/gestion-datos">Gestión de Datos</a>
+              <a href="#terminos">Términos de Servicio</a>
+            </div>
           </div>
         </div>
       </footer>
