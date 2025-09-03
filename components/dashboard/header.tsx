@@ -14,40 +14,23 @@ import { Bell, Search, User, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
-import { getCurrentUser, AuthUser } from "@/lib/auth";
 
 export function Navbar() {
   const router = useRouter();
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchUser();
-  }, []);
+  const { user, loading: isLoading } = useAuth();
 
   const handleLogout = async () => {
     try {
       await signOut();
       toast.success("Sesión cerrada correctamente");
-      // Redirigir al landing page en lugar de login
-      router.push("/");
-      router.refresh();
+      // signOut now handles the redirect automatically
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast.error("Error al cerrar sesión");
+      // Even if signOut fails, try to redirect
+      router.push("/");
     }
   };
 

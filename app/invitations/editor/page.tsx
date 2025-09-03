@@ -25,11 +25,13 @@ import { PremiumFeaturesEditor } from "@/components/invitations/premium-features
 import { 
   invitationStorage, 
   invitationTemplateStorage, 
-  eventStorage, 
   getInvitationTypes,
-  type Invitation,
-  type Event
+  type Invitation
 } from "@/lib/storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import type { Database } from "@/types/database.types";
+
+type SupabaseEvent = Database['public']['Tables']['events']['Row'];
 
 const steps = [
   { id: "type", title: "Tipo", description: "Selecciona el tipo de invitación" },
@@ -47,7 +49,7 @@ function InvitationEditorContent() {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [viewMode, setViewMode] = useState<"mobile" | "desktop">("desktop");
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<SupabaseEvent | null>(null);
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     type: "simple",
     status: "draft",
@@ -81,20 +83,20 @@ function InvitationEditorContent() {
   // Get data
   const invitationTypes = getInvitationTypes();
   const templates = invitationTemplateStorage.getAll();
-  const events = eventStorage.getAll();
+  const { events } = useSupabaseEvents();
 
   // Load event data if eventId is provided
   useEffect(() => {
     const eventId = searchParams?.get("eventId");
-    if (eventId) {
-      const event = eventStorage.getById(eventId);
+    if (eventId && events.length > 0) {
+      const event = events.find(e => e.id === eventId);
       if (event) {
         setSelectedEvent(event);
         setInvitation(prev => ({
           ...prev,
           eventId: event.id,
           title: event.title,
-          description: event.description,
+          description: event.description || "",
           content: {
             ...prev.content,
             hostName: prev.content?.hostName || "",
@@ -105,7 +107,7 @@ function InvitationEditorContent() {
         }));
       }
     }
-  }, [searchParams]);
+  }, [searchParams, events]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {

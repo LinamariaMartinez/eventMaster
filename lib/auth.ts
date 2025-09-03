@@ -5,54 +5,9 @@ import { User, AuthError } from "@supabase/supabase-js";
 
 export type AuthUser = User;
 
-
-// Credenciales demo hardcodeadas
-const DEMO_CREDENTIALS = [
-  { email: "admin@catalinalezama.com", password: "demo123", name: "Catalina Lezama", role: "admin" },
-  { email: "equipo@catalinalezama.com", password: "equipo123", name: "Equipo ED", role: "team" },
-  { email: "demo@demo.com", password: "demo123", name: "Usuario Demo", role: "demo" }
-];
-
 export const signIn = async (email: string, password: string) => {
-  // Verificar credenciales demo primero
-  const demoUser = DEMO_CREDENTIALS.find(
-    cred => cred.email.toLowerCase() === email.toLowerCase() && cred.password === password
-  );
-
-  if (demoUser) {
-    // Simular respuesta de Supabase para usuario demo
-    const mockUser = {
-      id: `demo-${demoUser.role}-${Date.now()}`,
-      email: demoUser.email,
-      user_metadata: {
-        name: demoUser.name,
-        role: demoUser.role
-      }
-    };
-
-    // Guardar en localStorage y cookies para persistencia
-    const sessionData = {
-      user: mockUser,
-      access_token: 'demo-token',
-      expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
-    };
-    
-    localStorage.setItem('demo_user', JSON.stringify(mockUser));
-    localStorage.setItem('demo_session', JSON.stringify(sessionData));
-    
-    // Crear cookie para que el middleware pueda leerla
-    document.cookie = `demo_session=${JSON.stringify(sessionData)}; path=/; max-age=86400; SameSite=Lax`;
-
-    return { 
-      user: mockUser,
-      session: {
-        user: mockUser,
-        access_token: 'demo-token'
-      }
-    };
-  }
-
-  // Si no es usuario demo, intentar con Supabase
+  console.log('[auth] Starting signIn for:', email);
+  
   const supabase = createClient();
 
   try {
@@ -62,157 +17,170 @@ export const signIn = async (email: string, password: string) => {
     });
 
     if (error) {
-      console.error("SignIn error:", error);
+      console.error('[auth] SignIn error:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        fullError: error
+      });
       throw error;
     }
 
     if (!data.user) {
-      throw new Error("No user data received after login");
+      const errorMsg = "No user data received after login";
+      console.error('[auth] SignIn failed:', errorMsg);
+      throw new Error(errorMsg);
     }
+
+    console.log('[auth] SignIn successful:', {
+      userId: data.user.id,
+      userEmail: data.user.email,
+      hasSession: !!data.session
+    });
 
     return data;
   } catch (error) {
-    console.error("SignIn failed:", error);
+    console.error('[auth] SignIn failed with exception:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      fullError: error
+    });
     throw error;
   }
 };
 
-// Función para limpiar completamente la sesión demo
-export const cleanDemoSession = () => {
-  if (typeof window === 'undefined') return;
-  
-  // Limpiar localStorage
-  localStorage.removeItem('demo_user');
-  localStorage.removeItem('demo_session');
-  
-  // Limpiar cookie demo
-  document.cookie = 'demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-};
-
-// Función para verificar si hay sesión demo válida
-export const hasDemoSession = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  const demoSession = localStorage.getItem('demo_session');
-  if (!demoSession) return false;
-  
-  try {
-    const session = JSON.parse(demoSession);
-    return session.expires_at && session.expires_at > Date.now();
-  } catch (error) {
-    console.error("Error checking demo session:", error);
-    cleanDemoSession();
-    return false;
-  }
-};
-
-// Función para depurar todas las sesiones
-export const debugSessions = () => {
-  if (typeof window === 'undefined') return { error: "No window object" };
-  
-  const localStorage_demo_user = localStorage.getItem('demo_user');
-  const localStorage_demo_session = localStorage.getItem('demo_session');
-  const cookies = document.cookie;
-  
-  return {
-    localStorage: {
-      demo_user: localStorage_demo_user,
-      demo_session: localStorage_demo_session ? JSON.parse(localStorage_demo_session) : null
-    },
-    cookies: cookies,
-    hasDemoSession: hasDemoSession()
-  };
-};
-
 export const signOut = async () => {
-  // Limpiar completamente la sesión demo
-  cleanDemoSession();
+  console.log('[auth] Starting signOut...');
   
   const supabase = createClient();
 
   try {
     const { error } = await supabase.auth.signOut();
+    
     if (error) {
-      console.error("SignOut error:", error);
+      console.error('[auth] SignOut error:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        fullError: error
+      });
       throw error;
     }
+    
+    console.log('[auth] SignOut successful');
+    
+    // Clear any demo session data that might exist
+    clearDemoData();
+    
+    // Force a page reload to ensure all state is cleared
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   } catch (error) {
-    console.error("SignOut failed:", error);
+    console.error('[auth] SignOut failed:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      fullError: error
+    });
+    
+    // Even if there's an error, clear demo data and redirect
+    clearDemoData();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
     throw error;
   }
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
-  // Verificar si hay usuario demo en localStorage
-  const demoSession = localStorage.getItem('demo_session');
-  if (demoSession) {
-    try {
-      const session = JSON.parse(demoSession);
-      if (session.expires_at && session.expires_at > Date.now()) {
-        return session.user as AuthUser;
-      } else {
-        // Sesión expirada o inválida, limpiar todo
-        cleanDemoSession();
-      }
-    } catch (error) {
-      console.error("Error parsing demo session:", error);
-      cleanDemoSession();
-    }
-  }
-
-  const supabase = createClient();
-
+  console.log('[auth] Starting getCurrentUser...');
+  
   try {
+    const supabase = createClient();
+    console.log('[auth] Supabase client created successfully');
+
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
 
+    console.log('[auth] Supabase getUser result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      hasError: !!error,
+      errorMessage: error?.message
+    });
+
     if (error) {
-      console.error("Get user error:", error);
+      console.error('[auth] getCurrentUser error:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        fullError: error
+      });
+      return null;
+    }
+
+    // Validate user has proper UUID format (reject demo users like "demo-admin-1756782584500")
+    if (user && user.id && !user.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.warn('[auth] Invalid user ID format, rejecting user:', user.id);
+      // Clear any demo data that might exist
+      clearDemoData();
       return null;
     }
 
     return user;
   } catch (error) {
-    console.error("Get current user failed:", error);
+    console.error('[auth] getCurrentUser failed with exception:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      fullError: error
+    });
     return null;
   }
 };
 
 export const getSession = async () => {
-  // Verificar sesión demo primero
-  const demoSession = localStorage.getItem('demo_session');
-  if (demoSession) {
-    try {
-      const session = JSON.parse(demoSession);
-      if (session.expires_at && session.expires_at > Date.now()) {
-        return session;
-      } else {
-        cleanDemoSession();
-      }
-    } catch (error) {
-      console.error("Error parsing demo session:", error);
-      cleanDemoSession();
-    }
-  }
-
-  const supabase = createClient();
-
+  console.log('[auth] Starting getSession...');
+  
   try {
+    const supabase = createClient();
+    console.log('[auth] Supabase client created for session check');
+
     const {
       data: { session },
       error,
     } = await supabase.auth.getSession();
 
+    console.log('[auth] Supabase getSession result:', {
+      hasSession: !!session,
+      sessionUserId: session?.user?.id,
+      sessionUserEmail: session?.user?.email,
+      hasError: !!error,
+      errorMessage: error?.message
+    });
+
     if (error) {
-      console.error("Get session error:", error);
+      console.error('[auth] getSession error:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        fullError: error
+      });
       return null;
     }
 
     return session;
   } catch (error) {
-    console.error("Get session failed:", error);
+    console.error('[auth] getSession failed with exception:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      fullError: error
+    });
     return null;
   }
 };
@@ -220,28 +188,51 @@ export const getSession = async () => {
 export const onAuthStateChange = (
   callback: (user: AuthUser | null) => void,
 ) => {
+  console.log('[auth] Setting up auth state change listener');
   const supabase = createClient();
 
   return supabase.auth.onAuthStateChange((event, session) => {
-    console.log("Auth state changed:", event, session?.user?.id);
+    console.log('[auth] Auth state changed:', {
+      event,
+      hasSession: !!session,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email
+    });
     callback(session?.user ?? null);
   });
 };
 
 export const refreshSession = async () => {
+  console.log('[auth] Starting session refresh...');
+  
   const supabase = createClient();
 
   try {
     const { data, error } = await supabase.auth.refreshSession();
 
     if (error) {
-      console.error("Refresh session error:", error);
+      console.error('[auth] Refresh session error:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        fullError: error
+      });
       throw error;
     }
 
+    console.log('[auth] Session refreshed successfully:', {
+      hasSession: !!data.session,
+      userId: data.session?.user?.id,
+      userEmail: data.session?.user?.email
+    });
+
     return data;
   } catch (error) {
-    console.error("Refresh session failed:", error);
+    console.error('[auth] Refresh session failed:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      fullError: error
+    });
     throw error;
   }
 };
@@ -250,9 +241,11 @@ export const refreshSession = async () => {
 export const isAuthenticated = async (): Promise<boolean> => {
   try {
     const user = await getCurrentUser();
-    return !!user;
+    const isAuth = !!user;
+    console.log('[auth] Authentication check:', { isAuthenticated: isAuth, userId: user?.id });
+    return isAuth;
   } catch (error) {
-    console.error("Authentication check failed:", error);
+    console.error('[auth] Authentication check failed:', error);
     return false;
   }
 };
@@ -261,19 +254,48 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export const getUserProfile = async (): Promise<AuthUser | null> => {
   try {
     const user = await getCurrentUser();
-    if (!user) return null;
+    if (!user) {
+      console.log('[auth] No user found for profile');
+      return null;
+    }
 
-    // Aquí podrías obtener información adicional del perfil desde tu tabla de usuarios
-    // const { data: profile } = await supabase
-    //   .from('profiles')
-    //   .select('*')
-    //   .eq('id', user.id)
-    //   .single()
+    console.log('[auth] User profile retrieved:', {
+      userId: user.id,
+      userEmail: user.email,
+      hasMetadata: !!user.user_metadata
+    });
 
     return user;
   } catch (error) {
-    console.error("Get user profile failed:", error);
+    console.error('[auth] Get user profile failed:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      fullError: error
+    });
     return null;
+  }
+};
+
+// Clear any demo session data that might exist in localStorage
+export const clearDemoData = () => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    // Remove demo session data
+    const demoKeys = ['demo_session', 'demo_user', 'demo_token'];
+    demoKeys.forEach(key => {
+      localStorage.removeItem(key);
+      // Also clear any prefixed versions
+      Object.keys(localStorage).forEach(storageKey => {
+        if (storageKey.includes('demo') || storageKey.includes('fake')) {
+          localStorage.removeItem(storageKey);
+        }
+      });
+    });
+    
+    console.log('[auth] Demo data cleared from localStorage');
+  } catch (error) {
+    console.error('[auth] Error clearing demo data:', error);
   }
 };
 

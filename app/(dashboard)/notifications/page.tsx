@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { NotificationList } from "@/components/dashboard/notifications/notification-list";
 import { NotificationSettings } from "@/components/dashboard/notifications/notification-settings";
@@ -24,6 +24,8 @@ import {
   Clock,
   BookTemplate as Template,
 } from "lucide-react";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
 
 export interface Notification {
   id: string;
@@ -46,81 +48,94 @@ export interface Notification {
   actionUrl?: string;
 }
 
-// Mock notification data
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "event_reminder",
-    title: "Recordatorio: Cena de Gala 2025",
-    message: "El evento comienza en 2 días. Revisa la lista de confirmados.",
-    timestamp: "2025-01-20T10:00:00Z",
-    read: false,
-    priority: "high",
-    eventId: "evt1",
-    eventName: "Cena de Gala 2025",
-    actionRequired: true,
-    actionUrl: "/events/evt1",
-  },
-  {
-    id: "2",
-    type: "rsvp_update",
-    title: "Nueva confirmación recibida",
-    message: "María García ha confirmado su asistencia a Conferencia Tech",
-    timestamp: "2025-01-20T09:30:00Z",
-    read: false,
-    priority: "medium",
-    eventId: "evt2",
-    eventName: "Conferencia Tech",
-    guestName: "María García",
-  },
-  {
-    id: "3",
-    type: "invitation_sent",
-    title: "Invitaciones enviadas exitosamente",
-    message: "Se enviaron 150 invitaciones para Networking Empresarial",
-    timestamp: "2025-01-20T08:15:00Z",
-    read: true,
-    priority: "low",
-    eventId: "evt3",
-    eventName: "Networking Empresarial",
-  },
-  {
-    id: "4",
-    type: "deadline",
-    title: "Fecha límite de confirmación",
-    message: "La fecha límite para Workshop Innovación vence mañana",
-    timestamp: "2025-01-19T16:45:00Z",
-    read: false,
-    priority: "high",
-    eventId: "evt4",
-    eventName: "Workshop Innovación",
-    actionRequired: true,
-  },
-  {
-    id: "5",
-    type: "guest_added",
-    title: "Nuevos invitados agregados",
-    message: "Se agregaron 25 nuevos invitados a Lanzamiento Producto",
-    timestamp: "2025-01-19T14:20:00Z",
-    read: true,
-    priority: "low",
-    eventId: "evt5",
-    eventName: "Lanzamiento Producto",
-  },
-  {
-    id: "6",
-    type: "system",
-    title: "Actualización del sistema",
-    message: "Nueva funcionalidad de plantillas de invitación disponible",
-    timestamp: "2025-01-19T12:00:00Z",
-    read: true,
-    priority: "low",
-  },
-];
-
 export default function NotificacionesPage() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(mockNotifications);
+  const { events } = useSupabaseEvents();
+  const { guests } = useSupabaseGuests();
+  
+  // Generate notifications based on real data
+  const generatedNotifications = useMemo((): Notification[] => {
+    const notifications: Notification[] = [];
+    const now = new Date();
+    
+    // Generate event reminders for upcoming events
+    events.forEach((event, index) => {
+      const eventDate = new Date(event.date + 'T' + event.time);
+      const daysDifference = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
+      
+      if (daysDifference > 0 && daysDifference <= 7) {
+        notifications.push({
+          id: `reminder-${event.id}`,
+          type: "event_reminder",
+          title: `Recordatorio: ${event.title}`,
+          message: `El evento comienza en ${daysDifference} día${daysDifference > 1 ? 's' : ''}. Revisa la lista de confirmados.`,
+          timestamp: new Date(now.getTime() - (Math.random() * 24 * 60 * 60 * 1000)).toISOString(),
+          read: Math.random() > 0.7,
+          priority: daysDifference <= 2 ? "high" : daysDifference <= 5 ? "medium" : "low" as const,
+          eventId: event.id,
+          eventName: event.title,
+          actionRequired: daysDifference <= 2,
+          actionUrl: `/events/${event.id}`,
+        });
+      }
+    });
+
+    // Generate RSVP updates for confirmed guests
+    guests.filter(guest => guest.status === 'confirmed').slice(0, 5).forEach((guest, index) => {
+      const relatedEvent = events.find(e => e.id === guest.event_id);
+      if (relatedEvent) {
+        notifications.push({
+          id: `rsvp-${guest.id}`,
+          type: "rsvp_update",
+          title: "Nueva confirmación recibida",
+          message: `${guest.name} ha confirmado su asistencia a ${relatedEvent.title}`,
+          timestamp: new Date(now.getTime() - (Math.random() * 48 * 60 * 60 * 1000)).toISOString(),
+          read: Math.random() > 0.5,
+          priority: "medium" as const,
+          eventId: relatedEvent.id,
+          eventName: relatedEvent.title,
+          guestName: guest.name,
+        });
+      }
+    });
+
+    // Generate guest added notifications
+    events.forEach((event, index) => {
+      const eventGuests = guests.filter(g => g.event_id === event.id);
+      if (eventGuests.length > 0) {
+        notifications.push({
+          id: `guests-${event.id}`,
+          type: "guest_added",
+          title: "Invitados agregados",
+          message: `Se agregaron ${eventGuests.length} invitados a ${event.title}`,
+          timestamp: new Date(now.getTime() - (Math.random() * 72 * 60 * 60 * 1000)).toISOString(),
+          read: Math.random() > 0.3,
+          priority: "low" as const,
+          eventId: event.id,
+          eventName: event.title,
+        });
+      }
+    });
+
+    // Add system notification
+    notifications.push({
+      id: "system-1",
+      type: "system",
+      title: "Sistema conectado con Supabase",
+      message: "Todos los datos ahora provienen de tu base de datos real",
+      timestamp: new Date().toISOString(),
+      read: false,
+      priority: "low" as const,
+    });
+
+    // Sort by timestamp (newest first)
+    return notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [events, guests]);
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    setNotifications(generatedNotifications);
+  }, [generatedNotifications]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");

@@ -8,11 +8,13 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { EventFormData } from "@/types";
 import { toast } from "sonner";
-import { eventStorage } from "@/lib/storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import type { Json } from "@/types/database.types";
 
 export default function NewEventPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { addEvent } = useSupabaseEvents();
 
   // Mock templates data - vendría de la API
   const templates = [
@@ -52,20 +54,23 @@ export default function NewEventPage() {
     setIsLoading(true);
 
     try {
-      // Create event using localStorage
-      const newEvent = eventStorage.add({
+      // Create event using Supabase
+      const newEvent = await addEvent({
         title: data.title,
-        description: data.description || "",
+        description: data.description || null,
         date: data.date,
         time: data.time,
         location: data.location,
-        maxGuests: data.settings.maxGuestsPerInvite * 50, // Default max guests
-        confirmedGuests: 0,
-        status: "draft"
+        template_id: data.template_id || null,
+        settings: data.settings as unknown as Json
       });
 
-      toast.success("Evento creado exitosamente");
-      router.push(`/events/${newEvent.id}`);
+      if (newEvent) {
+        toast.success("Evento creado exitosamente");
+        router.push(`/events/${newEvent.id}`);
+      } else {
+        throw new Error("No se pudo crear el evento");
+      }
     } catch (error) {
       console.error("Error creating event:", error);
       toast.error("Error al crear el evento");

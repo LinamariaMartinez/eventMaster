@@ -112,7 +112,7 @@
         outline-color: hsl(var(--ring)) !important;
     }
 
-    html {
+    html[data-scroll-behavior="smooth"] {
         scroll-behavior: smooth;
     }
 
@@ -179,6 +179,99 @@
 
     .text-shadow {
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Accessibility improvements for better contrast */
+@layer components {
+    /* High contrast dropdown styles */
+    .select-trigger-accessible {
+        background-color: hsl(var(--background));
+        border: 2px solid hsl(var(--border));
+        color: hsl(var(--foreground));
+        min-height: 2.5rem;
+    }
+
+    .select-trigger-accessible:hover {
+        background-color: hsl(var(--secondary));
+        border-color: hsl(var(--ring));
+    }
+
+    .select-trigger-accessible:focus {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+        border-color: hsl(var(--ring));
+    }
+
+    .select-trigger-accessible[data-placeholder] {
+        color: hsl(var(--muted-foreground));
+    }
+
+    /* High contrast select content */
+    .select-content-accessible {
+        background-color: hsl(var(--popover));
+        border: 2px solid hsl(var(--border));
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .select-item-accessible {
+        color: hsl(var(--foreground));
+        min-height: 2.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .select-item-accessible:hover {
+        background-color: hsl(var(--secondary));
+    }
+
+    .select-item-accessible[data-highlighted] {
+        background-color: hsl(var(--accent));
+        color: hsl(var(--accent-foreground));
+    }
+
+    /* Better text contrast on muted backgrounds */
+    .text-accessible {
+        color: hsl(var(--foreground));
+        font-weight: 500;
+    }
+
+    .text-muted-accessible {
+        color: hsl(var(--foreground));
+        opacity: 0.8;
+        font-weight: 500;
+    }
+
+    /* High contrast buttons */
+    .button-outline-accessible {
+        background-color: hsl(var(--background));
+        border: 2px solid hsl(var(--border));
+        color: hsl(var(--foreground));
+        font-weight: 600;
+    }
+
+    .button-outline-accessible:hover {
+        background-color: hsl(var(--secondary));
+        border-color: hsl(var(--ring));
+    }
+
+    /* High contrast transparent backgrounds */
+    .bg-accessible-white {
+        background-color: rgba(255, 255, 255, 0.95);
+        color: hsl(var(--foreground));
+        backdrop-filter: blur(10px);
+    }
+
+    .bg-accessible-dark {
+        background-color: rgba(0, 0, 0, 0.85);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Navigation fixes */
+    .nav-accessible {
+        background: rgba(245, 241, 232, 0.98);
+        backdrop-filter: blur(12px);
+        border-bottom: 2px solid hsl(var(--border));
     }
 }
 

@@ -26,23 +26,33 @@ import {
   Phone,
   MessageSquare,
 } from "lucide-react";
-import { guestStorage } from "@/lib/storage";
-import { useEventsStorage } from "@/hooks/use-events-storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
+import type { Database } from "@/types/database.types";
+
+type SupabaseGuest = Database['public']['Tables']['guests']['Row'];
+// type SupabaseEvent = Database['public']['Tables']['events']['Row'];
 import { toast } from "sonner";
 
+// Updated Guest interface to match Supabase schema
 export interface Guest {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
+  email: string | null;
+  phone: string | null;
   status: "confirmed" | "pending" | "declined";
-  eventId: string;
+  event_id: string;
   eventName?: string;
-  guestCount: number;
-  message?: string;
+  guest_count: number;
+  message: string | null;
+  dietary_restrictions: string | null;
+  created_at: string;
+  // Legacy fields for compatibility
+  eventId?: string;
+  guestCount?: number;
+  createdAt?: string;
   dietaryRestrictions?: string;
-  createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   respondedAt?: string;
   notes?: string;
   tags?: string[];
@@ -50,31 +60,37 @@ export interface Guest {
 }
 
 export default function GuestsPage() {
-  const { events, loading: eventsLoading } = useEventsStorage();
+  const { events, loading: eventsLoading } = useSupabaseEvents();
+  const { guests: supabaseGuests, loading: guestsLoading } = useSupabaseGuests();
   const [guests, setGuests] = useState<Guest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loading = eventsLoading || guestsLoading;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Load guests data
+  // Transform Supabase guests to match the legacy interface
   useEffect(() => {
-    const loadGuests = () => {
-      try {
-        const allGuests = guestStorage.getAll();
-        setGuests(allGuests);
-      } catch (error) {
-        console.error("Error loading guests:", error);
-        toast.error("Error al cargar los invitados");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!eventsLoading) {
-      loadGuests();
+    if (!guestsLoading && supabaseGuests) {
+      const transformedGuests: Guest[] = supabaseGuests.map((guest: SupabaseGuest) => ({
+        id: guest.id,
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        status: guest.status,
+        event_id: guest.event_id,
+        eventId: guest.event_id, // Legacy compatibility
+        guest_count: guest.guest_count,
+        guestCount: guest.guest_count, // Legacy compatibility
+        message: guest.message,
+        dietary_restrictions: guest.dietary_restrictions,
+        dietaryRestrictions: guest.dietary_restrictions || undefined, // Legacy compatibility
+        created_at: guest.created_at,
+        createdAt: guest.created_at, // Legacy compatibility
+        eventName: events.find(e => e.id === guest.event_id)?.title,
+      }));
+      setGuests(transformedGuests);
     }
-  }, [eventsLoading]);
+  }, [supabaseGuests, guestsLoading, events]);
 
   // Filter and search guests
   const filteredGuests = useMemo(() => {
@@ -83,7 +99,7 @@ export default function GuestsPage() {
         guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (guest.email && guest.email.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesEvent = selectedEventId === "all" || guest.eventId === selectedEventId;
+      const matchesEvent = selectedEventId === "all" || guest.event_id === selectedEventId;
       
       const matchesStatus = statusFilter === "all" || guest.status === statusFilter;
 
@@ -97,7 +113,7 @@ export default function GuestsPage() {
     const confirmed = filteredGuests.filter(g => g.status === "confirmed").length;
     const pending = filteredGuests.filter(g => g.status === "pending").length;
     const declined = filteredGuests.filter(g => g.status === "declined").length;
-    const totalPeople = filteredGuests.reduce((sum, g) => sum + (g.guestCount || 1), 0);
+    const totalPeople = filteredGuests.reduce((sum, g) => sum + (g.guest_count || 1), 0);
 
     return { total, confirmed, pending, declined, totalPeople };
   }, [filteredGuests]);
@@ -121,11 +137,11 @@ export default function GuestsPage() {
       Email: guest.email || "",
       Teléfono: guest.phone || "",
       Estado: guest.status,
-      Evento: getEventName(guest.eventId),
-      Acompañantes: guest.guestCount || 1,
+      Evento: getEventName(guest.event_id),
+      Acompañantes: guest.guest_count || 1,
       Mensaje: guest.message || "",
-      "Restricciones Dietarias": guest.dietaryRestrictions || "",
-      "Fecha de Creación": new Date(guest.createdAt).toLocaleDateString('es-CO'),
+      "Restricciones Dietarias": guest.dietary_restrictions || "",
+      "Fecha de Creación": new Date(guest.created_at).toLocaleDateString('es-CO'),
     }));
 
     // Simple CSV export
@@ -388,10 +404,10 @@ export default function GuestsPage() {
                         
                         <td className="py-4 px-6">
                           <div>
-                            <div className="font-medium text-slate-900">{getEventName(guest.eventId)}</div>
+                            <div className="font-medium text-slate-900">{getEventName(guest.event_id)}</div>
                             <div className="text-sm text-slate-500 flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {getEventDate(guest.eventId)}
+                              {getEventDate(guest.event_id)}
                             </div>
                           </div>
                         </td>
@@ -428,7 +444,7 @@ export default function GuestsPage() {
 
                         <td className="py-4 px-6 text-center">
                           <span className="inline-flex items-center justify-center w-8 h-8 bg-burgundy/10 text-burgundy rounded-full text-sm font-semibold">
-                            {guest.guestCount || 1}
+                            {guest.guest_count || 1}
                           </span>
                         </td>
                       </tr>

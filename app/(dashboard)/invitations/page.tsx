@@ -22,24 +22,28 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { 
   invitationStorage, 
-  invitationTemplateStorage, 
-  eventStorage,
+  invitationTemplateStorage,
   type Invitation 
 } from "@/lib/storage";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 
 export default function InvitationsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("manage");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { events } = useSupabaseEvents();
 
   const templates = invitationTemplateStorage.getAll();
-  const events = eventStorage.getAll();
 
   const loadInvitations = useCallback(() => {
     try {
       const savedInvitations = invitationStorage.getAll();
-      setInvitations(savedInvitations);
+      // Filter invitations to only show those linked to real events
+      const validInvitations = savedInvitations.filter(invitation => 
+        events.some(event => event.id === invitation.eventId)
+      );
+      setInvitations(validInvitations);
     } catch {
       toast({
         title: "Error",
@@ -49,7 +53,7 @@ export default function InvitationsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, events]);
 
   useEffect(() => {
     loadInvitations();

@@ -23,8 +23,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { invitationStorage, eventStorage, guestStorage, type Invitation, type Event } from "@/lib/storage";
-import type { Event as EventWithSettings } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import { PremiumLandingTemplate } from "@/components/invitations/premium-landing-template";
+import type { Database } from "@/types/database.types";
+
+type Event = Database['public']['Tables']['events']['Row'];
+type GuestInsert = Database['public']['Tables']['guests']['Insert'];
+type ConfirmationInsert = Database['public']['Tables']['confirmations']['Insert'];
 
 const confirmationSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -49,33 +54,35 @@ interface PageProps {
 export default function InvitationPage({ params }: PageProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [event, setEvent] = useState<Event | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  // Load invitation and event data by token
+  // Load event data by ID from Supabase
   useEffect(() => {
-    const loadInvitationData = async () => {
+    const loadEventData = async () => {
       try {
-        const foundInvitation = invitationStorage.getByToken(params.id);
+        const supabase = createClient();
         
-        if (!foundInvitation) {
+        const { data: eventData, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('id', params.id)
+          .single();
+        
+        if (error || !eventData) {
           setNotFound(true);
           return;
         }
         
-        setInvitation(foundInvitation);
-        
-        const foundEvent = eventStorage.getById(foundInvitation.eventId);
-        setEvent(foundEvent);
+        setEvent(eventData);
         
       } catch (error) {
-        console.error('Error loading invitation:', error);
+        console.error('Error loading event:', error);
         setNotFound(true);
       }
     };
 
-    loadInvitationData();
+    loadEventData();
   }, [params.id]);
 
   const form = useForm<ConfirmationForm>({
@@ -94,26 +101,96 @@ export default function InvitationPage({ params }: PageProps) {
   const watchResponse = form.watch("response");
 
   const handleSubmit = async (data: ConfirmationForm) => {
-    if (!invitation || !event) return;
+    if (!event) return;
     
     setIsLoading(true);
 
     try {
-      // Save guest data to database
-      const guestData = {
+      const supabase = createClient();
+      
+      // Save guest data to Supabase
+      const guestData: GuestInsert = {
+        event_id: event.id,
         name: data.name,
-        email: data.email || "",
-        phone: data.phone || "",
+        email: data.email || null,
+        phone: data.phone || null,
         status: data.response === "yes" ? "confirmed" : data.response === "no" ? "declined" : "pending",
-        eventId: event.id,
-        guestCount: data.guest_count,
-        message: data.additional_notes || "",
-        dietaryRestrictions: data.dietary_restrictions || "",
-      } as const;
+        guest_count: data.guest_count,
+        message: data.additional_notes || null,
+        dietary_restrictions: data.dietary_restrictions || null,
+      };
 
-      const savedGuest = guestStorage.add(guestData);
+      const { data: savedGuest, error: guestError } = await supabase
+        .from('guests')
+        .insert(guestData)
+        .select()
+        .single();
+
+      if (guestError) {
+        throw guestError;
+      }
+
+      // Also save to confirmations table for tracking
+      const confirmationData: ConfirmationInsert = {
+        event_id: event.id,
+        guest_id: savedGuest.id,
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        response: data.response,
+        guest_count: data.guest_count,
+        dietary_restrictions: data.dietary_restrictions || null,
+        additional_notes: data.additional_notes || null,
+      };
+
+      const { error: confirmationError } = await supabase
+        .from('confirmations')
+        .insert(confirmationData);
+
+      if (confirmationError) {
+        console.error('Error saving confirmation:', confirmationError);
+        // Don't throw here as guest was saved successfully
+      }
+
+      // Sync with Google Sheets if guest confirmed
+      if (data.response === "yes") {
+        try {
+          console.log('[invite-form] Syncing confirmed guest with Google Sheets:', data.name);
+          
+          await fetch('/api/google-sheets', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'confirm_guest',
+              guestData: {
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                status: 'confirmed',
+                guest_count: data.guest_count,
+                dietary_restrictions: data.dietary_restrictions,
+                message: data.additional_notes,
+              },
+              eventData: {
+                id: event.id,
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                location: event.location
+              }
+            }),
+          });
+          
+          console.log('[invite-form] Successfully synced with Google Sheets');
+        } catch (sheetsError) {
+          console.error('Error adding to Google Sheets:', sheetsError);
+          // Don't throw here as the main save was successful
+        }
+      }
+
       console.log('Guest RSVP saved:', savedGuest);
-
       setIsSubmitted(true);
       toast.success("¡Confirmación enviada exitosamente!");
     } catch (error) {
@@ -125,7 +202,7 @@ export default function InvitationPage({ params }: PageProps) {
   };
 
   // Loading state
-  if (!invitation && !notFound) {
+  if (!event && !notFound) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -160,13 +237,10 @@ export default function InvitationPage({ params }: PageProps) {
     );
   }
 
-  if (isSubmitted && invitation && event) {
+  if (isSubmitted && event) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{
-          background: `linear-gradient(135deg, ${invitation.customStyles.backgroundColor} 0%, ${invitation.customStyles.accentColor} 100%)`,
-        }}
+        className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-burgundy/20 to-burgundy/40"
       >
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-8">
@@ -192,8 +266,7 @@ export default function InvitationPage({ params }: PageProps) {
 
             <div className="space-y-3">
               <Button
-                className="w-full"
-                style={{ backgroundColor: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
+                className="w-full bg-burgundy hover:bg-burgundy/90 text-white"
                 asChild
               >
                 <a
@@ -216,74 +289,63 @@ export default function InvitationPage({ params }: PageProps) {
     );
   }
 
-  // Ensure both invitation and event are loaded before rendering
-  if (!invitation || !event) {
+  // Ensure event is loaded before rendering
+  if (!event) {
     return null;
   }
 
+  // Check if this event uses a premium landing page template
+  const isPremiumLandingTemplate = (templateId: string) => {
+    return templateId && templateId.includes('landing');
+  };
+
+  // Get template ID from event settings or use default
+  const templateId = (event.settings as Record<string, unknown>)?.templateId as string || 'default';
+  
+  // If it's a premium landing template, use the premium component
+  if (isPremiumLandingTemplate(templateId)) {
+    return <PremiumLandingTemplate event={event} templateId={templateId} />;
+  }
+
   return (
-    <div
-      className="min-h-screen p-4"
-      style={{
-        background: `linear-gradient(135deg, ${invitation.customStyles.backgroundColor} 0%, ${invitation.customStyles.accentColor} 100%)`,
-      }}
-    >
+    <div className="min-h-screen p-4 bg-gradient-to-br from-cream/20 to-burgundy/20">
       <div className="max-w-2xl mx-auto">
         {/* Event Header */}
-        <Card
-          className="mb-8"
-          style={{ 
-            backgroundColor: invitation.customStyles.backgroundColor,
-            color: invitation.customStyles.textColor 
-          }}
-        >
+        <Card className="mb-8 bg-white/95 backdrop-blur-sm shadow-xl border-burgundy/20">
           <CardContent className="text-center py-8">
             <div className="mb-6">
-              <Heart
-                className="h-12 w-12 mx-auto mb-4"
-                style={{ color: invitation.customStyles.accentColor }}
-              />
-              <h1
-                className="text-4xl font-bold mb-4"
-                style={{ 
-                  color: invitation.customStyles.accentColor,
-                  fontFamily: invitation.customStyles.fontFamily === 'serif' ? 'serif' : 'sans-serif'
-                }}
-              >
-                {invitation.title}
+              <Heart className="h-12 w-12 mx-auto mb-4 text-burgundy" />
+              <h1 className="text-4xl font-bold mb-4 text-burgundy font-serif">
+                {event.title}
               </h1>
-              <p className="text-lg opacity-80 mb-6">
+              <p className="text-lg text-gray-700 mb-6">
                 Nos complace invitarte a nuestra celebración
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 text-sm">
               <div className="flex items-center justify-center space-x-2">
-                <Calendar
-                  className="h-5 w-5"
-                  style={{ color: invitation.customStyles.accentColor }}
-                />
-                <span>{invitation.content.eventDate || event.date}</span>
+                <Calendar className="h-5 w-5 text-burgundy" />
+                <span>{new Date(event.date).toLocaleDateString('es-CO', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
-                <Clock
-                  className="h-5 w-5"
-                  style={{ color: invitation.customStyles.accentColor }}
-                />
-                <span>{invitation.content.eventTime || event.time}</span>
+                <Clock className="h-5 w-5 text-burgundy" />
+                <span>{event.time}</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
-                <MapPin
-                  className="h-5 w-5"
-                  style={{ color: invitation.customStyles.accentColor }}
-                />
-                <span>{invitation.content.venue || event.location}</span>
+                <MapPin className="h-5 w-5 text-burgundy" />
+                <span>{event.location}</span>
               </div>
             </div>
 
-            {(invitation.description || event.description) && (
+            {event.description && (
               <p className="mt-6 text-gray-700 leading-relaxed">
-                {invitation.description || event.description}
+                {event.description}
               </p>
             )}
           </CardContent>
@@ -292,17 +354,14 @@ export default function InvitationPage({ params }: PageProps) {
         {/* RSVP Form */}
         <Card>
           <CardHeader className="text-center pb-4">
-            <h2
-              className="text-2xl font-bold"
-              style={{ color: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
-            >
+            <h2 className="text-2xl font-bold text-burgundy">
               Confirma tu Asistencia
             </h2>
-            {(event as unknown as EventWithSettings).settings.rsvpDeadline && (
+{event.settings && typeof (event.settings as Record<string, unknown>).rsvpDeadline === 'string' ? (
               <p className="text-sm text-gray-600">
-                Por favor responde antes del {(event as unknown as EventWithSettings).settings.rsvpDeadline}
+                Por favor responde antes del {String((event.settings as Record<string, unknown>).rsvpDeadline)}
               </p>
-            )}
+            ) : null}
           </CardHeader>
 
           <CardContent>
@@ -310,7 +369,7 @@ export default function InvitationPage({ params }: PageProps) {
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-6"
             >
-              {/* Name */}
+              {/* Name section */}
               <div>
                 <Label htmlFor="name" className="flex items-center">
                   <Users className="h-4 w-4 mr-2" />
@@ -329,11 +388,11 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Email */}
-              {(event as unknown as EventWithSettings).settings.requireEmail && (
+              {event.settings && (event.settings as Record<string, unknown>).requireEmail ? (
                 <div>
                   <Label htmlFor="email" className="flex items-center">
                     <Mail className="h-4 w-4 mr-2" />
-                    Email {(event as unknown as EventWithSettings).settings.requireEmail ? "*" : "(Opcional)"}
+                    Email {(event.settings as Record<string, unknown>).requireEmail ? "*" : "(Opcional)"}
                   </Label>
                   <Input
                     id="email"
@@ -347,13 +406,12 @@ export default function InvitationPage({ params }: PageProps) {
                     </p>
                   )}
                 </div>
-              )}
-
-              {/* Phone */}
+              ) : null}
+              
               <div>
                 <Label htmlFor="phone" className="flex items-center">
                   <Phone className="h-4 w-4 mr-2" />
-                  Teléfono {(event as unknown as EventWithSettings).settings.requirePhone ? "*" : "(Opcional)"}
+                  Teléfono {String(event.settings && (event.settings as Record<string, unknown>).requirePhone ? "*" : "(Opcional)")}
                 </Label>
                 <Input
                   id="phone"
@@ -402,7 +460,7 @@ export default function InvitationPage({ params }: PageProps) {
               </div>
 
               {/* Guest Count */}
-              {(event as unknown as EventWithSettings).settings.allowPlusOnes && watchResponse === "yes" && (
+              {event.settings && (event.settings as Record<string, unknown>).allowPlusOnes && watchResponse === "yes" ? (
                 <div>
                   <Label htmlFor="guest_count">
                     Número de acompañantes (incluyéndote)
@@ -411,22 +469,21 @@ export default function InvitationPage({ params }: PageProps) {
                     id="guest_count"
                     type="number"
                     min="1"
-                    max={(event as unknown as EventWithSettings).settings.maxGuestsPerInvite}
+                    max={((event.settings as Record<string, unknown>)?.maxGuestsPerInvite as number) || 5}
                     {...form.register("guest_count", {
                       valueAsNumber: true,
                       min: 1,
-                      max: (event as unknown as EventWithSettings).settings.maxGuestsPerInvite,
+                      max: ((event.settings as Record<string, unknown>)?.maxGuestsPerInvite as number) || 5,
                     })}
                   />
                   <p className="text-sm text-gray-600 mt-1">
-                    Máximo {(event as unknown as EventWithSettings).settings.maxGuestsPerInvite} personas por
-                    invitación
+                    Máximo {((event.settings as Record<string, unknown>)?.maxGuestsPerInvite as number) || 5} personas por invitación
                   </p>
                 </div>
-              )}
+              ) : null}
 
               {/* Dietary Restrictions */}
-              {watchResponse === "yes" && (
+              {watchResponse === "yes" ? (
                 <div>
                   <Label htmlFor="dietary_restrictions">
                     Restricciones alimentarias (Opcional)
@@ -437,7 +494,7 @@ export default function InvitationPage({ params }: PageProps) {
                     placeholder="Vegetariano, sin gluten, alergias, etc."
                   />
                 </div>
-              )}
+              ) : null}
 
               {/* Additional Notes */}
               <div>
@@ -455,8 +512,7 @@ export default function InvitationPage({ params }: PageProps) {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full text-lg py-3"
-                style={{ backgroundColor: (event as unknown as EventWithSettings).settings?.colors?.primary || "#0066ff" }}
+                className="w-full text-lg py-3 bg-burgundy hover:bg-burgundy/90 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Enviando..." : "Confirmar Asistencia"}

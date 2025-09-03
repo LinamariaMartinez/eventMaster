@@ -128,7 +128,7 @@ export default function Home() {
                 <div className="service-logo">CL</div>
                 <h4>CONSULTA</h4>
                 <p>Asesoría personalizada para tu evento especial</p>
-                <button className="service-cta">RESERVAR CITA</button>
+                <a href="https://wa.me/573001234567?text=Hola,%20me%20gustaría%20agendar%20una%20consulta%20para%20mi%20evento" target="_blank" rel="noopener noreferrer" className="service-cta">RESERVAR CITA</a>
               </div>
             </div>
 
@@ -236,11 +236,11 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="contacto">
+      <section id="contacto" className="contacto">
         <div className="cta-container">
           <h2>¿LISTA PARA CREAR TU EVENTO BRUTAL?</h2>
           <p>Conversemos sobre tu visión y hagámosla realidad</p>
-          <button className="cta-button">Empezar Ahora</button>
+          <a href="https://wa.me/573001234567?text=Hola,%20me%20gustaría%20crear%20un%20evento%20especial.%20¿Podemos%20conversar?" target="_blank" rel="noopener noreferrer" className="cta-button">Empezar Ahora</a>
         </div>
       </section>
 
