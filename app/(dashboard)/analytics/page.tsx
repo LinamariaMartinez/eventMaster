@@ -31,7 +31,6 @@ export default function EstadisticasPage() {
   const realStats = useMemo(() => {
     const now = new Date();
     const confirmedGuests = guests.filter(g => g.status === 'confirmed');
-    const pendingGuests = guests.filter(g => g.status === 'pending');
     const declinedGuests = guests.filter(g => g.status === 'declined');
     
     // Categorize events by date
@@ -89,10 +88,6 @@ export default function EstadisticasPage() {
     
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthEvents = events.filter(event => {
-        const eventDate = new Date(event.created_at);
-        return eventDate.getMonth() === date.getMonth() && eventDate.getFullYear() === date.getFullYear();
-      });
       
       const monthGuests = guests.filter(guest => {
         const guestDate = new Date(guest.created_at);
@@ -111,7 +106,7 @@ export default function EstadisticasPage() {
     }
     
     return last6Months;
-  }, [events, guests]);
+  }, [guests]);
 
   // Calculate response distribution
   const realResponseData = useMemo(() => {

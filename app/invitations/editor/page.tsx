@@ -26,12 +26,30 @@ import {
   invitationStorage, 
   invitationTemplateStorage, 
   getInvitationTypes,
-  type Invitation
+  type Invitation,
+  type Event
 } from "@/lib/storage";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import type { Database } from "@/types/database.types";
 
 type SupabaseEvent = Database['public']['Tables']['events']['Row'];
+
+// Transform SupabaseEvent to Event format expected by components
+function transformSupabaseEvent(supabaseEvent: SupabaseEvent): Event {
+  return {
+    id: supabaseEvent.id,
+    title: supabaseEvent.title,
+    description: supabaseEvent.description || "",
+    date: supabaseEvent.date,
+    time: supabaseEvent.time,
+    location: supabaseEvent.location,
+    maxGuests: 100, // Default value
+    confirmedGuests: 0, // Default value
+    status: "published", // Default status
+    createdAt: supabaseEvent.created_at,
+    updatedAt: supabaseEvent.updated_at
+  };
+}
 
 const steps = [
   { id: "type", title: "Tipo", description: "Selecciona el tipo de invitación" },
@@ -533,7 +551,7 @@ function InvitationEditorContent() {
           <div className="lg:sticky lg:top-6">
             <InvitationPreview
               invitation={invitation}
-              event={selectedEvent}
+              event={selectedEvent ? transformSupabaseEvent(selectedEvent) : null}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
             />

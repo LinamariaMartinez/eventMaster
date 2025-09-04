@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Download, Trash2, Edit, Eye, Shield } from "lucide-react";
+import { User, Eye, Shield } from "lucide-react";
 
 export function DataManagement() {
   const [requestType, setRequestType] = useState<string>("");
@@ -52,7 +52,7 @@ export function DataManagement() {
       setIdentificationNumber("");
       setDescription("");
       
-    } catch (error) {
+    } catch {
       toast.error("Error al enviar la solicitud. Inténtelo nuevamente.");
     } finally {
       setIsLoading(false);
