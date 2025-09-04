@@ -58,7 +58,7 @@ export default function NotificacionesPage() {
     const now = new Date();
     
     // Generate event reminders for upcoming events
-    events.forEach((event, index) => {
+    events.forEach((event) => {
       const eventDate = new Date(event.date + 'T' + event.time);
       const daysDifference = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
       
@@ -80,7 +80,7 @@ export default function NotificacionesPage() {
     });
 
     // Generate RSVP updates for confirmed guests
-    guests.filter(guest => guest.status === 'confirmed').slice(0, 5).forEach((guest, index) => {
+    guests.filter(guest => guest.status === 'confirmed').slice(0, 5).forEach((guest) => {
       const relatedEvent = events.find(e => e.id === guest.event_id);
       if (relatedEvent) {
         notifications.push({
@@ -99,7 +99,7 @@ export default function NotificacionesPage() {
     });
 
     // Generate guest added notifications
-    events.forEach((event, index) => {
+    events.forEach((event) => {
       const eventGuests = guests.filter(g => g.event_id === event.id);
       if (eventGuests.length > 0) {
         notifications.push({
