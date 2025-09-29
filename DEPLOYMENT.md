@@ -7,8 +7,8 @@ Para que la aplicación funcione correctamente en producción, debes configurar 
 ### Variables de Supabase (REQUERIDAS)
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key-here
 ```
 
 ### Variables de Autenticación (REQUERIDAS)
