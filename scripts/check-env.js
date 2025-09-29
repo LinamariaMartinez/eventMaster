@@ -83,7 +83,12 @@ if (allValid) {
   console.log('3. Redeploya la aplicación');
   console.log('\n📖 Consulta DEPLOYMENT.md para más detalles');
   
-  process.exit(1);
+  // Only exit with error in production builds
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+    process.exit(1);
+  } else {
+    console.log('\n⚠️  Continuando en modo desarrollo sin todas las variables...');
+  }
 }
 
 // Verificaciones adicionales
