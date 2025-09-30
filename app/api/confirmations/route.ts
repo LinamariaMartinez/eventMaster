@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { addConfirmationToSheet } from '@/lib/google-sheets'
 import { z } from 'zod'
+import type { Database } from '@/types/database.types'
 
 const confirmationSchema = z.object({
   event_id: z.string(),
@@ -36,20 +37,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Type assertion for event
+    type EventData = { id: string; title: string; sheets_url: string | null; settings: Database['public']['Tables']['events']['Row']['settings'] }
+    const typedEvent = event as EventData
+
     // Crear la confirmación en la base de datos
+    const confirmationData: Database['public']['Tables']['confirmations']['Insert'] = {
+      event_id: data.event_id,
+      name: data.name,
+      email: data.email || null,
+      phone: data.phone || null,
+      response: data.response,
+      guest_count: data.guest_count,
+      dietary_restrictions: data.dietary_restrictions || null,
+      additional_notes: data.additional_notes || null,
+      custom_responses: (data.custom_responses as Database['public']['Tables']['confirmations']['Row']['custom_responses']) || null
+    }
+
     const { data: confirmation, error: confirmationError } = await supabase
       .from('confirmations')
-      .insert({
-        event_id: data.event_id,
-        name: data.name,
-        email: data.email || null,
-        phone: data.phone || null,
-        response: data.response,
-        guest_count: data.guest_count,
-        dietary_restrictions: data.dietary_restrictions || null,
-        additional_notes: data.additional_notes || null,
-        custom_responses: data.custom_responses || null
-      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(confirmationData as any)
       .select()
       .single()
 
@@ -62,9 +70,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Agregar a Google Sheets si está configurado
-    if (event.sheets_url) {
+    if (typedEvent.sheets_url) {
       try {
-        const spreadsheetId = extractSpreadsheetId(event.sheets_url)
+        const spreadsheetId = extractSpreadsheetId(typedEvent.sheets_url)
         if (spreadsheetId) {
           await addConfirmationToSheet(spreadsheetId, {
             name: data.name,
@@ -84,14 +92,15 @@ export async function POST(request: NextRequest) {
 
     // También buscar si hay un guest existente con ese email/nombre
     if (data.email) {
-      const { error: updateError } = await supabase
-        .from('guests')
-        .update({ 
-          status: data.response === 'yes' ? 'confirmed' : data.response === 'no' ? 'declined' : 'pending',
-          guest_count: data.guest_count,
-          message: data.additional_notes || null,
-          dietary_restrictions: data.dietary_restrictions || null
-        })
+      const guestUpdate = {
+        status: data.response === 'yes' ? 'confirmed' : data.response === 'no' ? 'declined' : 'pending',
+        guest_count: data.guest_count,
+        message: data.additional_notes || null,
+        dietary_restrictions: data.dietary_restrictions || null
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase.from('guests').update as any)(guestUpdate)
         .eq('event_id', data.event_id)
         .eq('email', data.email)
 

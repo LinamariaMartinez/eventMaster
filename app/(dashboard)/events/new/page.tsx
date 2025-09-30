@@ -17,9 +17,10 @@ export default function NewEventPage() {
   const { addEvent } = useSupabaseEvents();
 
   // Mock templates data - vendría de la API
+  // IMPORTANTE: Los IDs deben ser UUIDs válidos, no números simples
   const templates = [
     {
-      id: "1",
+      id: "a1b2c3d4-0000-0000-0000-000000000001",
       name: "Elegante Boda",
       type: "wedding" as const,
       html_content: "",
@@ -29,7 +30,7 @@ export default function NewEventPage() {
       created_at: "",
     },
     {
-      id: "2",
+      id: "a1b2c3d4-0000-0000-0000-000000000002",
       name: "Fiesta de Cumpleaños",
       type: "birthday" as const,
       html_content: "",
@@ -39,7 +40,7 @@ export default function NewEventPage() {
       created_at: "",
     },
     {
-      id: "3",
+      id: "a1b2c3d4-0000-0000-0000-000000000003",
       name: "Evento Corporativo",
       type: "corporate" as const,
       html_content: "",

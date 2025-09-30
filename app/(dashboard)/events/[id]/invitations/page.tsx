@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { calculateGuestStats, downloadCSV } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database.types";
+import { GuestDialog } from "@/components/dashboard/guests/guest-dialog";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 type Guest = Database["public"]["Tables"]["guests"]["Row"];
@@ -36,6 +37,8 @@ interface PageProps {
 
 export default function EventInvitationsPage({ params }: PageProps) {
   const [showCSVImport, setShowCSVImport] = useState(false);
+  const [showGuestDialog, setShowGuestDialog] = useState(false);
+  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [event, setEvent] = useState<Event | null>(null);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,24 +58,19 @@ export default function EventInvitationsPage({ params }: PageProps) {
         if (eventError) {
           console.error("Error loading event:", eventError);
           toast.error("Error al cargar el evento");
+          setLoading(false);
           return;
         }
 
-        // If event doesn't have a public_url, generate one
-        if (!eventData.public_url) {
-          const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/invite/${eventData.id}`;
-
-          const { error: updateError } = await supabase
-            .from("events")
-            .update({ public_url: publicUrl })
-            .eq("id", params.id);
-
-          if (!updateError) {
-            eventData.public_url = publicUrl;
-          }
+        if (!eventData) {
+          console.error("Event not found");
+          toast.error("Evento no encontrado");
+          setLoading(false);
+          return;
         }
 
-        setEvent(eventData);
+        // Type-cast after null check and set event
+        setEvent(eventData as Event);
 
         // Load guests for this event
         const { data: guestsData, error: guestsError } = await supabase
@@ -139,9 +137,32 @@ export default function EventInvitationsPage({ params }: PageProps) {
     toast.success(`${newGuests.length} invitados importados`);
   };
 
-  const handleEditGuest = () => {
-    // Abrir modal de edición
-    toast.info("Función de edición próximamente");
+  const handleEditGuest = (guest: Guest) => {
+    setSelectedGuest(guest);
+    setShowGuestDialog(true);
+  };
+
+  const handleAddGuest = () => {
+    setSelectedGuest(null);
+    setShowGuestDialog(true);
+  };
+
+  const handleGuestSuccess = async () => {
+    // Recargar la lista de invitados
+    try {
+      const supabase = createClient();
+      const { data: guestsData, error } = await supabase
+        .from("guests")
+        .select("*")
+        .eq("event_id", params.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && guestsData) {
+        setGuests(guestsData);
+      }
+    } catch (error) {
+      console.error("Error reloading guests:", error);
+    }
   };
 
   const handleDeleteGuest = async (guestId: string) => {
@@ -284,7 +305,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
             <Upload className="h-4 w-4 mr-2" />
             Importar CSV
           </Button>
-          <Button>
+          <Button onClick={handleAddGuest} className="bg-burgundy hover:bg-burgundy/90">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Invitado
           </Button>
@@ -504,7 +525,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleEditGuest()}
+                            onClick={() => handleEditGuest(guest)}
                           >
                             Editar
                           </Button>
@@ -512,6 +533,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
                             size="sm"
                             variant="outline"
                             onClick={() => handleDeleteGuest(guest.id)}
+                            className="text-red-600 hover:text-red-700"
                           >
                             Eliminar
                           </Button>
@@ -531,7 +553,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
               <p className="text-slate-600 mb-4">
                 Comienza añadiendo invitados a este evento
               </p>
-              <Button className="bg-burgundy hover:bg-burgundy/90">
+              <Button onClick={handleAddGuest} className="bg-burgundy hover:bg-burgundy/90">
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir Invitado
               </Button>
@@ -564,6 +586,15 @@ export default function EventInvitationsPage({ params }: PageProps) {
           </Card>
         </div>
       )}
+
+      {/* Guest Add/Edit Dialog */}
+      <GuestDialog
+        open={showGuestDialog}
+        onOpenChange={setShowGuestDialog}
+        eventId={params.id}
+        guest={selectedGuest}
+        onSuccess={handleGuestSuccess}
+      />
     </div>
   );
 }

@@ -138,9 +138,8 @@ export async function POST(request: NextRequest) {
         status: 'pending' as const
       }))
 
-      const { data: insertedGuests, error: insertError } = await supabase
-        .from('guests')
-        .insert(guestsToInsert)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: insertedGuests, error: insertError } = await (supabase.from('guests').insert as any)(guestsToInsert)
         .select()
 
       if (insertError) {
@@ -188,18 +187,19 @@ export async function POST(request: NextRequest) {
       }
 
       // Crear invitado
-      const { data: guest, error: guestError } = await supabase
-        .from('guests')
-        .insert({
-          event_id: data.event_id,
-          name: data.name,
-          email: data.email || null,
-          phone: data.phone || null,
-          guest_count: data.guest_count,
-          message: data.message || null,
-          dietary_restrictions: data.dietary_restrictions || null,
-          status: 'pending'
-        })
+      const guestData = {
+        event_id: data.event_id,
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        guest_count: data.guest_count,
+        message: data.message || null,
+        dietary_restrictions: data.dietary_restrictions || null,
+        status: 'pending' as const
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: guest, error: guestError } = await (supabase.from('guests').insert as any)(guestData)
         .select()
         .single()
 

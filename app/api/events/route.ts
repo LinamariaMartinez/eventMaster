@@ -98,21 +98,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear evento en la base de datos
-    const { data: event, error: eventError } = await supabase
-      .from('events')
-      .insert({
-        id: eventId,
-        user_id: user.id,
-        title: data.title,
-        date: data.date,
-        time: data.time,
-        location: data.location,
-        description: data.description || null,
-        template_id: data.template_id || null,
-        settings: data.settings,
-        sheets_url: sheetsUrl,
-        public_url: publicUrl
-      })
+    const eventData = {
+      id: eventId,
+      user_id: user.id,
+      title: data.title,
+      date: data.date,
+      time: data.time,
+      location: data.location,
+      description: data.description || null,
+      template_id: data.template_id || null,
+      settings: data.settings,
+      sheets_url: sheetsUrl,
+      public_url: publicUrl
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: event, error: eventError } = await (supabase.from('events').insert as any)(eventData)
       .select()
       .single()
 

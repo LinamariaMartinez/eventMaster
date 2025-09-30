@@ -68,16 +68,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear plantilla
-    const { data: template, error: templateError } = await supabase
-      .from('templates')
-      .insert({
-        name,
-        type,
-        html_content,
-        css_styles,
-        preview_image: preview_image || null,
-        is_active: true
-      })
+    const templateData = {
+      name,
+      type,
+      html_content,
+      css_styles,
+      preview_image: preview_image || null,
+      is_active: true
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: template, error: templateError } = await (supabase.from('templates').insert as any)(templateData)
       .select()
       .single()
 

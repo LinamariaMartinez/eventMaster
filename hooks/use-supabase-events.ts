@@ -146,24 +146,34 @@ export function useSupabaseEvents(): UseSupabaseEventsReturn {
   const addEvent = useCallback(async (eventData: Omit<EventInsert, 'user_id' | 'public_url'>) => {
     try {
       console.log('[use-supabase-events] Starting addEvent...', { eventTitle: eventData.title });
-      
+      console.log('[use-supabase-events] Auth context:', {
+        isAuthenticated,
+        hasUser: !!user,
+        userId: user?.id,
+        userEmail: user?.email,
+        userObject: user
+      });
+
       if (!isAuthenticated || !user) {
         const error = "No authenticated user";
         console.error('[use-supabase-events] AddEvent failed:', error);
         throw new Error(error);
       }
-      
-      // Validate user ID is a proper UUID
-      if (!user.id || typeof user.id !== 'string' || user.id.length !== 36) {
-        const error = `Invalid user ID format for event creation: ${user.id}. Expected valid UUID.`;
+
+      // Validate user ID is a proper UUID (strict check)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!user.id || typeof user.id !== 'string' || !uuidRegex.test(user.id)) {
+        const error = `Invalid user ID format for event creation: "${user.id}". Expected valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).`;
         console.error('[use-supabase-events] UUID validation failed for addEvent:', {
           userId: user.id,
           userIdType: typeof user.id,
-          userIdLength: user.id?.length
+          userIdLength: user.id?.length,
+          passesRegex: uuidRegex.test(user.id || ''),
+          fullUser: user
         });
         throw new Error(error);
       }
-      
+
       console.log('[use-supabase-events] Creating event for user:', user.id);
       const supabase = createClient();
 
@@ -173,18 +183,24 @@ export function useSupabaseEvents(): UseSupabaseEventsReturn {
       
       console.log('[use-supabase-events] Generated event ID and URL:', { eventId, publicUrl });
 
-      const insertData = {
-        ...eventData,
+      const insertData: EventInsert = {
         id: eventId,
         user_id: user.id,
-        public_url: publicUrl
+        public_url: publicUrl,
+        title: eventData.title,
+        date: eventData.date,
+        time: eventData.time,
+        location: eventData.location,
+        description: eventData.description || null,
+        template_id: eventData.template_id || null,
+        settings: eventData.settings,
       };
-      
+
       console.log('[use-supabase-events] Inserting event data:', insertData);
 
-      const { data, error: insertError } = await supabase
-        .from('events')
-        .insert(insertData)
+      // Type workaround: Supabase v2 has type inference issues with .insert()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: insertError } = await (supabase.from('events').insert as any)(insertData)
         .select()
         .single();
 
@@ -196,7 +212,18 @@ export function useSupabaseEvents(): UseSupabaseEventsReturn {
           hint: insertError.hint,
           fullError: insertError
         });
-        throw insertError;
+
+        // Log additional context
+        console.error('[use-supabase-events] Failed insert data was:', insertData);
+        console.error('[use-supabase-events] User context:', { userId: user.id, email: user.email });
+
+        const errorMsg = insertError.message || insertError.hint || 'Unknown database error';
+        throw new Error(`Database error: ${errorMsg}`);
+      }
+
+      if (!data) {
+        console.error('[use-supabase-events] Insert succeeded but returned no data');
+        throw new Error('Insert succeeded but returned no data');
       }
 
       console.log('[use-supabase-events] Event created successfully:', data.id);
@@ -224,9 +251,8 @@ export function useSupabaseEvents(): UseSupabaseEventsReturn {
     try {
       const supabase = createClient();
       
-      const { data, error: updateError } = await supabase
-        .from('events')
-        .update(updates)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: updateError } = await (supabase.from('events').update as any)(updates)
         .eq('id', id)
         .select()
         .single();

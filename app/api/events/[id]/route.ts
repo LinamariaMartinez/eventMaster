@@ -155,12 +155,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Actualizar evento
-    const { data: event, error: updateError } = await supabase
-      .from('events')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
+    const updateData = {
+      ...data,
+      updated_at: new Date().toISOString()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: event, error: updateError } = await (supabase.from('events').update as any)(updateData)
       .eq('id', resolvedParams.id)
       .select()
       .single()

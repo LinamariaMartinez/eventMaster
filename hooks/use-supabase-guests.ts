@@ -160,9 +160,8 @@ export function useSupabaseGuests(): UseSupabaseGuestsReturn {
       
       console.log('[use-supabase-guests] Inserting guest data:', guestData);
       
-      const { data, error: insertError } = await supabase
-        .from('guests')
-        .insert(guestData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: insertError } = await (supabase.from('guests').insert as any)(guestData)
         .select()
         .single();
 
@@ -202,9 +201,8 @@ export function useSupabaseGuests(): UseSupabaseGuestsReturn {
     try {
       const supabase = createClient();
       
-      const { data, error: updateError } = await supabase
-        .from('guests')
-        .update(updates)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: updateError } = await (supabase.from('guests').update as any)(updates)
         .eq('id', id)
         .select(`
           *,

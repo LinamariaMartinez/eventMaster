@@ -120,9 +120,8 @@ export default function InvitationPage({ params }: PageProps) {
         dietary_restrictions: data.dietary_restrictions || null,
       };
 
-      const { data: savedGuest, error: guestError } = await supabase
-        .from('guests')
-        .insert(guestData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: savedGuest, error: guestError } = await (supabase.from('guests').insert as any)(guestData)
         .select()
         .single();
 
@@ -143,9 +142,8 @@ export default function InvitationPage({ params }: PageProps) {
         additional_notes: data.additional_notes || null,
       };
 
-      const { error: confirmationError } = await supabase
-        .from('confirmations')
-        .insert(confirmationData);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: confirmationError } = await (supabase.from('confirmations').insert as any)(confirmationData);
 
       if (confirmationError) {
         console.error('Error saving confirmation:', confirmationError);
