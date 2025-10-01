@@ -10,6 +10,7 @@ import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthStatus } from "@/components/debug/auth-status";
 import Link from "next/link";
+import { formatShortDate } from "@/lib/utils/date";
 
 
 export default function DashboardPage() {
@@ -199,7 +200,7 @@ export default function DashboardPage() {
                           <div className="flex items-center gap-4 text-sm text-slate-600 mt-1">
                             <div className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {new Date(event.date).toLocaleDateString('es-CO')}
+                              {formatShortDate(event.date)}
                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />

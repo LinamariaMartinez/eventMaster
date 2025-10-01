@@ -2,12 +2,6 @@
 const nextConfig = {
   // Configuración de imágenes
   images: {
-    domains: [
-      "localhost",
-      "supabase.co",
-      "lh3.googleusercontent.com",
-      "avatars.githubusercontent.com",
-    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -17,7 +11,19 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.googleusercontent.com",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
         port: "",
         pathname: "/**",
       },

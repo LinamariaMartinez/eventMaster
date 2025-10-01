@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
@@ -34,6 +34,7 @@ export default function EditInvitationPage({ params }: PageProps) {
   const [config, setConfig] = useState<InvitationConfig | null>(null);
   const [blockContent, setBlockContent] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   // Resolve params
   useEffect(() => {
@@ -196,6 +197,7 @@ export default function EditInvitationPage({ params }: PageProps) {
                       blockType={block.type}
                       data={blockContent[block.type] || {}}
                       onChange={(data) => handleBlockContentChange(block.type, data)}
+                      eventId={event.id}
                     />
                   </TabsContent>
                 ))}
@@ -208,19 +210,57 @@ export default function EditInvitationPage({ params }: PageProps) {
         <div className="space-y-6 lg:sticky lg:top-6 lg:h-[calc(100vh-8rem)]">
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>Vista Previa en Vivo</CardTitle>
-              <CardDescription>
-                Los cambios se reflejan automáticamente
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-hidden">
-              <div className="border rounded-lg overflow-y-auto h-full">
-                <InvitationRenderer
-                  event={event}
-                  config={config}
-                  blockData={blockContent}
-                />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Vista Previa en Vivo</CardTitle>
+                  <CardDescription>
+                    Los cambios se reflejan automáticamente
+                  </CardDescription>
+                </div>
+                <div className="flex gap-1 border rounded-md">
+                  <Button
+                    variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('desktop')}
+                    className="rounded-r-none"
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('mobile')}
+                    className="rounded-l-none"
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden flex items-center justify-center bg-gray-100 p-4">
+              {previewMode === 'mobile' ? (
+                <div className="relative w-[375px] h-[667px] bg-white rounded-[2.5rem] border-[14px] border-gray-800 shadow-2xl overflow-hidden">
+                  {/* Notch simulado */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-gray-800 rounded-b-3xl z-10" />
+
+                  {/* Contenido scrolleable */}
+                  <div className="w-full h-full overflow-y-auto">
+                    <InvitationRenderer
+                      event={event}
+                      config={config}
+                      blockData={blockContent}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full border rounded-lg overflow-y-auto bg-white shadow-lg">
+                  <InvitationRenderer
+                    event={event}
+                    config={config}
+                    blockData={blockContent}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

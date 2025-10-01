@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Palette, Type, Image, Layout, Upload } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Layout, Upload } from "lucide-react";
 import { Invitation } from "@/lib/storage";
 
 interface VisualEditorProps {
@@ -104,7 +104,7 @@ export function VisualEditor({ invitation, onUpdate, isPremium }: VisualEditorPr
               Texto
             </TabsTrigger>
             <TabsTrigger value="background" className="flex items-center gap-1" disabled={!isPremium}>
-              <Image className="h-4 w-4" aria-hidden="true" />
+              <ImageIcon className="h-4 w-4" aria-hidden="true" />
               Fondo
             </TabsTrigger>
             <TabsTrigger value="layout" className="flex items-center gap-1" disabled={!isPremium}>
@@ -309,7 +309,7 @@ export function VisualEditor({ invitation, onUpdate, isPremium }: VisualEditorPr
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <Image className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+                <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
                 <h4 className="font-medium mb-2">Función Premium</h4>
                 <p className="text-sm">
                   Actualiza a Premium para personalizar fondos con gradientes e imágenes

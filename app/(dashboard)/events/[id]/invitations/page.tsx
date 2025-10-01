@@ -25,6 +25,7 @@ import { calculateGuestStats, downloadCSV } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database.types";
 import { GuestDialog } from "@/components/dashboard/guests/guest-dialog";
+import { formatShortDate } from "@/lib/utils/date";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 type Guest = Database["public"]["Tables"]["guests"]["Row"];
@@ -210,7 +211,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
 
   const shareWhatsApp = () => {
     if (event?.public_url) {
-      const message = `🎉 Estás invitado/a a ${event.title}! \n\n📅 ${new Date(event.date).toLocaleDateString("es-CO")} a las ${event.time}\n📍 ${event.location}\n\nConfirma tu asistencia aquí: ${event.public_url}`;
+      const message = `🎉 Estás invitado/a a ${event.title}! \n\n📅 ${formatShortDate(event.date)} a las ${event.time}\n📍 ${event.location}\n\nConfirma tu asistencia aquí: ${event.public_url}`;
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, "_blank");
     } else {
@@ -291,7 +292,7 @@ export default function EventInvitationsPage({ params }: PageProps) {
               Gestión de Invitados
             </h1>
             <p className="text-gray-600 mt-1">
-              {event.title} • {new Date(event.date).toLocaleDateString("es-CO")}
+              {event.title} • {formatShortDate(event.date)}
             </p>
           </div>
         </div>

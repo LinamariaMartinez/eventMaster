@@ -3,6 +3,7 @@
 import { Heart, Calendar, Clock } from "lucide-react";
 import type { HeroBlockData, ColorScheme } from "@/types/invitation-blocks";
 import { useEffect, useState } from "react";
+import { formatEventDate } from "@/lib/utils/date";
 
 interface HeroBlockProps {
   data: HeroBlockData;
@@ -72,12 +73,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
         background: `linear-gradient(135deg, ${colorScheme.primary} 0%, ${colorScheme.secondary} 100%)`,
       };
 
-  const formattedDate = new Date(eventDate).toLocaleDateString('es-CO', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = formatEventDate(eventDate);
 
   return (
     <div

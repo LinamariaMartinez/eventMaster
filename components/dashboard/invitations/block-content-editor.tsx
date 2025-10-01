@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import { ImageUploader } from "./image-uploader";
 import type {
   BlockType,
   HeroBlockData,
@@ -14,6 +15,7 @@ import type {
   LocationBlockData,
   MenuBlockData,
   RsvpBlockData,
+  GalleryBlockData,
 } from "@/types/invitation-blocks";
 
 type BlockData = HeroBlockData | TimelineBlockData | LocationBlockData | MenuBlockData | RsvpBlockData | Record<string, unknown>;
@@ -22,12 +24,13 @@ interface BlockContentEditorProps {
   blockType: BlockType;
   data: BlockData;
   onChange: (data: BlockData) => void;
+  eventId?: string;
 }
 
-export function BlockContentEditor({ blockType, data, onChange }: BlockContentEditorProps) {
+export function BlockContentEditor({ blockType, data, onChange, eventId = 'default' }: BlockContentEditorProps) {
   switch (blockType) {
     case 'hero':
-      return <HeroEditor data={data as HeroBlockData} onChange={onChange as (data: HeroBlockData) => void} />;
+      return <HeroEditor data={data as HeroBlockData} onChange={onChange as (data: HeroBlockData) => void} eventId={eventId} />;
     case 'timeline':
       return <TimelineEditor data={data as TimelineBlockData} onChange={onChange as (data: TimelineBlockData) => void} />;
     case 'location':
@@ -37,7 +40,7 @@ export function BlockContentEditor({ blockType, data, onChange }: BlockContentEd
     case 'rsvp':
       return <RsvpEditor data={data as RsvpBlockData} onChange={onChange as (data: RsvpBlockData) => void} />;
     case 'gallery':
-      return <GalleryEditor />;
+      return <GalleryEditor data={data as GalleryBlockData} onChange={onChange as (data: GalleryBlockData) => void} eventId={eventId} />;
     case 'story':
       return <StoryEditor />;
     case 'gifts':
@@ -52,7 +55,15 @@ export function BlockContentEditor({ blockType, data, onChange }: BlockContentEd
 }
 
 // Hero Block Editor
-function HeroEditor({ data, onChange }: { data: HeroBlockData; onChange: (data: HeroBlockData) => void }) {
+function HeroEditor({
+  data,
+  onChange,
+  eventId
+}: {
+  data: HeroBlockData;
+  onChange: (data: HeroBlockData) => void;
+  eventId: string;
+}) {
   return (
     <div className="space-y-4">
       <div>
@@ -80,6 +91,16 @@ function HeroEditor({ data, onChange }: { data: HeroBlockData; onChange: (data: 
           onCheckedChange={(checked) => onChange({ ...data, showCountdown: checked })}
         />
         <Label htmlFor="hero-countdown">Mostrar cuenta regresiva</Label>
+      </div>
+      <div>
+        <ImageUploader
+          value={data.backgroundImage}
+          onChange={(url) => onChange({ ...data, backgroundImage: url })}
+          eventId={eventId}
+          label="Imagen de fondo (opcional)"
+          description="Se mostrará como fondo del banner principal"
+          aspectRatio="21/9"
+        />
       </div>
     </div>
   );
@@ -298,9 +319,114 @@ function RsvpEditor({ data, onChange }: { data: RsvpBlockData; onChange: (data: 
   );
 }
 
-// Placeholder editors for other blocks
-function GalleryEditor() {
-  return <div className="text-gray-500 p-4">Editor de galería próximamente</div>;
+// Gallery Block Editor
+function GalleryEditor({
+  data,
+  onChange,
+  eventId
+}: {
+  data: GalleryBlockData;
+  onChange: (data: GalleryBlockData) => void;
+  eventId: string;
+}) {
+  const images = data.images || [];
+
+  const addImage = (url: string) => {
+    onChange({
+      ...data,
+      images: [...images, { url, caption: '' }],
+    });
+  };
+
+  const updateCaption = (index: number, caption: string) => {
+    const newImages = [...images];
+    newImages[index] = { ...newImages[index], caption };
+    onChange({ ...data, images: newImages });
+  };
+
+  const removeImage = (index: number) => {
+    onChange({
+      ...data,
+      images: images.filter((_, i) => i !== index),
+    });
+  };
+
+  const setLayout = (layout: 'grid' | 'masonry' | 'carousel') => {
+    onChange({ ...data, layout });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Diseño de galería</Label>
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          <Button
+            variant={data.layout === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setLayout('grid')}
+          >
+            Cuadrícula
+          </Button>
+          <Button
+            variant={data.layout === 'masonry' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setLayout('masonry')}
+          >
+            Mosaico
+          </Button>
+          <Button
+            variant={data.layout === 'carousel' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setLayout('carousel')}
+          >
+            Carrusel
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {images.map((image, index) => (
+          <Card key={index}>
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Imagen {index + 1}</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeImage(index)}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+              <ImageUploader
+                value={image.url}
+                onChange={(url) => {
+                  const newImages = [...images];
+                  newImages[index] = { ...newImages[index], url };
+                  onChange({ ...data, images: newImages });
+                }}
+                eventId={eventId}
+                aspectRatio="4/3"
+              />
+              <Input
+                placeholder="Descripción (opcional)"
+                value={image.caption || ''}
+                onChange={(e) => updateCaption(index, e.target.value)}
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <ImageUploader
+        value=""
+        onChange={addImage}
+        eventId={eventId}
+        label="Agregar nueva imagen"
+        aspectRatio="4/3"
+      />
+    </div>
+  );
 }
 
 function StoryEditor() {

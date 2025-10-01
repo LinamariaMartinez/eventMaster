@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,21 +32,30 @@ import {
   Edit,
   Send,
   Palette,
+  ExternalLink,
+  Copy,
+  Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database.types";
 import { toast } from "sonner";
+import { formatEventDate } from "@/lib/utils/date";
+import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 type Guest = Database["public"]["Tables"]["guests"]["Row"];
 
 export default function EventDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const eventId = params.id as string;
+  const { removeEvent } = useSupabaseEvents();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadEventAndGuests = async () => {
@@ -84,6 +103,25 @@ export default function EventDetailPage() {
 
     loadEventAndGuests();
   }, [eventId]);
+
+  const handleDeleteEvent = async () => {
+    if (!event) return;
+
+    setIsDeleting(true);
+    try {
+      const success = await removeEvent(event.id);
+      if (success) {
+        toast.success("Evento eliminado exitosamente");
+        router.push("/events");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast.error("Error al eliminar el evento");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -139,7 +177,7 @@ export default function EventDetailPage() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <Link href={`/events/${event.id}/edit`}>
           <Button>
             <Edit className="h-4 w-4 mr-2" />
@@ -158,7 +196,57 @@ export default function EventDetailPage() {
             Gestionar Invitados
           </Button>
         </Link>
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Eliminar Evento
+        </Button>
       </div>
+
+      {/* Public URL Card - Destacado */}
+      <Card className="mb-6 border-burgundy/20 bg-burgundy/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ExternalLink className="h-5 w-5" />
+            URL Pública de tu Invitación
+          </CardTitle>
+          <CardDescription>
+            Comparte este enlace con tus invitados para que puedan ver la invitación y confirmar su asistencia
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 bg-white rounded-lg border p-3 font-mono text-sm break-all">
+              {typeof window !== 'undefined' ? window.location.origin : ''}/invite/{event.id}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/invite/${event.id}`);
+                  toast.success("URL copiada al portapapeles");
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar
+              </Button>
+              <Link
+                href={`/invite/${event.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="default" size="sm" className="bg-burgundy hover:bg-burgundy/90">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Abrir
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Event Details */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -170,14 +258,7 @@ export default function EventDetailPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {new Date(event.date).toLocaleDateString("es-CO", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
+                <span>{formatEventDate(event.date)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -359,6 +440,29 @@ export default function EventDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar el evento &quot;{event.title}&quot;.
+              Esta acción no se puede deshacer y se eliminarán también todos los invitados asociados ({guests.length} invitados).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEvent}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import type { EventType } from "@/types/invitation-blocks";
+import { formatEventDate } from "@/lib/utils/date";
 
 export default function InvitationsPage() {
   const { events, loading } = useSupabaseEvents();
@@ -197,7 +198,7 @@ export default function InvitationsPage() {
                     </div>
                     <CardTitle className="text-xl mt-3">{event.title}</CardTitle>
                     <CardDescription>
-                      {new Date(event.date).toLocaleDateString('es-CO', {
+                      {formatEventDate(event.date, {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'

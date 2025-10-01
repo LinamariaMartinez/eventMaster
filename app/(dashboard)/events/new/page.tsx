@@ -13,6 +13,7 @@ import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { EventTypeSelector } from "@/components/dashboard/invitations/event-type-selector";
 import { BlockTogglePanel } from "@/components/dashboard/invitations/block-toggle-panel";
 import { ColorSchemeEditor } from "@/components/dashboard/invitations/color-scheme-editor";
+import { BlockContentEditor } from "@/components/dashboard/invitations/block-content-editor";
 import { InvitationRenderer } from "@/components/invitation-renderer";
 import {
   createDefaultConfig,
@@ -20,9 +21,11 @@ import {
   type InvitationConfig,
   type BlockConfig,
   type ColorScheme,
+  type BlockType,
 } from "@/types/invitation-blocks";
 import type { Json } from "@/types/database.types";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -37,6 +40,9 @@ export default function NewEventPage() {
   const [invitationConfig, setInvitationConfig] = useState<InvitationConfig>(
     createDefaultConfig('wedding')
   );
+
+  // Block content data
+  const [blockContent, setBlockContent] = useState<Record<string, unknown>>({});
 
   // Mock templates data
   const templates = [
@@ -96,12 +102,35 @@ export default function NewEventPage() {
     });
   };
 
+  const handleBlockContentChange = (blockType: BlockType, data: unknown) => {
+    setBlockContent({
+      ...blockContent,
+      [blockType]: data,
+    });
+  };
+
   const handleFinalSubmit = async () => {
     if (!eventData) return;
 
     setIsLoading(true);
 
     try {
+      // Merge default block content with user-edited content
+      const defaultBlockContent = {
+        hero: {
+          title: eventData.title,
+          subtitle: eventData.description || undefined,
+          showCountdown: true,
+        },
+        location: {
+          address: eventData.location,
+        },
+        rsvp: {
+          allowPlusOnes: true,
+          maxGuestsPerInvite: 5,
+        },
+      };
+
       // Build complete settings with event data and invitation config
       const completeSettings = {
         eventType: invitationConfig.eventType,
@@ -109,18 +138,8 @@ export default function NewEventPage() {
         colorScheme: invitationConfig.colorScheme,
         customStyles: invitationConfig.customStyles,
         blockContent: {
-          hero: {
-            title: eventData.title,
-            subtitle: eventData.description || undefined,
-            showCountdown: true,
-          },
-          location: {
-            address: eventData.location,
-          },
-          rsvp: {
-            allowPlusOnes: true,
-            maxGuestsPerInvite: 5,
-          },
+          ...defaultBlockContent,
+          ...blockContent,
         },
       };
 
@@ -148,7 +167,7 @@ export default function NewEventPage() {
     }
   };
 
-  const progress = (currentStep / 3) * 100;
+  const progress = (currentStep / 4) * 100;
 
   return (
     <div className="p-6 space-y-6">
@@ -167,7 +186,8 @@ export default function NewEventPage() {
           <p className="text-gray-600 mt-1">
             {currentStep === 1 && "Paso 1: Información del Evento"}
             {currentStep === 2 && "Paso 2: Tipo de Evento y Bloques"}
-            {currentStep === 3 && "Paso 3: Colores y Vista Previa"}
+            {currentStep === 3 && "Paso 3: Contenido de Bloques"}
+            {currentStep === 4 && "Paso 4: Colores y Vista Previa"}
           </p>
         </div>
       </div>
@@ -183,7 +203,10 @@ export default function NewEventPage() {
             2. Tipo y Bloques
           </span>
           <span className={currentStep === 3 ? "font-semibold text-burgundy" : ""}>
-            3. Colores
+            3. Contenido
+          </span>
+          <span className={currentStep === 4 ? "font-semibold text-burgundy" : ""}>
+            4. Colores
           </span>
         </div>
       </div>
@@ -244,8 +267,68 @@ export default function NewEventPage() {
         </div>
       )}
 
-      {/* Step 3: Colors and Preview */}
+      {/* Step 3: Block Content Editor */}
       {currentStep === 3 && eventData && (
+        <div className="space-y-6 max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Editar Contenido de Bloques</CardTitle>
+              <CardDescription>
+                Configura el contenido para cada bloque habilitado (imágenes, galería, menú, cronograma, etc.)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue={invitationConfig.enabledBlocks.find(b => b.enabled)?.type || 'hero'} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 mb-4">
+                  {invitationConfig.enabledBlocks
+                    .filter(block => block.enabled)
+                    .slice(0, 8)
+                    .map(block => (
+                      <TabsTrigger key={block.type} value={block.type} className="capitalize">
+                        {block.type}
+                      </TabsTrigger>
+                    ))}
+                </TabsList>
+
+                {invitationConfig.enabledBlocks
+                  .filter(block => block.enabled)
+                  .map(block => (
+                    <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
+                      <BlockContentEditor
+                        blockType={block.type}
+                        data={blockContent[block.type] || {}}
+                        onChange={(data) => handleBlockContentChange(block.type, data)}
+                        eventId="preview"
+                      />
+                    </TabsContent>
+                  ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep(2)}
+              className="flex-1"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Anterior
+            </Button>
+            <Button
+              onClick={() => setCurrentStep(4)}
+              className="flex-1 bg-burgundy hover:bg-burgundy/90"
+            >
+              Siguiente
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Colors and Preview */}
+      {currentStep === 4 && eventData && (
         <div className="space-y-6">
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Left: Color Configuration */}
@@ -259,7 +342,7 @@ export default function NewEventPage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => setCurrentStep(3)}
                   className="flex-1"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -309,14 +392,18 @@ export default function NewEventPage() {
                           title: eventData.title,
                           subtitle: eventData.description || undefined,
                           showCountdown: true,
+                          ...(blockContent.hero as object || {}),
                         },
                         location: {
                           address: eventData.location,
+                          ...(blockContent.location as object || {}),
                         },
                         rsvp: {
                           allowPlusOnes: true,
                           maxGuestsPerInvite: 5,
+                          ...(blockContent.rsvp as object || {}),
                         },
+                        ...blockContent,
                       }}
                     />
                   </div>

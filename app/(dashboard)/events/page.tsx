@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,19 +11,43 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, MapPin, Users, Send } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Calendar, MapPin, Users, Send, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
+import { formatEventDate } from "@/lib/utils/date";
+import { toast } from "sonner";
 
 export default function EventsPage() {
-  const { events, loading: isLoading } = useSupabaseEvents();
+  const { events, loading: isLoading, removeEvent } = useSupabaseEvents();
+  const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleDeleteEvent = async () => {
+    if (!eventToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const success = await removeEvent(eventToDelete.id);
+      if (success) {
+        toast.success("Evento eliminado exitosamente");
+        setEventToDelete(null);
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast.error("Error al eliminar el evento");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (isLoading) {
@@ -118,7 +143,7 @@ export default function EventsPage() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <span>
-                        {formatDate(event.date)} a las {event.time}
+                        {formatEventDate(event.date, { year: 'numeric', month: 'long', day: 'numeric' })} a las {event.time}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -157,15 +182,24 @@ export default function EventsPage() {
                         </Button>
                       </Link>
                     </div>
-                    <Link
-                      href={`/events/${event.id}/invitations`}
-                      className="w-full"
-                    >
-                      <Button size="sm" className="w-full">
-                        <Send className="h-4 w-4 mr-2" />
-                        Gestionar Invitados
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/events/${event.id}/invitations`}
+                        className="flex-1"
+                      >
+                        <Button size="sm" className="w-full">
+                          <Send className="h-4 w-4 mr-2" />
+                          Invitados
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setEventToDelete({ id: event.id, title: event.title })}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -173,6 +207,29 @@ export default function EventsPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar el evento &quot;{eventToDelete?.title}&quot;.
+              Esta acción no se puede deshacer y se eliminarán también todos los invitados asociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEvent}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

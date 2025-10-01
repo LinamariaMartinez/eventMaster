@@ -7,6 +7,7 @@ export { TimelineBlock } from './timeline-block';
 export { LocationBlock } from './location-block';
 export { MenuBlock } from './menu-block';
 export { RsvpBlock } from './rsvp-block';
+export { GalleryBlock } from './gallery-block';
 
 // Re-export types for convenience
 export type {
@@ -20,4 +21,5 @@ export type {
   LocationBlockData,
   MenuBlockData,
   RsvpBlockData,
+  GalleryBlockData,
 } from '@/types/invitation-blocks';

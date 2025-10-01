@@ -9,6 +9,7 @@ import type {
   LocationBlockData,
   MenuBlockData,
   RsvpBlockData,
+  GalleryBlockData,
 } from "@/types/invitation-blocks";
 import {
   HeroBlock,
@@ -16,6 +17,7 @@ import {
   LocationBlock,
   MenuBlock,
   RsvpBlock,
+  GalleryBlock,
 } from "@/components/invitation-blocks";
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -29,6 +31,7 @@ interface InvitationRendererProps {
     location?: LocationBlockData;
     menu?: MenuBlockData;
     rsvp?: RsvpBlockData;
+    gallery?: GalleryBlockData;
   };
 }
 
@@ -111,8 +114,17 @@ export function InvitationRenderer({
           />
         );
 
-      // Additional blocks can be added here in the future
       case 'gallery':
+        if (!blockData.gallery) return null;
+        return (
+          <GalleryBlock
+            key={`gallery-${blockConfig.order}`}
+            data={blockData.gallery}
+            colorScheme={colorScheme}
+          />
+        );
+
+      // Additional blocks can be added here in the future
       case 'story':
       case 'gifts':
       case 'dresscode':
