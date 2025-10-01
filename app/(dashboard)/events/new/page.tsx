@@ -12,12 +12,14 @@ import { toast } from "sonner";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { EventTypeSelector } from "@/components/dashboard/invitations/event-type-selector";
 import { BlockTogglePanel } from "@/components/dashboard/invitations/block-toggle-panel";
+import { ColorSchemeEditor } from "@/components/dashboard/invitations/color-scheme-editor";
 import { InvitationRenderer } from "@/components/invitation-renderer";
 import {
   createDefaultConfig,
   type EventType,
   type InvitationConfig,
   type BlockConfig,
+  type ColorScheme,
 } from "@/types/invitation-blocks";
 import type { Json } from "@/types/database.types";
 import { Progress } from "@/components/ui/progress";
@@ -87,16 +89,39 @@ export default function NewEventPage() {
     });
   };
 
+  const handleColorSchemeChange = (newColorScheme: ColorScheme) => {
+    setInvitationConfig({
+      ...invitationConfig,
+      colorScheme: newColorScheme,
+    });
+  };
+
   const handleFinalSubmit = async () => {
     if (!eventData) return;
 
     setIsLoading(true);
 
     try {
-      // Merge invitation config into event settings
-      const settingsWithInvitation = {
-        ...(eventData.settings as object || {}),
-        ...invitationConfig,
+      // Build complete settings with event data and invitation config
+      const completeSettings = {
+        eventType: invitationConfig.eventType,
+        enabledBlocks: invitationConfig.enabledBlocks,
+        colorScheme: invitationConfig.colorScheme,
+        customStyles: invitationConfig.customStyles,
+        blockContent: {
+          hero: {
+            title: eventData.title,
+            subtitle: eventData.description || undefined,
+            showCountdown: true,
+          },
+          location: {
+            address: eventData.location,
+          },
+          rsvp: {
+            allowPlusOnes: true,
+            maxGuestsPerInvite: 5,
+          },
+        },
       };
 
       const newEvent = await addEvent({
@@ -106,7 +131,7 @@ export default function NewEventPage() {
         time: eventData.time,
         location: eventData.location,
         template_id: eventData.template_id || null,
-        settings: settingsWithInvitation as unknown as Json,
+        settings: completeSettings as unknown as Json,
       });
 
       if (newEvent) {
@@ -123,7 +148,7 @@ export default function NewEventPage() {
     }
   };
 
-  const progress = (currentStep / 2) * 100;
+  const progress = (currentStep / 3) * 100;
 
   return (
     <div className="p-6 space-y-6">
@@ -140,7 +165,9 @@ export default function NewEventPage() {
             Crear Nuevo Evento
           </h1>
           <p className="text-gray-600 mt-1">
-            {currentStep === 1 ? "Paso 1: Información del Evento" : "Paso 2: Configurar Invitación"}
+            {currentStep === 1 && "Paso 1: Información del Evento"}
+            {currentStep === 2 && "Paso 2: Tipo de Evento y Bloques"}
+            {currentStep === 3 && "Paso 3: Colores y Vista Previa"}
           </p>
         </div>
       </div>
@@ -150,10 +177,13 @@ export default function NewEventPage() {
         <Progress value={progress} className="h-2" />
         <div className="flex justify-between mt-2 text-sm text-gray-600">
           <span className={currentStep === 1 ? "font-semibold text-burgundy" : ""}>
-            1. Información del Evento
+            1. Información
           </span>
           <span className={currentStep === 2 ? "font-semibold text-burgundy" : ""}>
-            2. Configurar Invitación
+            2. Tipo y Bloques
+          </span>
+          <span className={currentStep === 3 ? "font-semibold text-burgundy" : ""}>
+            3. Colores
           </span>
         </div>
       </div>
@@ -169,38 +199,67 @@ export default function NewEventPage() {
         </div>
       )}
 
-      {/* Step 2: Invitation Configuration */}
+      {/* Step 2: Event Type and Blocks */}
       {currentStep === 2 && eventData && (
+        <div className="space-y-6 max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tipo de Evento</CardTitle>
+              <CardDescription>
+                Selecciona el tipo para aplicar el tema correspondiente
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EventTypeSelector
+                selectedType={invitationConfig.eventType}
+                onTypeChange={handleEventTypeChange}
+              />
+            </CardContent>
+          </Card>
+
+          <BlockTogglePanel
+            eventType={invitationConfig.eventType}
+            blocks={invitationConfig.enabledBlocks}
+            onBlocksChange={handleBlocksChange}
+          />
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep(1)}
+              className="flex-1"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Anterior
+            </Button>
+            <Button
+              onClick={() => setCurrentStep(3)}
+              className="flex-1 bg-burgundy hover:bg-burgundy/90"
+            >
+              Siguiente
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Colors and Preview */}
+      {currentStep === 3 && eventData && (
         <div className="space-y-6">
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Left: Configuration */}
+            {/* Left: Color Configuration */}
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tipo de Evento</CardTitle>
-                  <CardDescription>
-                    Selecciona el tipo para aplicar el tema correspondiente
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <EventTypeSelector
-                    selectedType={invitationConfig.eventType}
-                    onTypeChange={handleEventTypeChange}
-                  />
-                </CardContent>
-              </Card>
-
-              <BlockTogglePanel
-                eventType={invitationConfig.eventType}
-                blocks={invitationConfig.enabledBlocks}
-                onBlocksChange={handleBlocksChange}
+              <ColorSchemeEditor
+                colorScheme={invitationConfig.colorScheme}
+                onChange={handleColorSchemeChange}
               />
 
               {/* Actions */}
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep(1)}
+                  onClick={() => setCurrentStep(2)}
                   className="flex-1"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -217,13 +276,13 @@ export default function NewEventPage() {
               </div>
             </div>
 
-            {/* Right: Preview */}
+            {/* Right: Live Preview */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Vista Previa de Invitación</CardTitle>
+                  <CardTitle>Vista Previa en Vivo</CardTitle>
                   <CardDescription>
-                    Así se verá tu invitación pública
+                    Los cambios de color se reflejan automáticamente
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

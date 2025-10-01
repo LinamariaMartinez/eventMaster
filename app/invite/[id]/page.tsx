@@ -36,8 +36,13 @@ function parseInvitationConfig(
     // Check if event has new block-based config
     if (settings && typeof settings === 'object' && 'eventType' in settings) {
       return {
-        config: settings as InvitationConfig,
-        blockData: (settings as { blockData?: Record<string, unknown> }).blockData || {},
+        config: {
+          eventType: settings.eventType,
+          enabledBlocks: settings.enabledBlocks,
+          colorScheme: settings.colorScheme,
+          customStyles: settings.customStyles,
+        } as InvitationConfig,
+        blockData: (settings as { blockContent?: Record<string, unknown> }).blockContent || {},
       };
     }
 

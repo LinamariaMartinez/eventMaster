@@ -57,9 +57,9 @@ export default function InvitationSetupPage({ params }: PageProps) {
 
     // Parse existing config or create default
     try {
-      const settings = foundEvent.settings as Record<string, unknown>;
+      const settings = foundEvent.settings as unknown as InvitationConfig;
       if (settings && 'eventType' in settings) {
-        setConfig(settings as InvitationConfig);
+        setConfig(settings);
       } else {
         // Create default config for wedding
         setConfig(createDefaultConfig('wedding'));
@@ -256,7 +256,7 @@ export default function InvitationSetupPage({ params }: PageProps) {
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">4. Guarda y Comparte</h4>
                 <p>
-                  Una vez satisfecho con la configuración, haz clic en "Guardar". Luego podrás
+                  Una vez satisfecho con la configuración, haz clic en &quot;Guardar&quot;. Luego podrás
                   compartir la URL pública de tu invitación.
                 </p>
               </div>

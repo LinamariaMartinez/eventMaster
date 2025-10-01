@@ -146,10 +146,10 @@ export default function EventDetailPage() {
             Editar Evento
           </Button>
         </Link>
-        <Link href={`/events/${event.id}/invitation-setup`}>
+        <Link href={`/events/${event.id}/edit-invitation`}>
           <Button variant="outline">
             <Palette className="h-4 w-4 mr-2" />
-            Configurar Invitación
+            Editar Invitación
           </Button>
         </Link>
         <Link href={`/events/${event.id}/invitations`}>

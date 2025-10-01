@@ -124,7 +124,7 @@ export function InvitationRenderer({
             style={{ backgroundColor: colorScheme.background }}
           >
             <p style={{ color: colorScheme.textLight }}>
-              El bloque "{type}" estará disponible próximamente
+              El bloque &quot;{type}&quot; estará disponible próximamente
             </p>
           </div>
         );
