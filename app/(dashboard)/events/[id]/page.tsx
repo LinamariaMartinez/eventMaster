@@ -21,6 +21,7 @@ import {
   Users,
   Edit,
   Send,
+  Palette,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database.types";
@@ -145,10 +146,16 @@ export default function EventDetailPage() {
             Editar Evento
           </Button>
         </Link>
+        <Link href={`/events/${event.id}/invitation-setup`}>
+          <Button variant="outline">
+            <Palette className="h-4 w-4 mr-2" />
+            Configurar Invitación
+          </Button>
+        </Link>
         <Link href={`/events/${event.id}/invitations`}>
           <Button variant="outline">
             <Send className="h-4 w-4 mr-2" />
-            Gestionar Invitaciones
+            Gestionar Invitados
           </Button>
         </Link>
       </div>
