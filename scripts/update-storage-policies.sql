@@ -1,15 +1,9 @@
--- Create the event-images storage bucket
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'event-images',
-  'event-images',
-  true,
-  5242880, -- 5MB limit
-  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
-)
-ON CONFLICT (id) DO NOTHING;
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can upload images to their events" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their event images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their event images" ON storage.objects;
 
--- Allow authenticated users to upload images to their event folders or temp folder
+-- Recreate with temp folder support
 CREATE POLICY "Users can upload images to their events"
 ON storage.objects FOR INSERT
 TO authenticated
@@ -24,7 +18,6 @@ WITH CHECK (
   )
 );
 
--- Allow authenticated users to update their own event images or temp images
 CREATE POLICY "Users can update their event images"
 ON storage.objects FOR UPDATE
 TO authenticated
@@ -39,7 +32,6 @@ USING (
   )
 );
 
--- Allow authenticated users to delete their own event images or temp images
 CREATE POLICY "Users can delete their event images"
 ON storage.objects FOR DELETE
 TO authenticated
@@ -53,9 +45,3 @@ USING (
     (storage.foldername(name))[1] = 'temp'
   )
 );
-
--- Allow everyone to view public images (for the public invitation page)
-CREATE POLICY "Anyone can view event images"
-ON storage.objects FOR SELECT
-TO public
-USING (bucket_id = 'event-images');

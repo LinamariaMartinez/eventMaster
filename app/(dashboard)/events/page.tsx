@@ -196,10 +196,20 @@ export default function EventsPage() {
                         variant="destructive"
                         size="sm"
                         onClick={() => setEventToDelete({ id: event.id, title: event.title })}
+                        className="px-3"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                      onClick={() => setEventToDelete({ id: event.id, title: event.title })}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Eliminar Evento
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

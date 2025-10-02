@@ -12,7 +12,7 @@ export function MenuBlock({ data, colorScheme }: MenuBlockProps) {
   return (
     <div
       className="py-16 px-4"
-      style={{ backgroundColor: colorScheme.secondary, opacity: 0.5 }}
+      style={{ backgroundColor: colorScheme.secondary }}
     >
       <div className="max-w-4xl mx-auto">
         {/* Header */}

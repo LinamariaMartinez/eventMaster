@@ -242,57 +242,6 @@ export function EventForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Colores de la Invitación</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="primaryColor">Color Primario</Label>
-              <Input
-                id="primaryColor"
-                type="color"
-                value={settings.colors.primary}
-                onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    colors: { ...prev.colors, primary: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="secondaryColor">Color Secundario</Label>
-              <Input
-                id="secondaryColor"
-                type="color"
-                value={settings.colors.secondary}
-                onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    colors: { ...prev.colors, secondary: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="accentColor">Color de Acento</Label>
-              <Input
-                id="accentColor"
-                type="color"
-                value={settings.colors.accent}
-                onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    colors: { ...prev.colors, accent: e.target.value },
-                  }))
-                }
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="flex space-x-4">
         <Button type="submit" disabled={isLoading}>

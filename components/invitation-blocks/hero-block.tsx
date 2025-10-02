@@ -91,27 +91,77 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
         </div>
 
         {/* Title */}
-        <h1 className="text-5xl md:text-7xl font-serif font-bold leading-tight">
+        <h1
+          className="text-5xl md:text-7xl font-serif font-bold leading-tight"
+          style={{
+            color: data.textColor ?? 'white',
+            textShadow: data.textShadow ?? '2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+          }}
+        >
           {data.title}
         </h1>
 
         {/* Subtitle */}
         {data.subtitle && (
-          <p className="text-xl md:text-2xl text-white/90 font-light italic">
+          <p
+            className="text-xl md:text-2xl font-light italic"
+            style={{
+              color: data.textColor ?? 'white',
+              opacity: 0.9,
+              textShadow: data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
+            }}
+          >
             {data.subtitle}
           </p>
         )}
 
         {/* Date and Time */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8 text-lg">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
           <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <span>{formattedDate}</span>
+            <Calendar
+              className="h-5 w-5"
+              style={{
+                color: data.dateColor ?? data.textColor ?? 'white',
+                filter: `drop-shadow(${data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)'})`,
+              }}
+            />
+            <span
+              style={{
+                color: data.dateColor ?? data.textColor ?? 'white',
+                textShadow: data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
+                fontSize: data.dateSize === 'small' ? '1rem' : data.dateSize === 'large' ? '1.5rem' : '1.25rem',
+                fontWeight: data.dateSize === 'large' ? 'bold' : 'normal',
+              }}
+            >
+              {formattedDate}
+            </span>
           </div>
-          <div className="hidden md:block text-white/50">|</div>
+          <div
+            className="hidden md:block opacity-50"
+            style={{
+              color: data.dateColor ?? data.textColor ?? 'white',
+            }}
+          >
+            |
+          </div>
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            <span>{eventTime}</span>
+            <Clock
+              className="h-5 w-5"
+              style={{
+                color: data.dateColor ?? data.textColor ?? 'white',
+                filter: `drop-shadow(${data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)'})`,
+              }}
+            />
+            <span
+              style={{
+                color: data.dateColor ?? data.textColor ?? 'white',
+                textShadow: data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
+                fontSize: data.dateSize === 'small' ? '1rem' : data.dateSize === 'large' ? '1.5rem' : '1.25rem',
+                fontWeight: data.dateSize === 'large' ? 'bold' : 'normal',
+              }}
+            >
+              {eventTime}
+            </span>
           </div>
         </div>
 

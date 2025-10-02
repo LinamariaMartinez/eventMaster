@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -30,10 +30,50 @@ const navigation = [
   { name: "Configuración", href: "/settings", icon: Settings },
 ];
 
+const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
+
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  // Initialize with true (collapsed) for mobile, will be updated by useEffect
+  const [collapsed, setCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // Initialize sidebar state from localStorage and detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+
+      if (mobile) {
+        // On mobile, always start collapsed
+        setCollapsed(true);
+      } else {
+        // On desktop, use stored preference
+        const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+        if (stored !== null) {
+          setCollapsed(stored === "true");
+        } else {
+          setCollapsed(false); // Default to expanded on desktop
+        }
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Toggle sidebar and persist state
+  const handleToggle = () => {
+    const newCollapsed = !collapsed;
+    setCollapsed(newCollapsed);
+
+    // Only persist on desktop
+    if (!isMobile) {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(newCollapsed));
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -64,7 +104,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={handleToggle}
           className="text-sidebar-foreground hover:bg-sidebar-accent"
         >
           {collapsed ? (

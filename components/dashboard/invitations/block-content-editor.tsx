@@ -102,6 +102,146 @@ function HeroEditor({
           aspectRatio="21/9"
         />
       </div>
+
+      {/* Text Styling Options */}
+      <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
+        <h4 className="font-semibold text-sm">Estilo del Texto Principal</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="hero-text-color">Color del Texto</Label>
+            <div className="flex gap-2 items-center mt-1">
+              <Input
+                id="hero-text-color"
+                type="color"
+                value={data.textColor || '#ffffff'}
+                onChange={(e) => onChange({ ...data, textColor: e.target.value })}
+                className="w-12 h-10 p-1"
+              />
+              <Input
+                type="text"
+                value={data.textColor || '#ffffff'}
+                onChange={(e) => onChange({ ...data, textColor: e.target.value })}
+                className="flex-1 font-mono text-sm"
+                placeholder="#ffffff"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Para título y subtítulo</p>
+          </div>
+          <div>
+            <Label htmlFor="hero-text-shadow">Intensidad de Sombra</Label>
+            <select
+              id="hero-text-shadow"
+              value={data.textShadow || 'strong'}
+              onChange={(e) => {
+                const shadows = {
+                  none: 'none',
+                  light: '1px 1px 2px rgba(0,0,0,0.5)',
+                  medium: '1px 1px 4px rgba(0,0,0,0.8)',
+                  strong: '2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+                };
+                onChange({ ...data, textShadow: shadows[e.target.value as keyof typeof shadows] });
+              }}
+              className="w-full mt-1 px-3 py-2 border rounded-md"
+            >
+              <option value="none">Sin sombra</option>
+              <option value="light">Ligera</option>
+              <option value="medium">Media</option>
+              <option value="strong">Fuerte (recomendado)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Mejora legibilidad sobre imágenes</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Date/Time Styling Options */}
+      <div className="space-y-3 p-4 border rounded-lg bg-blue-50">
+        <h4 className="font-semibold text-sm">Estilo de Fecha y Hora</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="hero-date-color">Color de Fecha/Hora</Label>
+            <div className="flex gap-2 items-center mt-1">
+              <Input
+                id="hero-date-color"
+                type="color"
+                value={data.dateColor || data.textColor || '#ffffff'}
+                onChange={(e) => onChange({ ...data, dateColor: e.target.value })}
+                className="w-12 h-10 p-1"
+              />
+              <Input
+                type="text"
+                value={data.dateColor || data.textColor || '#ffffff'}
+                onChange={(e) => onChange({ ...data, dateColor: e.target.value })}
+                className="flex-1 font-mono text-sm"
+                placeholder="#ffffff"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Color específico para fecha y hora</p>
+          </div>
+          <div>
+            <Label htmlFor="hero-date-shadow">Sombra de Fecha</Label>
+            <select
+              id="hero-date-shadow"
+              value={(() => {
+                const currentShadow = data.dateShadow || data.textShadow || '1px 1px 4px rgba(0,0,0,0.8)';
+                if (currentShadow === 'none') return 'none';
+                if (currentShadow === '1px 1px 2px rgba(0,0,0,0.5)') return 'light';
+                if (currentShadow === '1px 1px 4px rgba(0,0,0,0.8)') return 'medium';
+                if (currentShadow === '2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)') return 'strong';
+                return 'medium';
+              })()}
+              onChange={(e) => {
+                const shadows = {
+                  none: 'none',
+                  light: '1px 1px 2px rgba(0,0,0,0.5)',
+                  medium: '1px 1px 4px rgba(0,0,0,0.8)',
+                  strong: '2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+                };
+                onChange({ ...data, dateShadow: shadows[e.target.value as keyof typeof shadows] });
+              }}
+              className="w-full mt-1 px-3 py-2 border rounded-md"
+            >
+              <option value="none">Sin sombra</option>
+              <option value="light">Ligera</option>
+              <option value="medium">Media</option>
+              <option value="strong">Fuerte</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Sombra independiente para fecha</p>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="hero-date-size">Tamaño de Fecha/Hora</Label>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <Button
+              type="button"
+              variant={data.dateSize === 'small' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onChange({ ...data, dateSize: 'small' })}
+              className="w-full"
+            >
+              Pequeño
+            </Button>
+            <Button
+              type="button"
+              variant={(data.dateSize || 'medium') === 'medium' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onChange({ ...data, dateSize: 'medium' })}
+              className="w-full"
+            >
+              Mediano
+            </Button>
+            <Button
+              type="button"
+              variant={data.dateSize === 'large' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onChange({ ...data, dateSize: 'large' })}
+              className="w-full"
+            >
+              Grande
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Tamaño del texto de fecha y hora</p>
+        </div>
+      </div>
     </div>
   );
 }

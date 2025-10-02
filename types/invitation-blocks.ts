@@ -107,6 +107,11 @@ export interface HeroBlockData {
   subtitle?: string;
   backgroundImage?: string;
   showCountdown?: boolean;
+  textShadow?: string;
+  textColor?: string;
+  dateColor?: string;
+  dateShadow?: string;
+  dateSize?: 'small' | 'medium' | 'large';
 }
 
 export interface TimelineBlockData {

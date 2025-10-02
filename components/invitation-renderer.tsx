@@ -45,6 +45,24 @@ export function InvitationRenderer({
     .filter(block => block.enabled)
     .sort((a, b) => a.order - b.order);
 
+  // Get typography settings
+  const fontMap: Record<string, string> = {
+    playfair: '"Playfair Display", serif',
+    montserrat: '"Montserrat", sans-serif',
+    lora: '"Lora", serif',
+    raleway: '"Raleway", sans-serif',
+    merriweather: '"Merriweather", serif',
+    inter: '"Inter", sans-serif',
+    cormorant: '"Cormorant", serif',
+    poppins: '"Poppins", sans-serif',
+  };
+
+  const headingFont = config.customStyles?.headingFont ? fontMap[config.customStyles.headingFont as string] || fontMap.playfair : fontMap.playfair;
+  const bodyFont = config.customStyles?.bodyFont ? fontMap[config.customStyles.bodyFont as string] || fontMap.inter : fontMap.inter;
+
+  const fontScale = config.customStyles?.fontScale as string || 'medium';
+  const scaleMultiplier = fontScale === 'small' ? 0.9 : fontScale === 'large' ? 1.1 : 1;
+
   // Render individual block based on type
   const renderBlock = (blockConfig: BlockConfig) => {
     const { type } = blockConfig;
@@ -147,7 +165,31 @@ export function InvitationRenderer({
   };
 
   return (
-    <div className="min-h-screen">
+    <div
+      className="min-h-screen invitation-preview-container"
+      style={{
+        fontFamily: bodyFont,
+        fontSize: `${scaleMultiplier}rem`,
+      }}
+    >
+      <style jsx>{`
+        .invitation-preview-container :global(h1),
+        .invitation-preview-container :global(h2),
+        .invitation-preview-container :global(h3),
+        .invitation-preview-container :global(h4),
+        .invitation-preview-container :global(h5),
+        .invitation-preview-container :global(h6),
+        .invitation-preview-container :global(.font-serif) {
+          font-family: ${headingFont} !important;
+        }
+
+        .invitation-preview-container :global(p),
+        .invitation-preview-container :global(span),
+        .invitation-preview-container :global(.font-body) {
+          font-family: ${bodyFont} !important;
+        }
+      `}</style>
+
       {/* Render all enabled blocks in order */}
       {enabledBlocks.map(blockConfig => renderBlock(blockConfig))}
 
@@ -157,6 +199,7 @@ export function InvitationRenderer({
         style={{
           backgroundColor: config.colorScheme.primary,
           color: 'white',
+          fontFamily: bodyFont,
         }}
       >
         <p>

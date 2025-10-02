@@ -4,17 +4,21 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Monitor, Smartphone } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { BlockContentEditor } from "@/components/dashboard/invitations/block-content-editor";
-import { InvitationRenderer } from "@/components/invitation-renderer";
+import { ColorSchemeEditor } from "@/components/dashboard/invitations/color-scheme-editor";
+import { TypographyEditor, type TypographySettings } from "@/components/dashboard/invitations/typography-editor";
+import { PreviewPanel } from "@/components/dashboard/invitations/preview-panel";
 import { createDefaultConfig } from "@/types/invitation-blocks";
+import type { EventFormData } from "@/types";
 import type { Database } from "@/types/database.types";
 import type {
   InvitationConfig,
   BlockType,
+  ColorScheme,
 } from "@/types/invitation-blocks";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -33,8 +37,12 @@ export default function EditInvitationPage({ params }: PageProps) {
   const [eventId, setEventId] = useState<string | null>(null);
   const [config, setConfig] = useState<InvitationConfig | null>(null);
   const [blockContent, setBlockContent] = useState<Record<string, unknown>>({});
+  const [typography, setTypography] = useState<TypographySettings>({
+    headingFont: 'playfair',
+    bodyFont: 'inter',
+    fontScale: 'medium',
+  });
   const [saving, setSaving] = useState(false);
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   // Resolve params
   useEffect(() => {
@@ -98,6 +106,18 @@ export default function EditInvitationPage({ params }: PageProps) {
     });
   };
 
+  const handleColorSchemeChange = (colorScheme: ColorScheme) => {
+    if (!config) return;
+    setConfig({
+      ...config,
+      colorScheme,
+    });
+  };
+
+  const handleTypographyChange = (newTypography: TypographySettings) => {
+    setTypography(newTypography);
+  };
+
   const handleSave = async () => {
     if (!event || !config) return;
 
@@ -106,6 +126,12 @@ export default function EditInvitationPage({ params }: PageProps) {
       const updatedSettings = {
         ...config,
         blockContent,
+        customStyles: {
+          ...config.customStyles,
+          headingFont: typography.headingFont,
+          bodyFont: typography.bodyFont,
+          fontScale: typography.fontScale,
+        },
       };
 
       const updatedEvent = await updateEvent(event.id, {
@@ -172,97 +198,81 @@ export default function EditInvitationPage({ params }: PageProps) {
 
       {/* Editor and Preview */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Left: Content Editor */}
+        {/* Left: Editors */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Editor de Contenido</CardTitle>
-              <CardDescription>
-                Edita el contenido de cada bloque habilitado
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue={enabledBlocks[0]?.type} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4">
-                  {enabledBlocks.slice(0, 8).map(block => (
-                    <TabsTrigger key={block.type} value={block.type}>
-                      {block.type}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+          <Tabs defaultValue="content" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="content">Contenido</TabsTrigger>
+              <TabsTrigger value="colors">Colores</TabsTrigger>
+              <TabsTrigger value="typography">Tipografía</TabsTrigger>
+            </TabsList>
 
-                {enabledBlocks.map(block => (
-                  <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
-                    <BlockContentEditor
-                      blockType={block.type}
-                      data={blockContent[block.type] || {}}
-                      onChange={(data) => handleBlockContentChange(block.type, data)}
-                      eventId={event.id}
-                    />
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </CardContent>
-          </Card>
+            {/* Content Tab */}
+            <TabsContent value="content" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Editor de Contenido</CardTitle>
+                  <CardDescription>
+                    Edita el contenido de cada bloque habilitado
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue={enabledBlocks[0]?.type} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4">
+                      {enabledBlocks.slice(0, 8).map(block => (
+                        <TabsTrigger key={block.type} value={block.type}>
+                          {block.type}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+
+                    {enabledBlocks.map(block => (
+                      <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
+                        <BlockContentEditor
+                          blockType={block.type}
+                          data={blockContent[block.type] || {}}
+                          onChange={(data) => handleBlockContentChange(block.type, data)}
+                          eventId={event.id}
+                        />
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Colors Tab */}
+            <TabsContent value="colors" className="mt-6">
+              <ColorSchemeEditor
+                colorScheme={config.colorScheme}
+                onChange={handleColorSchemeChange}
+              />
+            </TabsContent>
+
+            {/* Typography Tab */}
+            <TabsContent value="typography" className="mt-6">
+              <TypographyEditor
+                typography={typography}
+                onChange={handleTypographyChange}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Right: Live Preview */}
-        <div className="space-y-6 lg:sticky lg:top-6 lg:h-[calc(100vh-8rem)]">
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Vista Previa en Vivo</CardTitle>
-                  <CardDescription>
-                    Los cambios se reflejan automáticamente
-                  </CardDescription>
-                </div>
-                <div className="flex gap-1 border rounded-md">
-                  <Button
-                    variant={previewMode === 'desktop' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setPreviewMode('desktop')}
-                    className="rounded-r-none"
-                  >
-                    <Monitor className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={previewMode === 'mobile' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setPreviewMode('mobile')}
-                    className="rounded-l-none"
-                  >
-                    <Smartphone className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-hidden flex items-center justify-center bg-gray-100 p-4">
-              {previewMode === 'mobile' ? (
-                <div className="relative w-[375px] h-[667px] bg-white rounded-[2.5rem] border-[14px] border-gray-800 shadow-2xl overflow-hidden">
-                  {/* Notch simulado */}
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-gray-800 rounded-b-3xl z-10" />
-
-                  {/* Contenido scrolleable */}
-                  <div className="w-full h-full overflow-y-auto">
-                    <InvitationRenderer
-                      event={event}
-                      config={config}
-                      blockData={blockContent}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full border rounded-lg overflow-y-auto bg-white shadow-lg">
-                  <InvitationRenderer
-                    event={event}
-                    config={config}
-                    blockData={blockContent}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          <PreviewPanel
+            eventData={{
+              title: event.title,
+              date: event.date,
+              time: event.time,
+              location: event.location,
+              description: event.description || undefined,
+              template_id: event.template_id || undefined,
+            } as EventFormData}
+            invitationConfig={config}
+            blockContent={blockContent}
+          />
         </div>
       </div>
     </div>

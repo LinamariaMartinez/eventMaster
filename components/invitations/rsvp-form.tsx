@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle, XCircle, Clock, Users, Send } from "lucide-react";
-import { Invitation, Guest, guestStorage } from "@/lib/storage";
+import { Invitation, Guest } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { DataConsent, ConsentState } from "@/components/legal/data-consent";
 
@@ -57,7 +57,7 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required consent
     if (!consents.dataProcessing) {
       toast({
@@ -67,21 +67,32 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
-      // Create guest entry
-      const newGuest = guestStorage.add({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        status: formData.response,
-        eventId: invitation.eventId,
-        guestCount: formData.guestCount,
-        message: formData.message,
-        dietaryRestrictions: formData.dietaryRestrictions,
+      // Send confirmation through API endpoint
+      const response = await fetch('/api/confirmations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_id: invitation.eventId,
+          name: formData.name,
+          email: formData.email || "",
+          phone: formData.phone || "",
+          response: formData.response === "confirmed" ? "yes" : formData.response === "declined" ? "no" : "maybe",
+          guest_count: formData.guestCount,
+          dietary_restrictions: formData.dietaryRestrictions || "",
+          additional_notes: formData.message || "",
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al enviar la confirmación');
+      }
+
+      const result = await response.json();
 
       // Update invitation statistics
       const updatedStats = {
@@ -92,17 +103,30 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
 
       // Call onSubmit callback if provided
       if (onSubmit) {
-        onSubmit({ guest: newGuest, stats: updatedStats });
+        onSubmit({
+          guest: {
+            id: result.confirmation.id,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            status: formData.response,
+            eventId: invitation.eventId,
+            guestCount: formData.guestCount,
+            message: formData.message,
+            dietaryRestrictions: formData.dietaryRestrictions,
+          },
+          stats: updatedStats
+        });
       }
 
       setIsSubmitted(true);
       toast({
         title: "¡Respuesta enviada!",
         description: `Gracias ${formData.name}, hemos recibido tu ${
-          formData.response === "confirmed" 
-            ? "confirmación" 
-            : formData.response === "declined" 
-            ? "respuesta" 
+          formData.response === "confirmed"
+            ? "confirmación"
+            : formData.response === "declined"
+            ? "respuesta"
             : "respuesta"
         }.`,
       });
@@ -110,7 +134,7 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
       console.error("Error submitting RSVP:", error);
       toast({
         title: "Error",
-        description: "No se pudo enviar tu respuesta. Por favor intenta nuevamente.",
+        description: error instanceof Error ? error.message : "No se pudo enviar tu respuesta. Por favor intenta nuevamente.",
         variant: "destructive",
       });
     } finally {

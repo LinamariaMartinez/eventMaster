@@ -14,7 +14,7 @@ import { EventTypeSelector } from "@/components/dashboard/invitations/event-type
 import { BlockTogglePanel } from "@/components/dashboard/invitations/block-toggle-panel";
 import { ColorSchemeEditor } from "@/components/dashboard/invitations/color-scheme-editor";
 import { BlockContentEditor } from "@/components/dashboard/invitations/block-content-editor";
-import { InvitationRenderer } from "@/components/invitation-renderer";
+import { PreviewPanel } from "@/components/dashboard/invitations/preview-panel";
 import {
   createDefaultConfig,
   type EventType,
@@ -80,6 +80,25 @@ export default function NewEventPage() {
 
   const handleEventSubmit = async (data: EventFormData) => {
     setEventData(data);
+
+    // Auto-fill block content with event data
+    setBlockContent({
+      hero: {
+        title: data.title,
+        subtitle: data.description || '',
+        showCountdown: true,
+      },
+      location: {
+        address: data.location,
+      },
+      rsvp: {
+        allowPlusOnes: data.settings?.allowPlusOnes ?? true,
+        maxGuestsPerInvite: data.settings?.maxGuestsPerInvite ?? 5,
+        requireEmail: data.settings?.requireEmail ?? true,
+        requirePhone: data.settings?.requirePhone ?? false,
+      },
+    });
+
     setCurrentStep(2); // Move to invitation config
   };
 
@@ -224,105 +243,133 @@ export default function NewEventPage() {
 
       {/* Step 2: Event Type and Blocks */}
       {currentStep === 2 && eventData && (
-        <div className="space-y-6 max-w-4xl">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tipo de Evento</CardTitle>
-              <CardDescription>
-                Selecciona el tipo para aplicar el tema correspondiente
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EventTypeSelector
-                selectedType={invitationConfig.eventType}
-                onTypeChange={handleEventTypeChange}
+        <div className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Left: Configuration */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tipo de Evento</CardTitle>
+                  <CardDescription>
+                    Selecciona el tipo para aplicar el tema correspondiente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <EventTypeSelector
+                    selectedType={invitationConfig.eventType}
+                    onTypeChange={handleEventTypeChange}
+                  />
+                </CardContent>
+              </Card>
+
+              <BlockTogglePanel
+                eventType={invitationConfig.eventType}
+                blocks={invitationConfig.enabledBlocks}
+                onBlocksChange={handleBlocksChange}
               />
-            </CardContent>
-          </Card>
 
-          <BlockTogglePanel
-            eventType={invitationConfig.eventType}
-            blocks={invitationConfig.enabledBlocks}
-            onBlocksChange={handleBlocksChange}
-          />
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(1)}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentStep(3)}
+                  className="flex-1 bg-burgundy hover:bg-burgundy/90"
+                >
+                  Siguiente
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
 
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Anterior
-            </Button>
-            <Button
-              onClick={() => setCurrentStep(3)}
-              className="flex-1 bg-burgundy hover:bg-burgundy/90"
-            >
-              Siguiente
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+            {/* Right: Live Preview */}
+            <div className="space-y-6">
+              <PreviewPanel
+                eventData={eventData}
+                invitationConfig={invitationConfig}
+                blockContent={blockContent}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {/* Step 3: Block Content Editor */}
       {currentStep === 3 && eventData && (
-        <div className="space-y-6 max-w-4xl">
-          <Card>
-            <CardHeader>
-              <CardTitle>Editar Contenido de Bloques</CardTitle>
-              <CardDescription>
-                Configura el contenido para cada bloque habilitado (imágenes, galería, menú, cronograma, etc.)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue={invitationConfig.enabledBlocks.find(b => b.enabled)?.type || 'hero'} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 mb-4">
-                  {invitationConfig.enabledBlocks
-                    .filter(block => block.enabled)
-                    .slice(0, 8)
-                    .map(block => (
-                      <TabsTrigger key={block.type} value={block.type} className="capitalize">
-                        {block.type}
-                      </TabsTrigger>
-                    ))}
-                </TabsList>
+        <div className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Left: Block Editors */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Editar Contenido de Bloques</CardTitle>
+                  <CardDescription>
+                    Configura el contenido para cada bloque habilitado (imágenes, galería, menú, cronograma, etc.)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue={invitationConfig.enabledBlocks.find(b => b.enabled)?.type || 'hero'} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 mb-4">
+                      {invitationConfig.enabledBlocks
+                        .filter(block => block.enabled)
+                        .slice(0, 8)
+                        .map(block => (
+                          <TabsTrigger key={block.type} value={block.type} className="capitalize">
+                            {block.type}
+                          </TabsTrigger>
+                        ))}
+                    </TabsList>
 
-                {invitationConfig.enabledBlocks
-                  .filter(block => block.enabled)
-                  .map(block => (
-                    <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
-                      <BlockContentEditor
-                        blockType={block.type}
-                        data={blockContent[block.type] || {}}
-                        onChange={(data) => handleBlockContentChange(block.type, data)}
-                        eventId="preview"
-                      />
-                    </TabsContent>
-                  ))}
-              </Tabs>
-            </CardContent>
-          </Card>
+                    {invitationConfig.enabledBlocks
+                      .filter(block => block.enabled)
+                      .map(block => (
+                        <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
+                          <BlockContentEditor
+                            blockType={block.type}
+                            data={blockContent[block.type] || {}}
+                            onChange={(data) => handleBlockContentChange(block.type, data)}
+                            eventId="temp"
+                          />
+                        </TabsContent>
+                      ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
 
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(2)}
-              className="flex-1"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Anterior
-            </Button>
-            <Button
-              onClick={() => setCurrentStep(4)}
-              className="flex-1 bg-burgundy hover:bg-burgundy/90"
-            >
-              Siguiente
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(2)}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentStep(4)}
+                  className="flex-1 bg-burgundy hover:bg-burgundy/90"
+                >
+                  Siguiente
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Live Preview */}
+            <div className="space-y-6">
+              <PreviewPanel
+                eventData={eventData}
+                invitationConfig={invitationConfig}
+                blockContent={blockContent}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -361,54 +408,11 @@ export default function NewEventPage() {
 
             {/* Right: Live Preview */}
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vista Previa en Vivo</CardTitle>
-                  <CardDescription>
-                    Los cambios de color se reflejan automáticamente
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border rounded-lg overflow-hidden max-h-[600px] overflow-y-auto">
-                    <InvitationRenderer
-                      event={{
-                        id: 'preview',
-                        user_id: 'preview',
-                        title: eventData.title,
-                        description: eventData.description || null,
-                        date: eventData.date,
-                        time: eventData.time,
-                        location: eventData.location,
-                        template_id: eventData.template_id || null,
-                        settings: invitationConfig as unknown as Json,
-                        public_url: '/invite/preview',
-                        sheets_url: null,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                      }}
-                      config={invitationConfig}
-                      blockData={{
-                        hero: {
-                          title: eventData.title,
-                          subtitle: eventData.description || undefined,
-                          showCountdown: true,
-                          ...(blockContent.hero as object || {}),
-                        },
-                        location: {
-                          address: eventData.location,
-                          ...(blockContent.location as object || {}),
-                        },
-                        rsvp: {
-                          allowPlusOnes: true,
-                          maxGuestsPerInvite: 5,
-                          ...(blockContent.rsvp as object || {}),
-                        },
-                        ...blockContent,
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <PreviewPanel
+                eventData={eventData}
+                invitationConfig={invitationConfig}
+                blockContent={blockContent}
+              />
             </div>
           </div>
         </div>

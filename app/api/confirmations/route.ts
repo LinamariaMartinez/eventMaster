@@ -41,9 +41,69 @@ export async function POST(request: NextRequest) {
     type EventData = { id: string; title: string; sheets_url: string | null; settings: Database['public']['Tables']['events']['Row']['settings'] }
     const typedEvent = event as EventData
 
+    // Primero, intentar crear o actualizar el invitado en la tabla guests
+    let guestId: string | null = null
+
+    // Buscar si ya existe un guest con ese email o nombre para este evento
+    if (data.email) {
+      const { data: existingGuest } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('event_id', data.event_id)
+        .eq('email', data.email)
+        .single()
+
+      guestId = existingGuest?.id || null
+    }
+
+    const guestStatus = data.response === 'yes' ? 'confirmed' : data.response === 'no' ? 'declined' : 'pending'
+
+    if (guestId) {
+      // Actualizar guest existente
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase.from('guests').update as any)({
+        name: data.name,
+        phone: data.phone || null,
+        status: guestStatus,
+        guest_count: data.guest_count,
+        message: data.additional_notes || null,
+        dietary_restrictions: data.dietary_restrictions || null,
+      })
+        .eq('id', guestId)
+
+      if (updateError) {
+        console.error('Error updating guest:', updateError)
+      }
+    } else {
+      // Crear nuevo guest
+      const guestData: Database['public']['Tables']['guests']['Insert'] = {
+        event_id: data.event_id,
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        status: guestStatus,
+        guest_count: data.guest_count,
+        message: data.additional_notes || null,
+        dietary_restrictions: data.dietary_restrictions || null,
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: newGuest, error: guestError } = await (supabase.from('guests').insert as any)(guestData)
+        .select('id')
+        .single()
+
+      if (guestError) {
+        console.error('Error creating guest:', guestError)
+        // No fallar la confirmación si falla la creación del guest
+      } else {
+        guestId = newGuest.id
+      }
+    }
+
     // Crear la confirmación en la base de datos
     const confirmationData: Database['public']['Tables']['confirmations']['Insert'] = {
       event_id: data.event_id,
+      guest_id: guestId,
       name: data.name,
       email: data.email || null,
       phone: data.phone || null,
@@ -90,24 +150,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // También buscar si hay un guest existente con ese email/nombre
-    if (data.email) {
-      const guestUpdate = {
-        status: data.response === 'yes' ? 'confirmed' : data.response === 'no' ? 'declined' : 'pending',
-        guest_count: data.guest_count,
-        message: data.additional_notes || null,
-        dietary_restrictions: data.dietary_restrictions || null
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: updateError } = await (supabase.from('guests').update as any)(guestUpdate)
-        .eq('event_id', data.event_id)
-        .eq('email', data.email)
-
-      if (updateError) {
-        console.error('Error updating guest status:', updateError)
-      }
-    }
 
     return NextResponse.json({
       message: 'Confirmación recibida exitosamente',

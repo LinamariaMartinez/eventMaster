@@ -18,12 +18,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import type { RsvpBlockData, ColorScheme } from "@/types/invitation-blocks";
-import type { Database } from "@/types/database.types";
-
-type GuestInsert = Database['public']['Tables']['guests']['Insert'];
-type ConfirmationInsert = Database['public']['Tables']['confirmations']['Insert'];
 
 interface RsvpBlockProps {
   data: RsvpBlockData;
@@ -80,85 +75,32 @@ export function RsvpBlock({
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
+      // Send confirmation through API endpoint
+      const response = await fetch('/api/confirmations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_id: eventId,
+          name: formData.name,
+          email: formData.email || "",
+          phone: formData.phone || "",
+          response: formData.response,
+          guest_count: formData.guest_count,
+          dietary_restrictions: formData.dietary_restrictions || "",
+          additional_notes: formData.additional_notes || "",
+        }),
+      });
 
-      // Save guest data
-      const guestData: GuestInsert = {
-        event_id: eventId,
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        status: formData.response === "yes" ? "confirmed" : formData.response === "no" ? "declined" : "pending",
-        guest_count: formData.guest_count,
-        message: formData.additional_notes || null,
-        dietary_restrictions: formData.dietary_restrictions || null,
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: savedGuest, error: guestError } = await (supabase.from('guests').insert as any)(guestData)
-        .select()
-        .single();
-
-      if (guestError) {
-        throw guestError;
-      }
-
-      // Save to confirmations table
-      const confirmationData: ConfirmationInsert = {
-        event_id: eventId,
-        guest_id: savedGuest.id,
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        response: formData.response,
-        guest_count: formData.guest_count,
-        dietary_restrictions: formData.dietary_restrictions || null,
-        additional_notes: formData.additional_notes || null,
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: confirmationError } = await (supabase.from('confirmations').insert as any)(confirmationData);
-
-      if (confirmationError) {
-        console.error('Error saving confirmation:', confirmationError);
-      }
-
-      // Sync with Google Sheets if confirmed
-      if (formData.response === "yes") {
-        try {
-          await fetch('/api/google-sheets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'confirm_guest',
-              guestData: {
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                status: 'confirmed',
-                guest_count: formData.guest_count,
-                dietary_restrictions: formData.dietary_restrictions,
-                message: formData.additional_notes,
-              },
-              eventData: {
-                id: eventId,
-                title: eventTitle,
-                date: eventDate,
-                time: eventTime,
-                location: eventLocation,
-              },
-            }),
-          });
-        } catch (sheetsError) {
-          console.error('Error syncing with Google Sheets:', sheetsError);
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al enviar la confirmación');
       }
 
       setIsSubmitted(true);
       toast.success("¡Confirmación enviada exitosamente!");
     } catch (error) {
       console.error("Error submitting confirmation:", error);
-      toast.error("Error al enviar la confirmación");
+      toast.error(error instanceof Error ? error.message : "Error al enviar la confirmación");
     } finally {
       setIsLoading(false);
     }
