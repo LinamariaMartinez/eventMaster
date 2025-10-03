@@ -1,9 +1,0 @@
-security: remove exposed Supabase secrets from DEPLOYMENT.md
-
-Replace actual secrets with placeholder values to prevent credential exposure.
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>==>security: remove exposed Supabase secrets from DEPLOYMENT.md
-
-Replace actual secrets with placeholder values to prevent credential exposure.

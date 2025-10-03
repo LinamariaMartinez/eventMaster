@@ -46,14 +46,15 @@ export async function POST(request: NextRequest) {
 
     // Buscar si ya existe un guest con ese email o nombre para este evento
     if (data.email) {
+      type GuestIdResult = { id: string } | null
       const { data: existingGuest } = await supabase
         .from('guests')
         .select('id')
         .eq('event_id', data.event_id)
         .eq('email', data.email)
-        .single()
+        .maybeSingle()
 
-      guestId = existingGuest?.id || null
+      guestId = (existingGuest as GuestIdResult)?.id || null
     }
 
     const guestStatus = data.response === 'yes' ? 'confirmed' : data.response === 'no' ? 'declined' : 'pending'

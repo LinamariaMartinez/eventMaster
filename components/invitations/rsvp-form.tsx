@@ -114,6 +114,8 @@ export function RSVPForm({ invitation, onSubmit }: RSVPFormProps) {
             guestCount: formData.guestCount,
             message: formData.message,
             dietaryRestrictions: formData.dietaryRestrictions,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           },
           stats: updatedStats
         });

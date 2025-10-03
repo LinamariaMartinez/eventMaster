@@ -57,10 +57,10 @@ export function InvitationRenderer({
     poppins: '"Poppins", sans-serif',
   };
 
-  const headingFont = config.customStyles?.headingFont ? fontMap[config.customStyles.headingFont as string] || fontMap.playfair : fontMap.playfair;
-  const bodyFont = config.customStyles?.bodyFont ? fontMap[config.customStyles.bodyFont as string] || fontMap.inter : fontMap.inter;
+  const headingFont = config.customStyles?.headerFont ? fontMap[config.customStyles.headerFont as string] || fontMap.playfair : fontMap.playfair;
+  const bodyFont = config.customStyles?.fontFamily ? fontMap[config.customStyles.fontFamily as string] || fontMap.inter : fontMap.inter;
 
-  const fontScale = config.customStyles?.fontScale as string || 'medium';
+  const fontScale = config.customStyles?.fontSize as string || 'medium';
   const scaleMultiplier = fontScale === 'small' ? 0.9 : fontScale === 'large' ? 1.1 : 1;
 
   // Render individual block based on type

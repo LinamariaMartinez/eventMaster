@@ -48,9 +48,6 @@ export function RsvpBlock({
   data,
   eventId,
   eventTitle,
-  eventDate,
-  eventTime,
-  eventLocation,
   colorScheme,
 }: RsvpBlockProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
