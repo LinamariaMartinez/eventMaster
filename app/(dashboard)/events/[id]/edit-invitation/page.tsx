@@ -140,6 +140,7 @@ export default function EditInvitationPage({ params }: PageProps) {
 
       if (updatedEvent) {
         toast.success("Invitación actualizada exitosamente");
+        router.push(`/events/${event.id}`);
       } else {
         throw new Error("No se pudo actualizar el evento");
       }

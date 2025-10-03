@@ -16,9 +16,13 @@ import type {
   MenuBlockData,
   RsvpBlockData,
   GalleryBlockData,
+  StoryBlockData,
+  GiftsBlockData,
+  DressCodeBlockData,
+  FaqBlockData,
 } from "@/types/invitation-blocks";
 
-type BlockData = HeroBlockData | TimelineBlockData | LocationBlockData | MenuBlockData | RsvpBlockData | Record<string, unknown>;
+type BlockData = HeroBlockData | TimelineBlockData | LocationBlockData | MenuBlockData | RsvpBlockData | GalleryBlockData | StoryBlockData | GiftsBlockData | DressCodeBlockData | FaqBlockData | Record<string, unknown>;
 
 interface BlockContentEditorProps {
   blockType: BlockType;
@@ -42,13 +46,13 @@ export function BlockContentEditor({ blockType, data, onChange, eventId = 'defau
     case 'gallery':
       return <GalleryEditor data={data as GalleryBlockData} onChange={onChange as (data: GalleryBlockData) => void} eventId={eventId} />;
     case 'story':
-      return <StoryEditor />;
+      return <StoryEditor data={data as StoryBlockData} onChange={onChange as (data: StoryBlockData) => void} eventId={eventId} />;
     case 'gifts':
-      return <GiftsEditor />;
+      return <GiftsEditor data={data as GiftsBlockData} onChange={onChange as (data: GiftsBlockData) => void} />;
     case 'dresscode':
-      return <DressCodeEditor />;
+      return <DressCodeEditor data={data as DressCodeBlockData} onChange={onChange as (data: DressCodeBlockData) => void} eventId={eventId} />;
     case 'faq':
-      return <FaqEditor />;
+      return <FaqEditor data={data as FaqBlockData} onChange={onChange as (data: FaqBlockData) => void} />;
     default:
       return <div className="text-gray-500">Editor para este bloque próximamente</div>;
   }
@@ -569,18 +573,405 @@ function GalleryEditor({
   );
 }
 
-function StoryEditor() {
-  return <div className="text-gray-500 p-4">Editor de historia próximamente</div>;
+// Story Block Editor
+function StoryEditor({
+  data,
+  onChange,
+  eventId
+}: {
+  data: StoryBlockData;
+  onChange: (data: StoryBlockData) => void;
+  eventId: string;
+}) {
+  const addTimelineItem = () => {
+    const currentTimeline = data.timeline || [];
+    onChange({
+      ...data,
+      timeline: [...currentTimeline, { year: '', event: '' }]
+    });
+  };
+
+  const removeTimelineItem = (index: number) => {
+    const newTimeline = (data.timeline || []).filter((_, i) => i !== index);
+    onChange({ ...data, timeline: newTimeline });
+  };
+
+  const updateTimelineItem = (index: number, field: 'year' | 'event', value: string) => {
+    const newTimeline = [...(data.timeline || [])];
+    newTimeline[index] = { ...newTimeline[index], [field]: value };
+    onChange({ ...data, timeline: newTimeline });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="story-title">Título</Label>
+        <Input
+          id="story-title"
+          value={data.title || ''}
+          onChange={(e) => onChange({ ...data, title: e.target.value })}
+          placeholder="Ej: Nuestra Historia"
+        />
+      </div>
+      <div>
+        <Label htmlFor="story-content">Historia</Label>
+        <Textarea
+          id="story-content"
+          value={data.content || ''}
+          onChange={(e) => onChange({ ...data, content: e.target.value })}
+          placeholder="Cuéntanos tu historia..."
+          rows={6}
+        />
+      </div>
+      <div>
+        <ImageUploader
+          value={data.image}
+          onChange={(url) => onChange({ ...data, image: url })}
+          eventId={eventId}
+          label="Imagen (opcional)"
+          aspectRatio="16/9"
+        />
+      </div>
+
+      <div className="border-t pt-4 mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <Label>Momentos Importantes (opcional)</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addTimelineItem}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Agregar
+          </Button>
+        </div>
+        <div className="space-y-3">
+          {(data.timeline || []).map((item, index) => (
+            <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
+              <Input
+                value={item.year}
+                onChange={(e) => updateTimelineItem(index, 'year', e.target.value)}
+                placeholder="Año"
+                className="w-24"
+              />
+              <Input
+                value={item.event}
+                onChange={(e) => updateTimelineItem(index, 'event', e.target.value)}
+                placeholder="Evento"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeTimelineItem(index)}
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function GiftsEditor() {
-  return <div className="text-gray-500 p-4">Editor de regalos próximamente</div>;
+// Gifts Block Editor
+function GiftsEditor({
+  data,
+  onChange
+}: {
+  data: GiftsBlockData;
+  onChange: (data: GiftsBlockData) => void;
+}) {
+  const addRegistry = () => {
+    const currentRegistries = data.registries || [];
+    onChange({
+      ...data,
+      registries: [...currentRegistries, { name: '', url: '' }]
+    });
+  };
+
+  const removeRegistry = (index: number) => {
+    const newRegistries = (data.registries || []).filter((_, i) => i !== index);
+    onChange({ ...data, registries: newRegistries });
+  };
+
+  const updateRegistry = (index: number, field: 'name' | 'url', value: string) => {
+    const newRegistries = [...(data.registries || [])];
+    newRegistries[index] = { ...newRegistries[index], [field]: value };
+    onChange({ ...data, registries: newRegistries });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="gifts-message">Mensaje (opcional)</Label>
+        <Textarea
+          id="gifts-message"
+          value={data.message || ''}
+          onChange={(e) => onChange({ ...data, message: e.target.value })}
+          placeholder="Tu presencia es nuestro mejor regalo..."
+          rows={3}
+        />
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <Label>Links de Registro</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addRegistry}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Agregar
+          </Button>
+        </div>
+        <div className="space-y-3">
+          {(data.registries || []).map((registry, index) => (
+            <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
+              <div className="flex-1 space-y-2">
+                <Input
+                  value={registry.name}
+                  onChange={(e) => updateRegistry(index, 'name', e.target.value)}
+                  placeholder="Nombre (Ej: Amazon, Liverpool)"
+                />
+                <Input
+                  value={registry.url}
+                  onChange={(e) => updateRegistry(index, 'url', e.target.value)}
+                  placeholder="URL completa"
+                  type="url"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeRegistry(index)}
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center space-x-2 mb-3">
+          <Switch
+            id="show-bank"
+            checked={data.showBankAccount || false}
+            onCheckedChange={(checked) => onChange({ ...data, showBankAccount: checked })}
+          />
+          <Label htmlFor="show-bank">Mostrar datos bancarios</Label>
+        </div>
+        {data.showBankAccount && (
+          <div className="space-y-3 pl-6">
+            <Input
+              value={data.bankDetails?.accountName || ''}
+              onChange={(e) => onChange({
+                ...data,
+                bankDetails: { ...data.bankDetails!, accountName: e.target.value }
+              })}
+              placeholder="Nombre del titular"
+            />
+            <Input
+              value={data.bankDetails?.bank || ''}
+              onChange={(e) => onChange({
+                ...data,
+                bankDetails: { ...data.bankDetails!, bank: e.target.value }
+              })}
+              placeholder="Banco"
+            />
+            <Input
+              value={data.bankDetails?.accountType || ''}
+              onChange={(e) => onChange({
+                ...data,
+                bankDetails: { ...data.bankDetails!, accountType: e.target.value }
+              })}
+              placeholder="Tipo de cuenta (Ahorros/Corriente)"
+            />
+            <Input
+              value={data.bankDetails?.accountNumber || ''}
+              onChange={(e) => onChange({
+                ...data,
+                bankDetails: { ...data.bankDetails!, accountNumber: e.target.value }
+              })}
+              placeholder="Número de cuenta"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-function DressCodeEditor() {
-  return <div className="text-gray-500 p-4">Editor de código de vestimenta próximamente</div>;
+// DressCode Block Editor
+function DressCodeEditor({
+  data,
+  onChange,
+  eventId
+}: {
+  data: DressCodeBlockData;
+  onChange: (data: DressCodeBlockData) => void;
+  eventId: string;
+}) {
+  const addExample = () => {
+    const currentExamples = data.examples || [];
+    onChange({ ...data, examples: [...currentExamples, ''] });
+  };
+
+  const removeExample = (index: number) => {
+    const newExamples = (data.examples || []).filter((_, i) => i !== index);
+    onChange({ ...data, examples: newExamples });
+  };
+
+  const updateExample = (index: number, value: string) => {
+    const newExamples = [...(data.examples || [])];
+    newExamples[index] = value;
+    onChange({ ...data, examples: newExamples });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="dresscode-code">Código de Vestimenta</Label>
+        <Input
+          id="dresscode-code"
+          value={data.code || ''}
+          onChange={(e) => onChange({ ...data, code: e.target.value })}
+          placeholder="Ej: Formal, Semi-formal, Casual Elegante"
+        />
+      </div>
+      <div>
+        <Label htmlFor="dresscode-description">Descripción (opcional)</Label>
+        <Textarea
+          id="dresscode-description"
+          value={data.description || ''}
+          onChange={(e) => onChange({ ...data, description: e.target.value })}
+          placeholder="Descripción adicional..."
+          rows={3}
+        />
+      </div>
+      <div>
+        <ImageUploader
+          value={data.image}
+          onChange={(url) => onChange({ ...data, image: url })}
+          eventId={eventId}
+          label="Imagen de referencia (opcional)"
+          aspectRatio="4/3"
+        />
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <Label>Sugerencias (opcional)</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addExample}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Agregar
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {(data.examples || []).map((example, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                value={example}
+                onChange={(e) => updateExample(index, e.target.value)}
+                placeholder="Ej: Vestido largo para damas"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeExample(index)}
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function FaqEditor() {
-  return <div className="text-gray-500 p-4">Editor de preguntas frecuentes próximamente</div>;
+// FAQ Block Editor
+function FaqEditor({
+  data,
+  onChange
+}: {
+  data: FaqBlockData;
+  onChange: (data: FaqBlockData) => void;
+}) {
+  const addQuestion = () => {
+    const currentQuestions = data.questions || [];
+    onChange({
+      ...data,
+      questions: [...currentQuestions, { question: '', answer: '' }]
+    });
+  };
+
+  const removeQuestion = (index: number) => {
+    const newQuestions = (data.questions || []).filter((_, i) => i !== index);
+    onChange({ ...data, questions: newQuestions });
+  };
+
+  const updateQuestion = (index: number, field: 'question' | 'answer', value: string) => {
+    const newQuestions = [...(data.questions || [])];
+    newQuestions[index] = { ...newQuestions[index], [field]: value };
+    onChange({ ...data, questions: newQuestions });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label>Preguntas y Respuestas</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addQuestion}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Agregar Pregunta
+        </Button>
+      </div>
+      <div className="space-y-4">
+        {(data.questions || []).map((item, index) => (
+          <div key={index} className="p-4 border rounded-lg space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-sm font-medium text-gray-600">#{index + 1}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeQuestion(index)}
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </div>
+            <Input
+              value={item.question}
+              onChange={(e) => updateQuestion(index, 'question', e.target.value)}
+              placeholder="Pregunta"
+            />
+            <Textarea
+              value={item.answer}
+              onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
+              placeholder="Respuesta"
+              rows={3}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -8,6 +8,10 @@ export { LocationBlock } from './location-block';
 export { MenuBlock } from './menu-block';
 export { RsvpBlock } from './rsvp-block';
 export { GalleryBlock } from './gallery-block';
+export { StoryBlock } from './story-block';
+export { GiftsBlock } from './gifts-block';
+export { DressCodeBlock } from './dresscode-block';
+export { FaqBlock } from './faq-block';
 
 // Re-export types for convenience
 export type {
@@ -22,4 +26,8 @@ export type {
   MenuBlockData,
   RsvpBlockData,
   GalleryBlockData,
+  StoryBlockData,
+  GiftsBlockData,
+  DressCodeBlockData,
+  FaqBlockData,
 } from '@/types/invitation-blocks';

@@ -10,6 +10,10 @@ import type {
   MenuBlockData,
   RsvpBlockData,
   GalleryBlockData,
+  StoryBlockData,
+  GiftsBlockData,
+  DressCodeBlockData,
+  FaqBlockData,
 } from "@/types/invitation-blocks";
 import {
   HeroBlock,
@@ -18,6 +22,10 @@ import {
   MenuBlock,
   RsvpBlock,
   GalleryBlock,
+  StoryBlock,
+  GiftsBlock,
+  DressCodeBlock,
+  FaqBlock,
 } from "@/components/invitation-blocks";
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -32,6 +40,10 @@ interface InvitationRendererProps {
     menu?: MenuBlockData;
     rsvp?: RsvpBlockData;
     gallery?: GalleryBlockData;
+    story?: StoryBlockData;
+    gifts?: GiftsBlockData;
+    dresscode?: DressCodeBlockData;
+    faq?: FaqBlockData;
   };
 }
 
@@ -142,21 +154,44 @@ export function InvitationRenderer({
           />
         );
 
-      // Additional blocks can be added here in the future
       case 'story':
-      case 'gifts':
-      case 'dresscode':
-      case 'faq':
+        if (!blockData.story) return null;
         return (
-          <div
-            key={`${type}-${blockConfig.order}`}
-            className="py-16 px-4 text-center"
-            style={{ backgroundColor: colorScheme.background }}
-          >
-            <p style={{ color: colorScheme.textLight }}>
-              El bloque &quot;{type}&quot; estará disponible próximamente
-            </p>
-          </div>
+          <StoryBlock
+            key={`story-${blockConfig.order}`}
+            data={blockData.story}
+            colorScheme={colorScheme}
+          />
+        );
+
+      case 'gifts':
+        if (!blockData.gifts) return null;
+        return (
+          <GiftsBlock
+            key={`gifts-${blockConfig.order}`}
+            data={blockData.gifts}
+            colorScheme={colorScheme}
+          />
+        );
+
+      case 'dresscode':
+        if (!blockData.dresscode) return null;
+        return (
+          <DressCodeBlock
+            key={`dresscode-${blockConfig.order}`}
+            data={blockData.dresscode}
+            colorScheme={colorScheme}
+          />
+        );
+
+      case 'faq':
+        if (!blockData.faq) return null;
+        return (
+          <FaqBlock
+            key={`faq-${blockConfig.order}`}
+            data={blockData.faq}
+            colorScheme={colorScheme}
+          />
         );
 
       default:

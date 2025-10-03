@@ -100,6 +100,7 @@ export default function InvitationSetupPage({ params }: PageProps) {
 
       if (updatedEvent) {
         toast.success("Configuración de invitación guardada");
+        router.push(`/events/${event.id}`);
       } else {
         throw new Error("No se pudo actualizar el evento");
       }

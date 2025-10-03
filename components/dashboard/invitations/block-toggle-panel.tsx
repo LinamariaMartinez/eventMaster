@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { GripVertical, Eye, EyeOff } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import type { BlockConfig, EventType } from "@/types/invitation-blocks";
 
 interface BlockTogglePanelProps {
@@ -101,7 +101,7 @@ export function BlockTogglePanel({ blocks, onBlocksChange }: BlockTogglePanelPro
       <CardHeader>
         <CardTitle>Bloques de la Invitación</CardTitle>
         <CardDescription>
-          Activa/desactiva bloques y arrastra para reordenar
+          Usa el switch para activar/desactivar bloques. Arrastra para reordenarlos.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -113,38 +113,52 @@ export function BlockTogglePanel({ blocks, onBlocksChange }: BlockTogglePanelPro
             return (
               <div
                 key={block.type}
-                draggable
-                onDragStart={() => handleDragStart(block)}
-                onDragOver={handleDragOver}
-                onDrop={() => handleDrop(block)}
-                className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-move ${
+                className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
                   block.enabled
-                    ? 'bg-white border-gray-200 hover:border-gray-300'
-                    : 'bg-gray-50 border-gray-100 opacity-60'
+                    ? 'bg-white border-burgundy/30 hover:border-burgundy/50 shadow-sm'
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                 }`}
               >
                 {/* Drag handle */}
-                <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <div
+                  draggable
+                  onDragStart={() => handleDragStart(block)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(block)}
+                  className="cursor-move"
+                >
+                  <GripVertical className={`h-5 w-5 flex-shrink-0 ${block.enabled ? 'text-burgundy' : 'text-gray-400'}`} />
+                </div>
 
                 {/* Block info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`font-semibold text-sm ${block.enabled ? 'text-burgundy' : 'text-gray-500'}`}>
+                      {label.name}
+                    </span>
                     {block.enabled ? (
-                      <Eye className="h-4 w-4 text-green-600" />
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                        Activo
+                      </span>
                     ) : (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                        Inactivo
+                      </span>
                     )}
-                    <span className="font-medium text-sm">{label.name}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{label.description}</p>
+                  <p className="text-xs text-gray-500">{label.description}</p>
                 </div>
 
                 {/* Toggle switch */}
-                <Switch
-                  checked={block.enabled}
-                  onCheckedChange={() => toggleBlock(block.type)}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="flex flex-col items-end gap-1">
+                  <Switch
+                    checked={block.enabled}
+                    onCheckedChange={() => toggleBlock(block.type)}
+                  />
+                  <span className="text-xs text-gray-400">
+                    {block.enabled ? 'ON' : 'OFF'}
+                  </span>
+                </div>
               </div>
             );
           })}

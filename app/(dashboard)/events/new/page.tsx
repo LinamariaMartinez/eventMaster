@@ -214,19 +214,63 @@ export default function NewEventPage() {
       {/* Progress */}
       <div className="max-w-4xl">
         <Progress value={progress} className="h-2" />
-        <div className="flex justify-between mt-2 text-sm text-gray-600">
-          <span className={currentStep === 1 ? "font-semibold text-burgundy" : ""}>
+        <div className="flex justify-between mt-2 text-sm">
+          <button
+            type="button"
+            onClick={() => eventData && setCurrentStep(1)}
+            disabled={!eventData}
+            className={`transition-colors ${
+              currentStep === 1
+                ? "font-semibold text-burgundy"
+                : eventData
+                  ? "text-gray-600 hover:text-burgundy cursor-pointer"
+                  : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
             1. Información
-          </span>
-          <span className={currentStep === 2 ? "font-semibold text-burgundy" : ""}>
+          </button>
+          <button
+            type="button"
+            onClick={() => eventData && setCurrentStep(2)}
+            disabled={!eventData}
+            className={`transition-colors ${
+              currentStep === 2
+                ? "font-semibold text-burgundy"
+                : eventData
+                  ? "text-gray-600 hover:text-burgundy cursor-pointer"
+                  : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
             2. Tipo y Bloques
-          </span>
-          <span className={currentStep === 3 ? "font-semibold text-burgundy" : ""}>
+          </button>
+          <button
+            type="button"
+            onClick={() => eventData && setCurrentStep(3)}
+            disabled={!eventData}
+            className={`transition-colors ${
+              currentStep === 3
+                ? "font-semibold text-burgundy"
+                : eventData
+                  ? "text-gray-600 hover:text-burgundy cursor-pointer"
+                  : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
             3. Contenido
-          </span>
-          <span className={currentStep === 4 ? "font-semibold text-burgundy" : ""}>
+          </button>
+          <button
+            type="button"
+            onClick={() => eventData && setCurrentStep(4)}
+            disabled={!eventData}
+            className={`transition-colors ${
+              currentStep === 4
+                ? "font-semibold text-burgundy"
+                : eventData
+                  ? "text-gray-600 hover:text-burgundy cursor-pointer"
+                  : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
             4. Colores
-          </span>
+          </button>
         </div>
       </div>
 
@@ -310,35 +354,49 @@ export default function NewEventPage() {
                 <CardHeader>
                   <CardTitle>Editar Contenido de Bloques</CardTitle>
                   <CardDescription>
-                    Configura el contenido para cada bloque habilitado (imágenes, galería, menú, cronograma, etc.)
+                    Solo bloques activos. Para activar/desactivar bloques, ve al paso anterior.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue={invitationConfig.enabledBlocks.find(b => b.enabled)?.type || 'hero'} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 mb-4">
+                  {invitationConfig.enabledBlocks.filter(b => b.enabled).length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500 mb-4">No hay bloques activos</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setCurrentStep(2)}
+                        className="text-burgundy border-burgundy hover:bg-burgundy/10"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Ir a Activar Bloques
+                      </Button>
+                    </div>
+                  ) : (
+                    <Tabs defaultValue={invitationConfig.enabledBlocks.find(b => b.enabled)?.type || 'hero'} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 mb-4">
+                        {invitationConfig.enabledBlocks
+                          .filter(block => block.enabled)
+                          .slice(0, 8)
+                          .map(block => (
+                            <TabsTrigger key={block.type} value={block.type} className="capitalize">
+                              {block.type}
+                            </TabsTrigger>
+                          ))}
+                      </TabsList>
+
                       {invitationConfig.enabledBlocks
                         .filter(block => block.enabled)
-                        .slice(0, 8)
                         .map(block => (
-                          <TabsTrigger key={block.type} value={block.type} className="capitalize">
-                            {block.type}
-                          </TabsTrigger>
+                          <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
+                            <BlockContentEditor
+                              blockType={block.type}
+                              data={blockContent[block.type] || {}}
+                              onChange={(data) => handleBlockContentChange(block.type, data)}
+                              eventId="temp"
+                            />
+                          </TabsContent>
                         ))}
-                    </TabsList>
-
-                    {invitationConfig.enabledBlocks
-                      .filter(block => block.enabled)
-                      .map(block => (
-                        <TabsContent key={block.type} value={block.type} className="space-y-4 mt-4">
-                          <BlockContentEditor
-                            blockType={block.type}
-                            data={blockContent[block.type] || {}}
-                            onChange={(data) => handleBlockContentChange(block.type, data)}
-                            eventId="temp"
-                          />
-                        </TabsContent>
-                      ))}
-                  </Tabs>
+                    </Tabs>
+                  )}
                 </CardContent>
               </Card>
 
