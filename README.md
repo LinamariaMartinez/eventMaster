@@ -114,4 +114,8 @@ Para configuración completa, consulta [SETUP.md](./SETUP.md)
 - **Google Sheets API** - Sincronización automática
 - **Radix UI** - Componentes accesibles
 
+## Acceso prueba
+usuario: admin@eventmaster.com
+password: demo1234
+
 ¡Convierte cada evento en una experiencia inolvidable! ✨
