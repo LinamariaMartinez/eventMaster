@@ -79,7 +79,7 @@ export function CSVImportDialog({ eventId, onImport }: CSVImportDialogProps) {
       skipEmptyLines: true,
       transformHeader: (header) => header.toLowerCase().trim(),
       complete: (results) => {
-        const guests: ParsedGuest[] = results.data.map((row, index) => {
+        const guests: ParsedGuest[] = results.data.map((row) => {
           const errors: string[] = [];
 
           // Extract name (required)
@@ -130,7 +130,7 @@ export function CSVImportDialog({ eventId, onImport }: CSVImportDialogProps) {
           toast.success(`${validCount} invitados listos para importar`);
         }
       },
-      error: (error) => {
+      error: (error: Error) => {
         toast.error(`Error al parsear CSV: ${error.message}`);
         console.error('CSV Parse Error:', error);
       },

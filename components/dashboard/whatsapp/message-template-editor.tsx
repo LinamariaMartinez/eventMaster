@@ -90,7 +90,7 @@ export function MessageTemplateEditor({
       setCopied(true);
       toast.success('Vista previa copiada');
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast.error('Error al copiar');
     }
   };

@@ -46,6 +46,10 @@ export interface Guest {
   guest_count: number;
   message: string | null;
   dietary_restrictions: string | null;
+  whatsapp_sent: boolean;
+  whatsapp_sent_at: string | null;
+  invitation_opened: boolean;
+  invitation_opened_at: string | null;
   created_at: string;
   // Legacy fields for compatibility
   eventId?: string;
@@ -84,6 +88,10 @@ export default function GuestsPage() {
         message: guest.message,
         dietary_restrictions: guest.dietary_restrictions,
         dietaryRestrictions: guest.dietary_restrictions || undefined, // Legacy compatibility
+        whatsapp_sent: guest.whatsapp_sent,
+        whatsapp_sent_at: guest.whatsapp_sent_at,
+        invitation_opened: guest.invitation_opened,
+        invitation_opened_at: guest.invitation_opened_at,
         created_at: guest.created_at,
         createdAt: guest.created_at, // Legacy compatibility
         eventName: events.find(e => e.id === guest.event_id)?.title,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -118,7 +118,7 @@ export function BulkWhatsAppSender({
       setCopiedId(guest.id);
       toast.success('Mensaje copiado');
       setTimeout(() => setCopiedId(null), 2000);
-    } catch (error) {
+    } catch {
       toast.error('Error al copiar mensaje');
     }
   };
@@ -132,7 +132,7 @@ export function BulkWhatsAppSender({
     try {
       await navigator.clipboard.writeText(allLinks);
       toast.success('Todos los enlaces copiados');
-    } catch (error) {
+    } catch {
       toast.error('Error al copiar enlaces');
     }
   };
