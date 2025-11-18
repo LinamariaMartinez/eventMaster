@@ -48,11 +48,13 @@ export default function EventWhatsAppPage() {
   const eventGuests = getGuestsByEvent(eventId);
 
   useEffect(() => {
-    if (!eventsLoading && !event) {
+    // Only show error if events have loaded and we still don't have the event
+    if (!eventsLoading && events.length > 0 && !event) {
+      console.log('Event not found. EventId:', eventId, 'Available events:', events.map(e => e.id));
       toast.error("Evento no encontrado");
-      router.push("/events");
+      setTimeout(() => router.push("/events"), 2000);
     }
-  }, [event, eventsLoading, router]);
+  }, [event, eventsLoading, events, eventId, router]);
 
   const handleImportGuests = async (guestsToImport: GuestInsert[]) => {
     try {
@@ -94,14 +96,23 @@ export default function EventWhatsAppPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando...</p>
+          <p className="text-muted-foreground">Cargando evento...</p>
+          <p className="text-xs text-muted-foreground mt-2">ID: {eventId}</p>
         </div>
       </div>
     );
   }
 
   if (!event) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Evento no encontrado</p>
+          <p className="text-xs text-muted-foreground">ID buscado: {eventId}</p>
+          <p className="text-xs text-muted-foreground">Eventos disponibles: {events.length}</p>
+        </div>
+      </div>
+    );
   }
 
   const invitationBaseUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${event.id}`;
