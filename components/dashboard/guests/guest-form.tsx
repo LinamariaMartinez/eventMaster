@@ -70,6 +70,10 @@ export function GuestForm({ initialData, onSubmit, onCancel, events }: GuestForm
       event_id: formData.eventId,
       guest_count: formData.guestCount,
       dietary_restrictions: formData.dietaryRestrictions,
+      whatsapp_sent: false,
+      whatsapp_sent_at: null,
+      invitation_opened: false,
+      invitation_opened_at: null,
       created_at: new Date().toISOString(),
       eventName,
     });

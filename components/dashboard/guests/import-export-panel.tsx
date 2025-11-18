@@ -107,6 +107,10 @@ export function ImportExportPanel({ guests, onImport }: ImportExportPanelProps) 
               guest_count: 1, // Default guest count
               message: null,
               dietary_restrictions: null,
+              whatsapp_sent: false,
+              whatsapp_sent_at: null,
+              invitation_opened: false,
+              invitation_opened_at: null,
               created_at: now,
               // Legacy camelCase properties for compatibility
               eventId: "default-event",

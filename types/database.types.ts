@@ -67,6 +67,10 @@ export interface Database {
           guest_count: number
           message: string | null
           dietary_restrictions: string | null
+          whatsapp_sent: boolean
+          whatsapp_sent_at: string | null
+          invitation_opened: boolean
+          invitation_opened_at: string | null
           created_at: string
         }
         Insert: {
@@ -79,6 +83,10 @@ export interface Database {
           guest_count?: number
           message?: string | null
           dietary_restrictions?: string | null
+          whatsapp_sent?: boolean
+          whatsapp_sent_at?: string | null
+          invitation_opened?: boolean
+          invitation_opened_at?: string | null
           created_at?: string
         }
         Update: {
@@ -91,6 +99,10 @@ export interface Database {
           guest_count?: number
           message?: string | null
           dietary_restrictions?: string | null
+          whatsapp_sent?: boolean
+          whatsapp_sent_at?: string | null
+          invitation_opened?: boolean
+          invitation_opened_at?: string | null
           created_at?: string
         }
       }

@@ -130,6 +130,10 @@ export default function EventInvitationsPage({ params }: PageProps) {
       guest_count: guest.guest_count,
       message: guest.message || null,
       dietary_restrictions: guest.dietary_restrictions || null,
+      whatsapp_sent: false,
+      whatsapp_sent_at: null,
+      invitation_opened: false,
+      invitation_opened_at: null,
       created_at: new Date().toISOString(),
     }));
 

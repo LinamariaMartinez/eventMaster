@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Edit, Trash2, Mail, Phone, ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Mail, Phone, ArrowUpDown, MessageSquare, Send, Check } from "lucide-react"
 import type { Guest } from "@/app/(dashboard)/guests/page"
+import { toast } from "sonner"
 
 interface GuestListProps {
   guests: Guest[]
@@ -17,14 +18,81 @@ interface GuestListProps {
   onSelectionChange: (selected: string[]) => void
   onEdit: (guest: Guest) => void
   onDelete: (guestId: string) => void
+  onSendWhatsApp?: (guest: Guest) => void
+  eventData?: {
+    title: string
+    date: string
+    time: string
+    location: string
+    hostName: string
+    invitationUrl: string
+  }
+  whatsappTemplate?: string
 }
 
 type SortField = "name" | "email" | "status" | "invitedAt" | "eventName"
 type SortDirection = "asc" | "desc"
 
-export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, onDelete }: GuestListProps) {
+export function GuestList({
+  guests,
+  selectedGuests,
+  onSelectionChange,
+  onEdit,
+  onDelete,
+  onSendWhatsApp,
+  eventData,
+  whatsappTemplate = `¡Hola {nombre}! 👋
+
+Te invitamos a nuestro evento:
+
+🎉 *{evento}*
+📅 Fecha: {fecha}
+🕒 Hora: {hora}
+📍 Lugar: {ubicacion}
+
+Para ver todos los detalles y confirmar tu asistencia, visita:
+{url}
+
+¡Esperamos verte allí!
+
+Saludos,
+{anfitrion}`
+}: GuestListProps) {
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+
+  const generateWhatsAppUrl = (guest: Guest) => {
+    if (!eventData || !guest.phone) return null
+
+    const message = whatsappTemplate
+      .replace(/{nombre}/g, guest.name)
+      .replace(/{evento}/g, eventData.title)
+      .replace(/{fecha}/g, eventData.date)
+      .replace(/{hora}/g, eventData.time)
+      .replace(/{ubicacion}/g, eventData.location)
+      .replace(/{anfitrion}/g, eventData.hostName)
+      .replace(/{url}/g, eventData.invitationUrl)
+
+    const cleanPhone = guest.phone.replace(/\D/g, '')
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+  }
+
+  const handleSendWhatsApp = (guest: Guest) => {
+    const whatsappUrl = generateWhatsAppUrl(guest)
+
+    if (!whatsappUrl) {
+      toast.error('El invitado no tiene número de teléfono')
+      return
+    }
+
+    window.open(whatsappUrl, '_blank')
+
+    if (onSendWhatsApp) {
+      onSendWhatsApp(guest)
+    }
+
+    toast.success(`Invitación enviada a ${guest.name}`)
+  }
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -201,23 +269,49 @@ export function GuestList({ guests, selectedGuests, onSelectionChange, onEdit, o
                 </div>
               </TableCell>
               <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  {/* WhatsApp Button */}
+                  {guest.phone && eventData && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendWhatsApp(guest)}
+                      className="gap-1"
+                      title="Enviar por WhatsApp"
+                    >
+                      {guest.whatsapp_sent ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4" />
+                      )}
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(guest)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(guest.id)} className="text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  )}
+
+                  {/* More Actions Menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {guest.phone && eventData && (
+                        <DropdownMenuItem onClick={() => handleSendWhatsApp(guest)}>
+                          <Send className="h-4 w-4 mr-2" />
+                          Enviar por WhatsApp
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => onEdit(guest)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onDelete(guest.id)} className="text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           ))}
