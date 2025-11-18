@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Calendar, MapPin, Users, Send, Trash2 } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Send, Trash2, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { formatEventDate } from "@/lib/utils/date";
@@ -187,19 +187,20 @@ export default function EventsPage() {
                         href={`/events/${event.id}/invitations`}
                         className="flex-1"
                       >
-                        <Button size="sm" className="w-full">
+                        <Button size="sm" variant="outline" className="w-full">
                           <Send className="h-4 w-4 mr-2" />
                           Invitados
                         </Button>
                       </Link>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setEventToDelete({ id: event.id, title: event.title })}
-                        className="px-3"
+                      <Link
+                        href={`/events/${event.id}/whatsapp`}
+                        className="flex-1"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                      </Link>
                     </div>
                     <Button
                       variant="outline"
