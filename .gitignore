@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 node_modules/
 supabase/.temp/
+
+# image optimization
+*.backup.png
+*.backup.jpg
+*.backup.jpeg
+temp_*
+*_original.*
+public/**/*.bak

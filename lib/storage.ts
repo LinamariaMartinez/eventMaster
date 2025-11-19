@@ -453,7 +453,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Elegante Clásico",
       category: "wedding",
       type: "simple",
-      thumbnail: "/romantic-vintage-invitation-floral-design.png",
+      thumbnail: "/romantic-vintage-invitation-floral-design.webp",
       styles: {
         backgroundColor: "#f8f6f0",
         textColor: "#5a4037",
@@ -474,7 +474,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Romántico Floral",
       category: "wedding",
       type: "premium",
-      thumbnail: "/romantic-vintage-invitation-floral-design.png",
+      thumbnail: "/romantic-vintage-invitation-floral-design.webp",
       styles: {
         backgroundColor: "#fdf2f8",
         textColor: "#831843",
@@ -498,7 +498,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Moderno Empresarial",
       category: "corporate",
       type: "simple",
-      thumbnail: "/modern-minimalist-invitation-clean-design.png",
+      thumbnail: "/modern-minimalist-invitation-clean-design.webp",
       styles: {
         backgroundColor: "#ffffff",
         textColor: "#1f2937",
@@ -519,7 +519,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Profesional Premium",
       category: "corporate",
       type: "premium",
-      thumbnail: "/elegant-classic-invitation-burgundy-cream.png",
+      thumbnail: "/elegant-classic-invitation-burgundy-cream.webp",
       styles: {
         backgroundColor: "#1e293b",
         textColor: "#f1f5f9",
@@ -543,7 +543,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Festivo Simple",
       category: "birthday",
       type: "simple",
-      thumbnail: "/festive-colorful-invitation-celebration.png",
+      thumbnail: "/festive-colorful-invitation-celebration.webp",
       styles: {
         backgroundColor: "#fef3c7",
         textColor: "#92400e",
@@ -564,7 +564,7 @@ function getDefaultInvitationTemplates(): InvitationTemplate[] {
       name: "Colorido Premium",
       category: "birthday",
       type: "premium",
-      thumbnail: "/festive-colorful-invitation-celebration.png",
+      thumbnail: "/festive-colorful-invitation-celebration.webp",
       styles: {
         backgroundColor: "#a855f7",
         textColor: "#ffffff",
