@@ -44,6 +44,21 @@ export function BulkWhatsAppSender({
   const [sentGuests, setSentGuests] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Function to encode message for WhatsApp while preserving emojis
+  const encodeWhatsAppMessage = (message: string): string => {
+    // WhatsApp accepts emojis and most Unicode characters directly
+    // We only need to encode special URL characters
+    return message
+      .replace(/%/g, '%25')  // Encode % first
+      .replace(/&/g, '%26')
+      .replace(/=/g, '%3D')
+      .replace(/\?/g, '%3F')
+      .replace(/#/g, '%23')
+      .replace(/\n/g, '%0A')  // Newlines
+      .replace(/\r/g, '')      // Remove carriage returns
+      .replace(/\+/g, '%2B');
+  };
+
   // Generate WhatsApp URLs for all guests
   const guestsWithWhatsApp = useMemo<GuestWithWhatsApp[]>(() => {
     return guests.map(guest => {
@@ -60,7 +75,7 @@ export function BulkWhatsAppSender({
 
       // Clean phone number for WhatsApp
       const cleanPhone = guest.phone?.replace(/\D/g, '') || '';
-      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeWhatsAppMessage(message)}`;
 
       return {
         ...guest,
