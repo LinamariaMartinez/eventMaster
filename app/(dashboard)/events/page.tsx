@@ -159,49 +159,45 @@ export default function EventsPage() {
                     </div>
                   </div>
                   <div className="space-y-2 mt-4">
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/events/${event.id}/edit`}
-                        className="flex-1"
-                      >
+                    {/* Desktop: 2 columns, Mobile: Stack */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/events/${event.id}/edit`}>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full bg-transparent"
+                          className="w-full"
                         >
-                          Editar
+                          <span className="hidden sm:inline">Editar</span>
+                          <span className="sm:hidden">✏️</span>
                         </Button>
                       </Link>
-                      <Link href={`/events/${event.id}`} className="flex-1">
+                      <Link href={`/events/${event.id}`}>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full bg-transparent"
+                          className="w-full"
                         >
-                          Ver Detalles
+                          <span className="hidden sm:inline">Detalles</span>
+                          <span className="sm:hidden">👁️</span>
                         </Button>
                       </Link>
                     </div>
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/events/${event.id}/invitations`}
-                        className="flex-1"
-                      >
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/events/${event.id}/invitations`}>
                         <Button size="sm" variant="outline" className="w-full">
-                          <Send className="h-4 w-4 mr-2" />
-                          Invitados
+                          <Send className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Invitados</span>
                         </Button>
                       </Link>
-                      <Link
-                        href={`/events/${event.id}/whatsapp`}
-                        className="flex-1"
-                      >
+                      <Link href={`/events/${event.id}/whatsapp`}>
                         <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          WhatsApp
+                          <MessageSquare className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">WhatsApp</span>
                         </Button>
                       </Link>
                     </div>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -209,7 +205,8 @@ export default function EventsPage() {
                       onClick={() => setEventToDelete({ id: event.id, title: event.title })}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar Evento
+                      <span className="hidden sm:inline">Eliminar Evento</span>
+                      <span className="sm:hidden">Eliminar</span>
                     </Button>
                   </div>
                 </CardContent>
