@@ -61,6 +61,21 @@ Saludos,
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
+  // Function to encode message for WhatsApp while preserving emojis
+  const encodeWhatsAppMessage = (message: string): string => {
+    // WhatsApp accepts emojis and most Unicode characters directly
+    // We only need to encode special URL characters
+    return message
+      .replace(/%/g, '%25')  // Encode % first
+      .replace(/&/g, '%26')
+      .replace(/=/g, '%3D')
+      .replace(/\?/g, '%3F')
+      .replace(/#/g, '%23')
+      .replace(/\n/g, '%0A')  // Newlines
+      .replace(/\r/g, '')      // Remove carriage returns
+      .replace(/\+/g, '%2B');
+  };
+
   const generateWhatsAppUrl = (guest: Guest) => {
     if (!eventData || !guest.phone) return null
 
@@ -74,7 +89,7 @@ Saludos,
       .replace(/{url}/g, eventData.invitationUrl)
 
     const cleanPhone = guest.phone.replace(/\D/g, '')
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    return `https://wa.me/${cleanPhone}?text=${encodeWhatsAppMessage(message)}`
   }
 
   const handleSendWhatsApp = (guest: Guest) => {
