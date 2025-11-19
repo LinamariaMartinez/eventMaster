@@ -13,7 +13,7 @@ const templates: InvitationTemplate[] = [
   {
     id: "1",
     name: "Elegante Clásico",
-    thumbnail: "/elegant-classic-invitation-burgundy-cream.png",
+    thumbnail: "/elegant-classic-invitation-burgundy-cream.webp",
     content: {
       title: "Celebración Especial",
       description: "Te invitamos a acompañarnos en esta ocasión única",
@@ -28,7 +28,7 @@ const templates: InvitationTemplate[] = [
   {
     id: "2",
     name: "Moderno Minimalista",
-    thumbnail: "/modern-minimalist-invitation-clean-design.png",
+    thumbnail: "/modern-minimalist-invitation-clean-design.webp",
     content: {
       title: "Evento Corporativo",
       description: "Únete a nosotros para una experiencia memorable",
@@ -43,7 +43,7 @@ const templates: InvitationTemplate[] = [
   {
     id: "3",
     name: "Festivo Colorido",
-    thumbnail: "/festive-colorful-invitation-celebration.png",
+    thumbnail: "/festive-colorful-invitation-celebration.webp",
     content: {
       title: "¡Gran Celebración!",
       description: "Una noche llena de diversión y sorpresas te espera",
@@ -58,7 +58,7 @@ const templates: InvitationTemplate[] = [
   {
     id: "4",
     name: "Romántico Vintage",
-    thumbnail: "/romantic-vintage-invitation-floral-design.png",
+    thumbnail: "/romantic-vintage-invitation-floral-design.webp",
     content: {
       title: "Cena Romántica",
       description: "Una velada especial bajo las estrellas",
