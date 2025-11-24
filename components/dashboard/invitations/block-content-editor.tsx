@@ -154,7 +154,7 @@ function HeroEditor({
           <div className="bg-white p-3 rounded border">
             <p className="text-xs text-gray-600 mb-2">💡 <strong>Consejo para móvil:</strong></p>
             <p className="text-xs text-gray-500">
-              Si la imagen se ve cortada en móvil, prueba usar "Contener" o ajusta la posición a "Centro arriba" o "Centro abajo"
+              Si la imagen se ve cortada en móvil, prueba usar &quot;Contener&quot; o ajusta la posición a &quot;Centro arriba&quot; o &quot;Centro abajo&quot;
             </p>
           </div>
         </div>
