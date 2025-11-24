@@ -30,6 +30,7 @@ CREATE TABLE events (
   }'::jsonb,
   sheets_url TEXT,
   public_url TEXT NOT NULL,
+  whatsapp_number TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -27,6 +27,7 @@ const eventSchema = z.object({
   location: z.string().min(1, "La ubicación es requerida"),
   description: z.string().optional(),
   template_id: z.string().optional(),
+  whatsapp_number: z.string().optional(),
 });
 
 interface EventFormProps {
@@ -65,6 +66,7 @@ export function EventForm({
       location: initialData?.location ?? "",
       description: initialData?.description ?? "",
       template_id: initialData?.template_id ?? "",
+      whatsapp_number: initialData?.whatsapp_number ?? "",
     },
   });
 
@@ -145,6 +147,19 @@ export function EventForm({
               placeholder="Describe tu evento..."
               rows={3}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="whatsapp_number">Número WhatsApp para confirmaciones (Opcional)</Label>
+            <Input
+              id="whatsapp_number"
+              type="tel"
+              {...form.register("whatsapp_number")}
+              placeholder="+57 300 123 4567"
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              Si lo proporcionas, los invitados podrán confirmar por WhatsApp a este número
+            </p>
           </div>
 
           <div>

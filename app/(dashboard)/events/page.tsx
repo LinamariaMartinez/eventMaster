@@ -21,16 +21,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Calendar, MapPin, Users, Send, Trash2, MessageSquare } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Send, Trash2, MessageSquare, Copy } from "lucide-react";
 import Link from "next/link";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { formatEventDate } from "@/lib/utils/date";
 import { toast } from "sonner";
+import { DuplicateEventDialog } from "@/components/events/duplicate-event-dialog";
+import type { Database } from "@/types/database.types";
+
+type Event = Database['public']['Tables']['events']['Row'];
 
 export default function EventsPage() {
   const { events, loading: isLoading, removeEvent } = useSupabaseEvents();
   const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [eventToDuplicate, setEventToDuplicate] = useState<Event | null>(null);
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   const handleDeleteEvent = async () => {
     if (!eventToDelete) return;
@@ -47,6 +53,38 @@ export default function EventsPage() {
       toast.error("Error al eliminar el evento");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDuplicateEvent = async (whatsappNumber: string, hostName?: string) => {
+    if (!eventToDuplicate) return;
+
+    setIsDuplicating(true);
+    try {
+      const response = await fetch(`/api/events/${eventToDuplicate.id}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          whatsapp_number: whatsappNumber,
+          host_name: hostName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al duplicar el evento');
+      }
+
+      toast.success("Evento duplicado exitosamente");
+      // Recargar la página para mostrar el nuevo evento
+      window.location.reload();
+    } catch (error) {
+      console.error("Error duplicating event:", error);
+      toast.error(error instanceof Error ? error.message : "Error al duplicar el evento");
+    } finally {
+      setIsDuplicating(false);
     }
   };
 
@@ -198,16 +236,26 @@ export default function EventsPage() {
                       </Link>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                      onClick={() => setEventToDelete({ id: event.id, title: event.title })}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Eliminar Evento</span>
-                      <span className="sm:hidden">Eliminar</span>
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setEventToDuplicate(event)}
+                      >
+                        <Copy className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Duplicar</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                        onClick={() => setEventToDelete({ id: event.id, title: event.title })}
+                      >
+                        <Trash2 className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Eliminar</span>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -238,6 +286,14 @@ export default function EventsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Duplicate Event Dialog */}
+      <DuplicateEventDialog
+        event={eventToDuplicate}
+        open={!!eventToDuplicate && !isDuplicating}
+        onOpenChange={(open) => !open && setEventToDuplicate(null)}
+        onDuplicate={handleDuplicateEvent}
+      />
     </DashboardLayout>
   );
 }

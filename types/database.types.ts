@@ -22,6 +22,7 @@ export interface Database {
           settings: Json
           sheets_url: string | null
           public_url: string
+          whatsapp_number: string | null
           created_at: string
           updated_at: string
         }
@@ -37,6 +38,7 @@ export interface Database {
           settings: Json
           sheets_url?: string | null
           public_url: string
+          whatsapp_number?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -52,6 +54,7 @@ export interface Database {
           settings?: Json
           sheets_url?: string | null
           public_url?: string
+          whatsapp_number?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -130,6 +130,7 @@ export interface EventFormData {
   location: string;
   description?: string;
   template_id?: string;
+  whatsapp_number?: string;
   settings: EventSettings;
 }
 

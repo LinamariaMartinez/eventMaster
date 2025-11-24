@@ -27,6 +27,7 @@ interface RsvpBlockProps {
   eventDate: string;
   eventTime: string;
   eventLocation: string;
+  eventWhatsappNumber?: string | null;
   colorScheme: ColorScheme;
 }
 
@@ -48,6 +49,7 @@ export function RsvpBlock({
   data,
   eventId,
   eventTitle,
+  eventWhatsappNumber,
   colorScheme,
 }: RsvpBlockProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -344,7 +346,7 @@ export function RsvpBlock({
             }}
           >
             <a
-              href={`https://wa.me/573001234567?text=Hola, tengo una consulta sobre ${encodeURIComponent(eventTitle)}`}
+              href={`https://wa.me/${(eventWhatsappNumber || '573001234567').replace(/[^0-9]/g, '')}?text=Hola, tengo una consulta sobre ${encodeURIComponent(eventTitle)}`}
               target="_blank"
               rel="noopener noreferrer"
             >

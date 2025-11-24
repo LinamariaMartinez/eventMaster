@@ -140,6 +140,7 @@ export function InvitationRenderer({
             eventDate={event.date}
             eventTime={event.time}
             eventLocation={event.location}
+            eventWhatsappNumber={event.whatsapp_number}
             colorScheme={colorScheme}
           />
         );
