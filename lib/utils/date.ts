@@ -33,7 +33,9 @@ export function formatEventDate(
   }
 ): string {
   const date = parseEventDate(dateString);
-  return date.toLocaleDateString('es-CO', options);
+  const formatted = date.toLocaleDateString('es-CO', options);
+  // Capitalize first letter
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 /**
@@ -70,4 +72,29 @@ export function getRelativeDate(dateString: string): string {
   if (diffDays === -1) return 'Ayer';
   if (diffDays > 0) return `En ${diffDays} días`;
   return `Hace ${Math.abs(diffDays)} días`;
+}
+
+/**
+ * Format time string to 12-hour format (AM/PM) without seconds
+ *
+ * @param timeString - Time string in format HH:MM or HH:MM:SS
+ * @returns Formatted time string (e.g., "2:30 PM")
+ */
+export function formatEventTime(timeString: string): string {
+  // Parse time string (HH:MM or HH:MM:SS)
+  const [hoursStr, minutesStr] = timeString.split(':');
+  let hours = parseInt(hoursStr, 10);
+  const minutes = parseInt(minutesStr, 10);
+
+  // Determine AM/PM
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  // Convert to 12-hour format
+  hours = hours % 12;
+  hours = hours || 12; // 0 should be 12
+
+  // Format minutes with leading zero if needed
+  const minutesFormatted = minutes.toString().padStart(2, '0');
+
+  return `${hours}:${minutesFormatted} ${ampm}`;
 }

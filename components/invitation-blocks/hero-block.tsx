@@ -3,7 +3,7 @@
 import { Heart, Calendar, Clock } from "lucide-react";
 import type { HeroBlockData, ColorScheme } from "@/types/invitation-blocks";
 import { useEffect, useState } from "react";
-import { formatEventDate } from "@/lib/utils/date";
+import { formatEventDate, formatEventTime } from "@/lib/utils/date";
 
 interface HeroBlockProps {
   data: HeroBlockData;
@@ -75,6 +75,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
       };
 
   const formattedDate = formatEventDate(eventDate);
+  const formattedTime = formatEventTime(eventTime);
 
   return (
     <div
@@ -163,7 +164,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
                 fontWeight: data.dateSize === 'large' ? 'bold' : 'normal',
               }}
             >
-              {eventTime}
+              {formattedTime}
             </span>
           </div>
         </div>
