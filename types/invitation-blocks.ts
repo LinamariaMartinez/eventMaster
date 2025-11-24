@@ -54,6 +54,7 @@ export interface ColorScheme {
   background: string;
   text: string;
   textLight: string;
+  footerTextColor?: string; // Color del texto del footer (opcional, default: white)
 }
 
 export const DEFAULT_COLOR_SCHEMES: Record<EventType, ColorScheme> = {
@@ -106,6 +107,8 @@ export interface HeroBlockData {
   title: string;
   subtitle?: string;
   backgroundImage?: string;
+  backgroundSize?: 'cover' | 'contain' | 'auto'; // Control del tamaño de la imagen de fondo
+  backgroundPosition?: string; // Control de la posición (ej: 'center', 'top', 'bottom', 'center 30%')
   showCountdown?: boolean;
   textShadow?: string;
   textColor?: string;

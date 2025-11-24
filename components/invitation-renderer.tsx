@@ -233,7 +233,7 @@ export function InvitationRenderer({
         className="py-8 text-center text-sm"
         style={{
           backgroundColor: config.colorScheme.primary,
-          color: 'white',
+          color: config.colorScheme.footerTextColor || 'white',
           fontFamily: bodyFont,
         }}
       >
@@ -244,6 +244,9 @@ export function InvitationRenderer({
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:no-underline"
+            style={{
+              color: config.colorScheme.footerTextColor || 'white',
+            }}
           >
             EventMaster
           </a>
