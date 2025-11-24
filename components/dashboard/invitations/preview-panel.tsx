@@ -44,6 +44,7 @@ export function PreviewPanel({ eventData, invitationConfig, blockContent }: Prev
                   settings: invitationConfig as unknown as Json,
                   public_url: '/invite/preview',
                   sheets_url: null,
+                  whatsapp_number: eventData.whatsapp_number || null,
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString(),
                 }}
@@ -68,6 +69,7 @@ export function PreviewPanel({ eventData, invitationConfig, blockContent }: Prev
                   settings: invitationConfig as unknown as Json,
                   public_url: '/invite/preview',
                   sheets_url: null,
+                  whatsapp_number: eventData.whatsapp_number || null,
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString(),
                 }}

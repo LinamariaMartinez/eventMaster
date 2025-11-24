@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import type { Database } from '@/types/database.types'
+
+type Event = Database['public']['Tables']['events']['Row']
+type EventInsert = Database['public']['Tables']['events']['Insert']
 
 interface RouteParams {
   params: Promise<{
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .select('*')
       .eq('id', resolvedParams.id)
       .eq('user_id', user.id)
-      .single()
+      .single<Event>()
 
     if (fetchError || !originalEvent) {
       return NextResponse.json(
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const publicUrl = `${originalEvent.title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
 
     // Preparar datos del evento duplicado
-    const newEventData = {
+    const newEventData: EventInsert = {
       user_id: user.id,
       title: `${originalEvent.title} (Copia)`,
       date: originalEvent.date,
@@ -68,9 +72,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Crear evento duplicado
-    const { data: newEvent, error: createError } = await supabase
-      .from('events')
-      .insert(newEventData)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newEvent, error: createError } = await (supabase.from('events').insert as any)(newEventData)
       .select()
       .single()
 
