@@ -61,6 +61,12 @@ export function ColorSchemeEditor({ colorScheme, onChange }: ColorSchemeEditorPr
       description: 'Descripciones, subtítulos y texto de apoyo',
       example: 'Ej: #6B6B6B (Gris)'
     },
+    {
+      key: 'footerTextColor',
+      label: 'Texto del Footer',
+      description: 'Color del texto en el pie de página',
+      example: 'Ej: #FFFFFF (Blanco)'
+    },
   ];
 
   return (
@@ -104,7 +110,7 @@ export function ColorSchemeEditor({ colorScheme, onChange }: ColorSchemeEditorPr
                   <Input
                     id={`color-${key}`}
                     type="color"
-                    value={colorScheme[key]}
+                    value={colorScheme[key] || '#FFFFFF'}
                     onChange={(e) => handleColorChange(key, e.target.value)}
                     className="w-16 h-16 p-1 cursor-pointer border-2"
                   />
@@ -112,7 +118,7 @@ export function ColorSchemeEditor({ colorScheme, onChange }: ColorSchemeEditorPr
                 <div className="flex-1">
                   <Input
                     type="text"
-                    value={colorScheme[key]}
+                    value={colorScheme[key] || ''}
                     onChange={(e) => handleColorChange(key, e.target.value)}
                     className="font-mono"
                     placeholder="#000000"

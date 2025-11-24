@@ -66,8 +66,9 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
   const backgroundStyle = data.backgroundImage
     ? {
         backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${data.backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: data.backgroundSize || 'cover',
+        backgroundPosition: data.backgroundPosition || 'center',
+        backgroundRepeat: 'no-repeat',
       }
     : {
         background: `linear-gradient(135deg, ${colorScheme.primary} 0%, ${colorScheme.secondary} 100%)`,
@@ -92,10 +93,11 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
 
         {/* Title */}
         <h1
-          className="text-5xl md:text-7xl font-serif font-bold leading-tight"
+          className="font-serif font-bold leading-tight"
           style={{
             color: data.textColor ?? 'white',
             textShadow: data.textShadow ?? '2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+            fontSize: 'clamp(2rem, 8vw, 4.5rem)',
           }}
         >
           {data.title}
@@ -104,11 +106,12 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
         {/* Subtitle */}
         {data.subtitle && (
           <p
-            className="text-xl md:text-2xl font-light italic"
+            className="font-light italic"
             style={{
               color: data.textColor ?? 'white',
               opacity: 0.9,
               textShadow: data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
+              fontSize: 'clamp(1rem, 4vw, 1.5rem)',
             }}
           >
             {data.subtitle}
@@ -116,10 +119,10 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
         )}
 
         {/* Date and Time */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mt-8">
           <div className="flex items-center gap-2">
             <Calendar
-              className="h-5 w-5"
+              className="h-4 w-4 md:h-5 md:w-5"
               style={{
                 color: data.dateColor ?? data.textColor ?? 'white',
                 filter: `drop-shadow(${data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)'})`,
@@ -129,7 +132,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
               style={{
                 color: data.dateColor ?? data.textColor ?? 'white',
                 textShadow: data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
-                fontSize: data.dateSize === 'small' ? '1rem' : data.dateSize === 'large' ? '1.5rem' : '1.25rem',
+                fontSize: data.dateSize === 'small' ? 'clamp(0.875rem, 3vw, 1rem)' : data.dateSize === 'large' ? 'clamp(1.125rem, 4vw, 1.5rem)' : 'clamp(1rem, 3.5vw, 1.25rem)',
                 fontWeight: data.dateSize === 'large' ? 'bold' : 'normal',
               }}
             >
@@ -146,7 +149,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
           </div>
           <div className="flex items-center gap-2">
             <Clock
-              className="h-5 w-5"
+              className="h-4 w-4 md:h-5 md:w-5"
               style={{
                 color: data.dateColor ?? data.textColor ?? 'white',
                 filter: `drop-shadow(${data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)'})`,
@@ -156,7 +159,7 @@ export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlock
               style={{
                 color: data.dateColor ?? data.textColor ?? 'white',
                 textShadow: data.dateShadow ?? data.textShadow ?? '1px 1px 4px rgba(0,0,0,0.8)',
-                fontSize: data.dateSize === 'small' ? '1rem' : data.dateSize === 'large' ? '1.5rem' : '1.25rem',
+                fontSize: data.dateSize === 'small' ? 'clamp(0.875rem, 3vw, 1rem)' : data.dateSize === 'large' ? 'clamp(1.125rem, 4vw, 1.5rem)' : 'clamp(1rem, 3.5vw, 1.25rem)',
                 fontWeight: data.dateSize === 'large' ? 'bold' : 'normal',
               }}
             >

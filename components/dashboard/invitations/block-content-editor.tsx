@@ -107,6 +107,59 @@ function HeroEditor({
         />
       </div>
 
+      {/* Background Image Controls */}
+      {data.backgroundImage && (
+        <div className="space-y-3 p-4 border rounded-lg bg-purple-50">
+          <h4 className="font-semibold text-sm">Control de Imagen de Fondo</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="bg-size">Ajuste de Imagen</Label>
+              <select
+                id="bg-size"
+                value={data.backgroundSize || 'cover'}
+                onChange={(e) => onChange({ ...data, backgroundSize: e.target.value as 'cover' | 'contain' | 'auto' })}
+                className="w-full mt-1 px-3 py-2 border rounded-md"
+              >
+                <option value="cover">Cubrir (puede cortar)</option>
+                <option value="contain">Contener (muestra completa)</option>
+                <option value="auto">Original</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                {data.backgroundSize === 'cover' && 'La imagen llena todo el espacio'}
+                {data.backgroundSize === 'contain' && 'La imagen completa es visible'}
+                {data.backgroundSize === 'auto' && 'Tamaño original de la imagen'}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="bg-position">Posición de Imagen</Label>
+              <select
+                id="bg-position"
+                value={data.backgroundPosition || 'center'}
+                onChange={(e) => onChange({ ...data, backgroundPosition: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-md"
+              >
+                <option value="center">Centro</option>
+                <option value="top">Superior</option>
+                <option value="bottom">Inferior</option>
+                <option value="left">Izquierda</option>
+                <option value="right">Derecha</option>
+                <option value="center 30%">Centro arriba (30%)</option>
+                <option value="center 70%">Centro abajo (70%)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Ajusta qué parte de la imagen se muestra
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-3 rounded border">
+            <p className="text-xs text-gray-600 mb-2">💡 <strong>Consejo para móvil:</strong></p>
+            <p className="text-xs text-gray-500">
+              Si la imagen se ve cortada en móvil, prueba usar &quot;Contener&quot; o ajusta la posición a &quot;Centro arriba&quot; o &quot;Centro abajo&quot;
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Text Styling Options */}
       <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
         <h4 className="font-semibold text-sm">Estilo del Texto Principal</h4>
