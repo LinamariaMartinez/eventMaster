@@ -41,28 +41,20 @@ export function LocationBlock({ data, colorScheme }: LocationBlockProps) {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Map */}
           <div className="relative rounded-lg overflow-hidden shadow-lg h-80">
-            {data.coordinates ? (
-              <iframe
-                src={`https://www.google.com/maps/embed/v1/place?key=&q=${data.coordinates.lat},${data.coordinates.lng}`}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Mapa de ubicación"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center"
-                style={{ backgroundColor: colorScheme.secondary }}
-              >
-                <MapPin
-                  className="h-16 w-16"
-                  style={{ color: colorScheme.primary }}
-                />
-              </div>
-            )}
+            <iframe
+              src={
+                data.coordinates
+                  ? `https://maps.google.com/maps?q=${data.coordinates.lat},${data.coordinates.lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+                  : `https://maps.google.com/maps?q=${encodeURIComponent(data.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+              }
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Mapa de ubicación"
+            />
           </div>
 
           {/* Details */}
