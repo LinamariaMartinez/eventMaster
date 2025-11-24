@@ -92,6 +92,7 @@ export function InvitationRenderer({
             }}
             eventDate={event.date}
             eventTime={event.time}
+            eventLocation={event.location}
             colorScheme={colorScheme}
           />
         );
