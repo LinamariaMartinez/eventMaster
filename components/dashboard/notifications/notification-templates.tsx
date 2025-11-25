@@ -174,7 +174,7 @@ export function NotificationTemplates() {
     const duplicatedTemplate: NotificationTemplate = {
       ...template,
       id: Date.now().toString(),
-      name: `${template.name} (Copia)`,
+      name: `${template.name}`,
       isDefault: false,
       createdAt: new Date().toISOString(),
     };

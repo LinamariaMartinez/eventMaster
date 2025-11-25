@@ -12,7 +12,10 @@ import { Toaster } from "sonner";
 const inter = {
   className: "font-sans",
   variable: "--font-inter",
-  style: { fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' },
+  style: {
+    fontFamily:
+      'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
 };
 
 const playfair = {
@@ -22,7 +25,7 @@ const playfair = {
 };
 
 export const metadata: Metadata = {
-  title: "Catalina Lezama - ED",
+  title: "Event Master",
   description:
     "Diseñamos experiencias brutales. Gestión profesional de eventos con invitaciones digitales automáticas.",
 };
@@ -33,7 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${inter.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
+    <html
+      lang="es"
+      className={`${inter.variable} ${playfair.variable}`}
+      data-scroll-behavior="smooth"
+    >
       <body className={`${inter.className} antialiased`}>
         {children}
         <Toaster position="bottom-right" />

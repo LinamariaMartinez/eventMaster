@@ -42,6 +42,27 @@ export function generateEventSlug(title: string): string {
     .substring(0, 50)
 }
 
+// Genera un ID corto único de 8 caracteres para URLs
+export function generateShortId(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let result = ''
+  const randomValues = new Uint8Array(8)
+
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(randomValues)
+    for (let i = 0; i < 8; i++) {
+      result += chars[randomValues[i] % chars.length]
+    }
+  } else {
+    // Fallback para ambientes sin crypto
+    for (let i = 0; i < 8; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)]
+    }
+  }
+
+  return result
+}
+
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
