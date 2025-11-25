@@ -270,6 +270,7 @@ export default function EditInvitationPage({ params }: PageProps) {
               location: event.location,
               description: event.description || undefined,
               template_id: event.template_id || undefined,
+              whatsapp_number: event.whatsapp_number || undefined,
             } as EventFormData}
             invitationConfig={config}
             blockContent={blockContent}

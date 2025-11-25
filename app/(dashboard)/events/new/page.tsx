@@ -169,8 +169,11 @@ export default function NewEventPage() {
         time: eventData.time,
         location: eventData.location,
         template_id: eventData.template_id || null,
+        whatsapp_number: eventData.whatsapp_number || null,
         settings: completeSettings as unknown as Json,
       });
+
+      console.log('✨ Event created with WhatsApp:', eventData.whatsapp_number);
 
       if (newEvent) {
         toast.success("Evento e invitación creados exitosamente");

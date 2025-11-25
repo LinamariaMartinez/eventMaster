@@ -11,6 +11,7 @@ const eventSchema = z.object({
   location: z.string().min(1),
   description: z.string().optional(),
   template_id: z.string().optional(),
+  whatsapp_number: z.string().optional(),
   settings: z.object({
     allowPlusOnes: z.boolean(),
     requirePhone: z.boolean(),
@@ -69,13 +70,17 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('📥 Received POST body:', JSON.stringify(body, null, 2))
+
     const data = eventSchema.parse(body)
+    console.log('✅ Parsed data:', JSON.stringify(data, null, 2))
+    console.log('📞 WhatsApp number in parsed data:', data.whatsapp_number)
 
     const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -109,8 +114,12 @@ export async function POST(request: NextRequest) {
       template_id: data.template_id || null,
       settings: data.settings,
       sheets_url: sheetsUrl,
-      public_url: publicUrl
+      public_url: publicUrl,
+      whatsapp_number: data.whatsapp_number || null
     }
+
+    console.log('💾 Event data to insert:', JSON.stringify(eventData, null, 2))
+    console.log('📞 WhatsApp number to insert:', eventData.whatsapp_number)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: event, error: eventError } = await (supabase.from('events').insert as any)(eventData)
@@ -118,12 +127,15 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (eventError) {
-      console.error('Error creating event:', eventError)
+      console.error('❌ Error creating event:', eventError)
       return NextResponse.json(
         { error: 'Error al crear el evento' },
         { status: 500 }
       )
     }
+
+    console.log('✨ Created event:', JSON.stringify(event, null, 2))
+    console.log('📞 WhatsApp number in created event:', event?.whatsapp_number)
 
     return NextResponse.json({
       message: 'Evento creado exitosamente',

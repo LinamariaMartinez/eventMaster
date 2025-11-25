@@ -83,10 +83,17 @@ export function EventForm({
 
   const handleSubmit = async (data: z.infer<typeof eventSchema>) => {
     try {
-      await onSubmit({
+      console.log('📤 Form data before submit:', JSON.stringify(data, null, 2));
+      console.log('📞 WhatsApp number from form:', data.whatsapp_number);
+
+      const submitData = {
         ...data,
         settings,
-      });
+      };
+
+      console.log('📤 Complete submit data:', JSON.stringify(submitData, null, 2));
+
+      await onSubmit(submitData);
       toast.success("Evento guardado exitosamente");
     } catch (error) {
       console.error("Error saving event:", error);

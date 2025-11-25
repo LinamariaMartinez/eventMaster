@@ -230,6 +230,7 @@ export function InvitationRenderer({
       {enabledBlocks.map(blockConfig => renderBlock(blockConfig))}
 
       {/* WhatsApp CTA Section - Only show if whatsapp_number exists */}
+      {/* Debug: {JSON.stringify({ whatsapp: event.whatsapp_number, hasValue: !!event.whatsapp_number })} */}
       {event.whatsapp_number && (
         <div
           className="py-16 px-4"

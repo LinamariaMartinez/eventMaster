@@ -194,7 +194,10 @@ export function useSupabaseEvents(): UseSupabaseEventsReturn {
         description: eventData.description || null,
         template_id: eventData.template_id || null,
         settings: eventData.settings,
+        whatsapp_number: eventData.whatsapp_number || null,
       };
+
+      console.log('📞 WhatsApp number in insertData:', insertData.whatsapp_number);
 
       console.log('[use-supabase-events] Inserting event data:', insertData);
 

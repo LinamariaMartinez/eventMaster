@@ -15,6 +15,7 @@ const updateEventSchema = z.object({
   location: z.string().min(1).optional(),
   description: z.string().optional(),
   template_id: z.string().optional(),
+  whatsapp_number: z.string().optional(),
   settings: z.object({
     allowPlusOnes: z.boolean(),
     requirePhone: z.boolean(),
@@ -125,13 +126,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const resolvedParams = await params
     const body = await request.json()
+    console.log('📥 Received PUT body:', JSON.stringify(body, null, 2))
+
     const data = updateEventSchema.parse(body)
+    console.log('✅ Parsed update data:', JSON.stringify(data, null, 2))
+    console.log('📞 WhatsApp number in parsed data:', data.whatsapp_number)
 
     const supabase = await createClient()
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -160,6 +165,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updated_at: new Date().toISOString()
     }
 
+    console.log('💾 Update data to send:', JSON.stringify(updateData, null, 2))
+    console.log('📞 WhatsApp number to update:', updateData.whatsapp_number)
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: event, error: updateError } = await (supabase.from('events').update as any)(updateData)
       .eq('id', resolvedParams.id)
@@ -167,12 +175,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (updateError) {
-      console.error('Error updating event:', updateError)
+      console.error('❌ Error updating event:', updateError)
       return NextResponse.json(
         { error: 'Error al actualizar el evento' },
         { status: 500 }
       )
     }
+
+    console.log('✨ Updated event:', JSON.stringify(event, null, 2))
+    console.log('📞 WhatsApp number in updated event:', event?.whatsapp_number)
 
     return NextResponse.json({
       message: 'Evento actualizado exitosamente',
