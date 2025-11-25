@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import type { HeroBlockData, ColorScheme } from "@/types/invitation-blocks";
 import { useEffect, useState } from "react";
 import { formatEventDate, formatEventTime } from "@/lib/utils/date";
@@ -10,7 +10,6 @@ interface HeroBlockProps {
   data: HeroBlockData;
   eventDate: string;
   eventTime: string;
-  eventLocation?: string;
   colorScheme: ColorScheme;
 }
 
@@ -75,7 +74,7 @@ function Countdown({ targetDate, colorScheme }: { targetDate: string; colorSchem
   );
 }
 
-export function HeroBlock({ data, eventDate, eventTime, eventLocation, colorScheme }: HeroBlockProps) {
+export function HeroBlock({ data, eventDate, eventTime, colorScheme }: HeroBlockProps) {
   const formattedDate = formatEventDate(eventDate);
   const formattedTime = formatEventTime(eventTime);
   const hasImage = !!data.backgroundImage;
@@ -157,15 +156,6 @@ export function HeroBlock({ data, eventDate, eventTime, eventLocation, colorSche
               <Clock className="h-5 w-5" style={{ color: colorScheme.primary }} />
               <span>{formattedTime}</span>
             </div>
-            {eventLocation && (
-              <div
-                className="flex items-center justify-center gap-3 text-base"
-                style={{ color: colorScheme.text }}
-              >
-                <MapPin className="h-5 w-5" style={{ color: colorScheme.primary }} />
-                <span>{eventLocation}</span>
-              </div>
-            )}
           </div>
 
           {/* Countdown */}
@@ -261,15 +251,6 @@ export function HeroBlock({ data, eventDate, eventTime, eventLocation, colorSche
                 <Clock className="h-6 w-6" style={{ color: colorScheme.primary }} />
                 <span>{formattedTime}</span>
               </div>
-              {eventLocation && (
-                <div
-                  className="flex items-center justify-center gap-4 text-lg"
-                  style={{ color: colorScheme.text }}
-                >
-                  <MapPin className="h-6 w-6" style={{ color: colorScheme.primary }} />
-                  <span className="text-center">{eventLocation}</span>
-                </div>
-              )}
             </div>
 
             {/* Countdown */}

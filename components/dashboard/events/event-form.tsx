@@ -27,7 +27,18 @@ const eventSchema = z.object({
   location: z.string().min(1, "La ubicación es requerida"),
   description: z.string().optional(),
   template_id: z.string().optional(),
-  whatsapp_number: z.string().optional(),
+  whatsapp_number: z.string()
+    .optional()
+    .refine((val) => {
+      if (!val || val.trim() === '') return true; // Allow empty
+      // Remove all non-numeric characters
+      const cleaned = val.replace(/[^0-9]/g, '');
+      // Accept Colombian numbers: +57XXXXXXXXXX or 3XXXXXXXXX (10 digits starting with 3)
+      return cleaned.length === 12 && cleaned.startsWith('57') ||
+             cleaned.length === 10 && cleaned.startsWith('3');
+    }, {
+      message: "Formato inválido. Usa +57 XXX XXX XXXX o 3XX XXX XXXX"
+    }),
 });
 
 interface EventFormProps {
@@ -157,6 +168,11 @@ export function EventForm({
               {...form.register("whatsapp_number")}
               placeholder="+57 300 123 4567"
             />
+            {form.formState.errors.whatsapp_number && (
+              <p className="text-sm text-red-600 mt-1">
+                {form.formState.errors.whatsapp_number.message}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground mt-1">
               Si lo proporcionas, los invitados podrán confirmar por WhatsApp a este número
             </p>
