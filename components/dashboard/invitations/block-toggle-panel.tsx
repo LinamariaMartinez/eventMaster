@@ -42,8 +42,8 @@ const BLOCK_LABELS: Record<string, { name: string; description: string }> = {
     description: "Historia de la pareja/cumpleañero"
   },
   gifts: {
-    name: "Mesa de Regalos",
-    description: "Links y datos bancarios"
+    name: "Regalos y Detalles",
+    description: "Lluvia de sobres, registros y datos bancarios"
   },
   dresscode: {
     name: "Código de Vestimenta",

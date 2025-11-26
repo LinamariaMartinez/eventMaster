@@ -32,7 +32,7 @@ export type BlockType =
   | 'rsvp'           // Formulario de confirmación
   | 'gallery'        // Galería de fotos
   | 'story'          // Historia de la pareja/cumpleañero
-  | 'gifts'          // Mesa de regalos
+  | 'gifts'          // Regalos y Detalles
   | 'dresscode'      // Código de vestimenta
   | 'faq';           // Preguntas frecuentes
 
@@ -182,12 +182,21 @@ export interface StoryBlockData {
 }
 
 export interface GiftsBlockData {
-  message?: string;
-  registries: Array<{
+  message?: string; // Mensaje general del bloque (deprecado, usar envelopeRainMessage)
+
+  // Lluvia de sobres
+  showEnvelopeRain?: boolean;
+  envelopeRainMessage?: string;
+
+  // Registros de tiendas
+  showRegistries?: boolean;
+  registries?: Array<{
     name: string;
     url: string;
     icon?: string;
   }>;
+
+  // Datos bancarios
   showBankAccount?: boolean;
   bankDetails?: {
     accountName: string;

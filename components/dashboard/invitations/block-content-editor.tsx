@@ -757,69 +757,113 @@ function GiftsEditor({
     onChange({ ...data, registries: newRegistries });
   };
 
+  const defaultEnvelopeMessage = "Tu presencia es nuestro mejor regalo, pero si deseas hacer un detalle, habrá un buzón especial en el evento";
+
   return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="gifts-message">Mensaje (opcional)</Label>
-        <Textarea
-          id="gifts-message"
-          value={data.message || ''}
-          onChange={(e) => onChange({ ...data, message: e.target.value })}
-          placeholder="Tu presencia es nuestro mejor regalo..."
-          rows={3}
-        />
+    <div className="space-y-6">
+      {/* Toggle 1: Lluvia de Sobres */}
+      <div className="border rounded-lg p-4 bg-purple-50">
+        <div className="flex items-center space-x-2 mb-3">
+          <Switch
+            id="show-envelope-rain"
+            checked={data.showEnvelopeRain || false}
+            onCheckedChange={(checked) => onChange({ ...data, showEnvelopeRain: checked })}
+          />
+          <Label htmlFor="show-envelope-rain" className="font-semibold">
+            💸 Mostrar &quot;Lluvia de Sobres&quot;
+          </Label>
+        </div>
+        {data.showEnvelopeRain && (
+          <div className="pl-6">
+            <Label htmlFor="envelope-message" className="text-sm text-gray-600">Mensaje personalizado</Label>
+            <Textarea
+              id="envelope-message"
+              value={data.envelopeRainMessage || ''}
+              onChange={(e) => onChange({ ...data, envelopeRainMessage: e.target.value })}
+              placeholder={defaultEnvelopeMessage}
+              rows={3}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Solo texto, sin datos bancarios ni links
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="border-t pt-4">
-        <div className="flex items-center justify-between mb-3">
-          <Label>Links de Registro</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addRegistry}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Agregar
-          </Button>
+      {/* Toggle 2: Registros de Tiendas */}
+      <div className="border rounded-lg p-4 bg-blue-50">
+        <div className="flex items-center space-x-2 mb-3">
+          <Switch
+            id="show-registries"
+            checked={data.showRegistries || false}
+            onCheckedChange={(checked) => onChange({ ...data, showRegistries: checked })}
+          />
+          <Label htmlFor="show-registries" className="font-semibold">
+            Mostrar Registros de Tiendas
+          </Label>
         </div>
-        <div className="space-y-3">
-          {(data.registries || []).map((registry, index) => (
-            <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
-              <div className="flex-1 space-y-2">
-                <Input
-                  value={registry.name}
-                  onChange={(e) => updateRegistry(index, 'name', e.target.value)}
-                  placeholder="Nombre (Ej: Amazon, Liverpool)"
-                />
-                <Input
-                  value={registry.url}
-                  onChange={(e) => updateRegistry(index, 'url', e.target.value)}
-                  placeholder="URL completa"
-                  type="url"
-                />
-              </div>
+        {data.showRegistries && (
+          <div className="pl-6">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm text-gray-600">Registros de Tiendas</Label>
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => removeRegistry(index)}
+                onClick={addRegistry}
               >
-                <Trash2 className="h-4 w-4 text-red-600" />
+                <Plus className="h-4 w-4 mr-1" />
+                Agregar
               </Button>
             </div>
-          ))}
-        </div>
+            <div className="space-y-3">
+              {(data.registries || []).map((registry, index) => (
+                <div key={index} className="flex gap-2 items-start p-3 border rounded-lg bg-white">
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={registry.name}
+                      onChange={(e) => updateRegistry(index, 'name', e.target.value)}
+                      placeholder="Nombre (Ej: Amazon, Liverpool)"
+                    />
+                    <Input
+                      value={registry.url}
+                      onChange={(e) => updateRegistry(index, 'url', e.target.value)}
+                      placeholder="URL completa"
+                      type="url"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeRegistry(index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </Button>
+                </div>
+              ))}
+              {(!data.registries || data.registries.length === 0) && (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No hay registros. Haz clic en &quot;Agregar&quot; para añadir uno.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="border-t pt-4">
+      {/* Toggle 3: Datos Bancarios */}
+      <div className="border rounded-lg p-4 bg-green-50">
         <div className="flex items-center space-x-2 mb-3">
           <Switch
             id="show-bank"
             checked={data.showBankAccount || false}
             onCheckedChange={(checked) => onChange({ ...data, showBankAccount: checked })}
           />
-          <Label htmlFor="show-bank">Mostrar datos bancarios</Label>
+          <Label htmlFor="show-bank" className="font-semibold">
+            Mostrar Datos Bancarios
+          </Label>
         </div>
         {data.showBankAccount && (
           <div className="space-y-3 pl-6">
@@ -827,7 +871,12 @@ function GiftsEditor({
               value={data.bankDetails?.accountName || ''}
               onChange={(e) => onChange({
                 ...data,
-                bankDetails: { ...data.bankDetails!, accountName: e.target.value }
+                bankDetails: {
+                  accountName: e.target.value,
+                  bank: data.bankDetails?.bank || '',
+                  accountType: data.bankDetails?.accountType || '',
+                  accountNumber: data.bankDetails?.accountNumber || ''
+                }
               })}
               placeholder="Nombre del titular"
             />
@@ -835,7 +884,12 @@ function GiftsEditor({
               value={data.bankDetails?.bank || ''}
               onChange={(e) => onChange({
                 ...data,
-                bankDetails: { ...data.bankDetails!, bank: e.target.value }
+                bankDetails: {
+                  accountName: data.bankDetails?.accountName || '',
+                  bank: e.target.value,
+                  accountType: data.bankDetails?.accountType || '',
+                  accountNumber: data.bankDetails?.accountNumber || ''
+                }
               })}
               placeholder="Banco"
             />
@@ -843,7 +897,12 @@ function GiftsEditor({
               value={data.bankDetails?.accountType || ''}
               onChange={(e) => onChange({
                 ...data,
-                bankDetails: { ...data.bankDetails!, accountType: e.target.value }
+                bankDetails: {
+                  accountName: data.bankDetails?.accountName || '',
+                  bank: data.bankDetails?.bank || '',
+                  accountType: e.target.value,
+                  accountNumber: data.bankDetails?.accountNumber || ''
+                }
               })}
               placeholder="Tipo de cuenta (Ahorros/Corriente)"
             />
@@ -851,7 +910,12 @@ function GiftsEditor({
               value={data.bankDetails?.accountNumber || ''}
               onChange={(e) => onChange({
                 ...data,
-                bankDetails: { ...data.bankDetails!, accountNumber: e.target.value }
+                bankDetails: {
+                  accountName: data.bankDetails?.accountName || '',
+                  bank: data.bankDetails?.bank || '',
+                  accountType: data.bankDetails?.accountType || '',
+                  accountNumber: e.target.value
+                }
               })}
               placeholder="Número de cuenta"
             />
