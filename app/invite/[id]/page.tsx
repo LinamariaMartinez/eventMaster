@@ -83,6 +83,17 @@ export default function InvitationPage({ params }: PageProps) {
         }
 
         setEvent(eventData);
+
+        // Track view silently (non-blocking)
+        fetch(`/api/events/${eventId}/track-view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch((err) => {
+          // Silently fail - don't disrupt user experience
+          console.debug('View tracking failed:', err);
+        });
       } catch (error) {
         console.error('Error loading event:', error);
         setNotFound(true);

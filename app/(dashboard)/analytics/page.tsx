@@ -18,27 +18,29 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, TrendingUp, Users, BarChart3 } from "lucide-react";
+import { CalendarDays, TrendingUp, Users, BarChart3, Eye } from "lucide-react";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
+import { useInvitationViews } from "@/hooks/use-invitation-views";
 
 export default function EstadisticasPage() {
   const [timeRange, setTimeRange] = useState("6m");
   const { events } = useSupabaseEvents();
   const { guests } = useSupabaseGuests();
+  const { viewStats } = useInvitationViews();
 
   // Calculate real stats from Supabase data
   const realStats = useMemo(() => {
     const now = new Date();
     const confirmedGuests = guests.filter(g => g.status === 'confirmed');
     const declinedGuests = guests.filter(g => g.status === 'declined');
-    
+
     // Categorize events by date
     const upcomingEvents = events.filter(event => {
       const eventDate = new Date(event.date + 'T' + event.time);
       return eventDate > now;
     });
-    
+
     const completedEvents = events.filter(event => {
       const eventDate = new Date(event.date + 'T' + event.time);
       return eventDate < now;
@@ -47,6 +49,13 @@ export default function EstadisticasPage() {
     const totalGuests = guests.length;
     const responseRate = totalGuests > 0 ? Math.round(((confirmedGuests.length + declinedGuests.length) / totalGuests) * 100) : 0;
     const confirmationRate = totalGuests > 0 ? Math.round((confirmedGuests.length / totalGuests) * 100) : 0;
+
+    // Calculate view stats
+    const allViewStats = Object.values(viewStats);
+    const totalViews = allViewStats.reduce((sum, stat) => sum + stat.total_views, 0);
+    const viewsToday = allViewStats.reduce((sum, stat) => sum + stat.views_today, 0);
+    const viewsThisWeek = allViewStats.reduce((sum, stat) => sum + stat.views_this_week, 0);
+    const uniqueVisitors = allViewStats.reduce((sum, stat) => sum + stat.unique_visitors, 0);
 
     return {
       totalEvents: events.length,
@@ -57,8 +66,12 @@ export default function EstadisticasPage() {
       activeEvents: upcomingEvents.length,
       completedEvents: completedEvents.length,
       upcomingEvents: upcomingEvents.length,
+      totalViews,
+      viewsToday,
+      viewsThisWeek,
+      uniqueVisitors,
     };
-  }, [events, guests]);
+  }, [events, guests, viewStats]);
 
   // Calculate event performance from real data
   const realEventPerformance = useMemo(() => {
@@ -186,12 +199,19 @@ export default function EstadisticasPage() {
                   <Users className="h-4 w-4" />
                   Análisis de Invitados
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="trends" 
+                <TabsTrigger
+                  value="trends"
                   className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
                 >
                   <TrendingUp className="h-4 w-4" />
                   Tendencias
+                </TabsTrigger>
+                <TabsTrigger
+                  value="views"
+                  className="gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
+                  <Eye className="h-4 w-4" />
+                  Visitas
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -508,6 +528,198 @@ export default function EstadisticasPage() {
                         </p>
                         <p className="text-xs text-yellow-700">
                           Enviar recordatorios 3 días antes del evento
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="views" className="m-0 p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="border-l-4 border-l-burgundy">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-slate-700">
+                      Total de Visitas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-burgundy">
+                      {realStats.totalViews}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Todas las invitaciones
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-slate-700">
+                      Visitas Hoy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-blue-600">
+                      {realStats.viewsToday}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Últimas 24 horas
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-green-500">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-slate-700">
+                      Visitas Esta Semana
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-green-600">
+                      {realStats.viewsThisWeek}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Últimos 7 días
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-purple-500">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-slate-700">
+                      Visitantes Únicos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-purple-600">
+                      {realStats.uniqueVisitors}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      IPs únicas
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">
+                    Visitas por Evento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {events.map(event => {
+                      const eventViews = viewStats[event.id];
+                      if (!eventViews) return null;
+
+                      const maxViews = Math.max(...Object.values(viewStats).map(v => v.total_views), 1);
+                      const percentage = (eventViews.total_views / maxViews) * 100;
+
+                      return (
+                        <div key={event.id} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium">{event.title}</p>
+                              <p className="text-xs text-slate-600">
+                                {new Date(event.date).toLocaleDateString('es-ES')}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-burgundy">
+                                {eventViews.total_views}
+                              </p>
+                              <p className="text-xs text-slate-600">
+                                {eventViews.unique_visitors} únicos
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-burgundy transition-all"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                              <span>Hoy: {eventViews.views_today}</span>
+                              <span>•</span>
+                              <span>Semana: {eventViews.views_this_week}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {events.length === 0 && (
+                      <div className="text-center py-8 text-slate-600">
+                        No hay eventos con visitas registradas
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium">
+                      Tasa de Conversión
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Visitas a Confirmaciones</span>
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          {realStats.totalViews > 0
+                            ? Math.round((guests.filter(g => g.status === 'confirmed').length / realStats.totalViews) * 100)
+                            : 0}%
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Visitas Promedio por Evento</span>
+                        <span className="text-sm font-medium">
+                          {realStats.totalEvents > 0
+                            ? Math.round(realStats.totalViews / realStats.totalEvents)
+                            : 0}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Visitantes Únicos por Evento</span>
+                        <span className="text-sm font-medium">
+                          {realStats.totalEvents > 0
+                            ? Math.round(realStats.uniqueVisitors / realStats.totalEvents)
+                            : 0}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium">
+                      Información
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50 rounded-md">
+                        <p className="text-sm font-medium text-blue-900">
+                          Privacidad Garantizada
+                        </p>
+                        <p className="text-xs text-blue-700 mt-1">
+                          Las direcciones IP se almacenan encriptadas (SHA-256) para proteger la privacidad de los visitantes
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-md">
+                        <p className="text-sm font-medium text-green-900">
+                          Tracking Transparente
+                        </p>
+                        <p className="text-xs text-green-700 mt-1">
+                          Las estadísticas solo son visibles para ti. Los invitados no ven contadores públicos
                         </p>
                       </div>
                     </div>

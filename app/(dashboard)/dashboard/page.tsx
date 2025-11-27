@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, Mail, TrendingUp, Clock, MapPin, Plus, Eye, BarChart3 } from "lucide-react";
 import { useSupabaseEvents } from "@/hooks/use-supabase-events";
 import { useSupabaseGuests } from "@/hooks/use-supabase-guests";
+import { useInvitationViews } from "@/hooks/use-invitation-views";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthStatus } from "@/components/debug/auth-status";
 import Link from "next/link";
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const { user, isAuthenticated, loading: authLoading, redirectToLogin } = useAuth();
   const { events, loading: eventsLoading } = useSupabaseEvents();
   const { guests, loading: guestsLoading } = useSupabaseGuests();
+  const { viewStats, loading: viewsLoading } = useInvitationViews();
   
   // Handle authentication redirect
   useEffect(() => {
@@ -31,27 +33,35 @@ export default function DashboardPage() {
     totalEvents: 0,
     totalGuests: 0,
     totalInvitations: 0,
-    upcomingEvents: 0
+    upcomingEvents: 0,
+    totalViews: 0
   });
-  
-  const loading = authLoading || eventsLoading || guestsLoading;
+
+  const loading = authLoading || eventsLoading || guestsLoading || viewsLoading;
 
   useEffect(() => {
     if (!loading && events.length >= 0) {
       const totalGuests = guests.length;
-      
-      const upcomingEventsCount = events.filter(event => 
+
+      const upcomingEventsCount = events.filter(event =>
         new Date(event.date) > new Date()
       ).length;
-      
+
+      // Calculate total views across all events
+      const totalViews = Object.values(viewStats).reduce(
+        (sum, stat) => sum + stat.total_views,
+        0
+      );
+
       setStats({
         totalEvents: events.length,
         totalGuests,
         totalInvitations: totalGuests,
-        upcomingEvents: upcomingEventsCount
+        upcomingEvents: upcomingEventsCount,
+        totalViews
       });
     }
-  }, [events, guests, loading]);
+  }, [events, guests, viewStats, loading]);
 
   // Show loading while checking authentication or loading data
   if (loading || !isAuthenticated) {
@@ -75,7 +85,8 @@ export default function DashboardPage() {
     .slice(0, 3)
     .map(event => ({
       ...event,
-      confirmedGuests: guests.filter(g => g.event_id === event.id && g.status === 'confirmed').length
+      confirmedGuests: guests.filter(g => g.event_id === event.id && g.status === 'confirmed').length,
+      views: viewStats[event.id]?.total_views || 0
     }));
 
   return (
@@ -159,15 +170,15 @@ export default function DashboardPage() {
         
         <Card className="border-l-4 border-l-burgundy bg-gradient-to-r from-cream/20 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-700">Confirmaciones</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-700">Visitas Totales</CardTitle>
             <div className="w-10 h-10 bg-burgundy/10 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-burgundy" />
+              <Eye className="h-5 w-5 text-burgundy" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-burgundy">85%</div>
+            <div className="text-3xl font-bold text-burgundy">{stats.totalViews}</div>
             <p className="text-sm text-slate-600 mt-1">
-              Tasa promedio
+              Invitaciones vistas
             </p>
           </CardContent>
         </Card>
@@ -214,6 +225,10 @@ export default function DashboardPage() {
                       <div className="text-center">
                         <div className="text-lg font-bold text-burgundy">{event.confirmedGuests}</div>
                         <div className="text-xs text-slate-600">confirmados</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-slate-700">{event.views}</div>
+                        <div className="text-xs text-slate-600">visitas</div>
                       </div>
                       <Link href={`/events/${event.id}`}>
                         <Button size="sm" variant="outline" className="border-burgundy text-burgundy hover:bg-burgundy hover:text-white">
