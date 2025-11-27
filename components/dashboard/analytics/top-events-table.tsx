@@ -7,12 +7,14 @@ import { TrendingUp, TrendingDown } from "lucide-react"
 
 interface TopEventsTableProps {
   events: Array<{
+    id: string
     name: string
     guests: number
     confirmed: number
     declined: number
     pending: number
     responseRate: number
+    whatsapp?: string | null
   }>
 }
 
@@ -44,11 +46,18 @@ export function TopEventsTable({ events }: TopEventsTableProps) {
           </TableHeader>
           <TableBody>
             {sortedEvents.map((event, index) => (
-              <TableRow key={event.name}>
+              <TableRow key={event.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">#{index + 1}</span>
-                    <span>{event.name}</span>
+                    <span>
+                      {event.name}
+                      {event.whatsapp && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (•••{event.whatsapp.slice(-4)})
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell className="text-center">{event.guests}</TableCell>

@@ -83,12 +83,14 @@ export default function EstadisticasPage() {
       const responseRate = eventGuests.length > 0 ? Math.round(((confirmed + declined) / eventGuests.length) * 100) : 0;
       
       return {
+        id: event.id,
         name: event.title,
         guests: eventGuests.length,
         confirmed: confirmed,
         declined: declined,
         pending: pending,
         responseRate: responseRate,
+        whatsapp: event.whatsapp_number,
       };
     }).sort((a, b) => b.guests - a.guests); // Sort by most guests
   }, [events, guests]);
